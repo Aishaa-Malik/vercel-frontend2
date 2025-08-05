@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/';
+const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/api';
 
 const PaymentCallback: React.FC = () => {
   const navigate = useNavigate();
@@ -37,13 +37,17 @@ const PaymentCallback: React.FC = () => {
           const testOrderId = 'order_' + Date.now();
           const testSignature = 'sig_' + Date.now();
           
-          // Call backend API to verify payment
-          const response = await axios.post(`${BACKEND_API_URL}/verify-payment`, {
-            razorpay_payment_id: testPaymentId,
-            razorpay_order_id: testOrderId,
-            razorpay_signature: testSignature,
-            email
-          });
+                  // Call backend API to verify payment
+        const response = await axios.post(`${BACKEND_API_URL}/verify-payment`, {
+          razorpay_payment_id: testPaymentId,
+          razorpay_order_id: testOrderId,
+          razorpay_signature: testSignature,
+          email
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
 
           if (response.data.success) {
             handleSuccessfulPayment();
@@ -60,6 +64,10 @@ const PaymentCallback: React.FC = () => {
           razorpay_order_id,
           razorpay_signature,
           email
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
 
         if (response.data.success) {
@@ -69,6 +77,12 @@ const PaymentCallback: React.FC = () => {
         }
       } catch (error: any) {
         console.error('Payment callback error:', error);
+        console.log('Full error object:', JSON.stringify(error, null, 2));
+        if (error.response) {
+          console.log('Response data:', error.response.data);
+          console.log('Response status:', error.response.status);
+          console.log('Response headers:', error.response.headers);
+        }
         handleFailedPayment(error.response?.data?.message || 'An error occurred while processing your payment');
       }
     };
@@ -84,11 +98,15 @@ const PaymentCallback: React.FC = () => {
       setTimeout(() => {
         navigate('/dashboard');
       }, 3000);
+      
+      // Log success for debugging
+      console.log('Payment processed successfully, redirecting to dashboard soon');
     };
 
     const handleFailedPayment = (errorMessage: string) => {
       setStatus('error');
       setMessage(errorMessage || 'Payment verification failed. Please contact support.');
+      console.log('Payment failed with error:', errorMessage);
     };
 
     processPayment();

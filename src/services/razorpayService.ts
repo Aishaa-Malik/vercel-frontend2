@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/';
+const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/api';
 
 // Function to verify payment and update user role
 export const verifyPaymentAndUpdateRole = async (
@@ -15,6 +15,10 @@ export const verifyPaymentAndUpdateRole = async (
       razorpay_order_id: orderId,
       razorpay_signature: signature,
       email
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
     
     return response.data;

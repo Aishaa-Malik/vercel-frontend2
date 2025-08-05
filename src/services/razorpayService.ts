@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/api';
+// Use local backend for development and testing
+const BACKEND_API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5001/api' 
+  : 'https://vercel-backend2-qj8e.vercel.app/api';
 
 // Function to verify payment and update user role
 export const verifyPaymentAndUpdateRole = async (

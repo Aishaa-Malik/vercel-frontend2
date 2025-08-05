@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
+// Use Vercel backend URL
 const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/api';
 
 const PaymentCallback: React.FC = () => {
@@ -27,48 +28,34 @@ const PaymentCallback: React.FC = () => {
         const razorpay_payment_id = searchParams.get('razorpay_payment_id');
         const razorpay_order_id = searchParams.get('razorpay_order_id');
         const razorpay_signature = searchParams.get('razorpay_signature');
-
-        // If we don't have payment details in the URL (direct access to callback page)
-        // This is for development/testing - in production, these should come from Razorpay
-        if (!razorpay_payment_id) {
-          console.log('No payment details in URL, using test values');
-          // For testing purposes only - in production these would come from Razorpay
-          const testPaymentId = 'pay_' + Date.now();
-          const testOrderId = 'order_' + Date.now();
-          const testSignature = 'sig_' + Date.now();
-          
-                  // Call backend API to verify payment
-        const response = await axios.post(`${BACKEND_API_URL}/verify-payment`, {
-          razorpay_payment_id: testPaymentId,
-          razorpay_order_id: testOrderId,
-          razorpay_signature: testSignature,
-          email
-        }, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-          if (response.data.success) {
-            handleSuccessfulPayment();
-          } else {
-            handleFailedPayment(response.data.message || 'Payment verification failed');
-          }
-          
-          return;
-        }
-
-        // Call backend API to verify payment with real Razorpay parameters
-        const response = await axios.post(`${BACKEND_API_URL}/verify-payment`, {
-          razorpay_payment_id,
-          razorpay_order_id,
+        
+        // Log payment parameters for debugging
+        console.log('Payment callback parameters:', { 
+          razorpay_payment_id, 
+          razorpay_order_id, 
           razorpay_signature,
           email
-        }, {
+        });
+
+        // For testing purposes - if no payment details are in URL, we'll still process the payment
+        // This allows us to test the flow without actual Razorpay integration
+        const paymentData = {
+          razorpay_payment_id: razorpay_payment_id || 'test_payment_' + Date.now(),
+          razorpay_order_id: razorpay_order_id || 'test_order_' + Date.now(),
+          razorpay_signature: razorpay_signature || 'test_signature_' + Date.now(),
+          email
+        };
+
+        console.log('Sending payment verification request:', paymentData);
+
+        // Call backend API to verify payment
+        const response = await axios.post(`${BACKEND_API_URL}/verify-payment`, paymentData, {
           headers: {
             'Content-Type': 'application/json'
           }
         });
+
+        console.log('Payment verification response:', response.data);
 
         if (response.data.success) {
           handleSuccessfulPayment();

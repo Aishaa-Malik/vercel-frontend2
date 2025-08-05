@@ -79,14 +79,18 @@ const PricingSection: React.FC = () => {
       
       // Store the email in localStorage for later verification
       localStorage.setItem('paymentEmail', email);
-         const baseUrl   = 'https://rzp.io/rzp/WYPXJsZt';          // your Payment-Page link
-         const callback  = encodeURIComponent(
-                'https://vercel-frontend2-taupe.vercel.app/payment-callback'
-              );
+         const baseUrl = 'https://rzp.io/rzp/WYPXJsZt';          // your Payment-Page link
+         
+         // Use appropriate callback URL based on environment
+         const callbackUrl = process.env.NODE_ENV === 'development'
+           ? 'http://localhost:3000/payment-callback'
+           : 'https://vercel-frontend2-taupe.vercel.app/payment-callback';
+           
+         const callback = encodeURIComponent(callbackUrl);
 
-              const url = `${baseUrl}?redirect=${callback}` +
-                              `&prefill[email]=${encodeURIComponent(email)}` +
-                              `&notes[plan]=${selectedPlan.id}`;
+         const url = `${baseUrl}?redirect=${callback}` +
+                     `&prefill[email]=${encodeURIComponent(email)}` +
+                     `&notes[plan]=${selectedPlan.id}`;
 
                               window.location.href = url;
 

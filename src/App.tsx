@@ -18,7 +18,8 @@ import TenantsManagement from './components/dashboard/TenantsManagement'
 import { AuthProvider, UserRole } from './contexts/AuthContext'
 import LandingPage3 from './components/LandingPage3'
 import UpdatePassword from './components/UpdatePassword'
-import OAuthCallback from './components/OAuthCallback';
+import OAuthCallback from './components/OAuthCallback'
+import PaymentCallback from './components/PaymentCallback';
 
 const App: React.FC = () => {
 
@@ -43,6 +44,8 @@ const App: React.FC = () => {
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
             <Route path="/oauth-callback" element={<OAuthCallback />} />
+            
+            <Route path="/payment-callback" element={<PaymentCallback />} />
 
             {/* Dashboard routes with role-based protection */}
             <Route path="/dashboard" element={<DashboardLayout />}>
@@ -52,6 +55,7 @@ const App: React.FC = () => {
                   requiredRoles={[
                     UserRole.SUPER_ADMIN, 
                     UserRole.BUSINESS_OWNER,
+                    UserRole.BUSINESS_ADMIN,
                     UserRole.DOCTOR,
                     UserRole.EMPLOYEE
                   ]} 
@@ -66,6 +70,7 @@ const App: React.FC = () => {
                   requiredRoles={[
                     UserRole.SUPER_ADMIN, 
                     UserRole.BUSINESS_OWNER,
+                    UserRole.BUSINESS_ADMIN,
                     UserRole.DOCTOR,
                     UserRole.EMPLOYEE
                   ]} 
@@ -77,7 +82,7 @@ const App: React.FC = () => {
               {/* Revenue - accessible to super admin and business owner only */}
               <Route element={
                 <ProtectedRoute 
-                  requiredRoles={[UserRole.SUPER_ADMIN, UserRole.BUSINESS_OWNER]} 
+                  requiredRoles={[UserRole.SUPER_ADMIN, UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN]} 
                 />
               }>
                 <Route path="revenue" element={<RevenuePage />} />
@@ -86,7 +91,7 @@ const App: React.FC = () => {
               {/* User Management - accessible to super admin and business owner only */}
               <Route element={
                 <ProtectedRoute 
-                  requiredRoles={[UserRole.SUPER_ADMIN, UserRole.BUSINESS_OWNER]} 
+                  requiredRoles={[UserRole.SUPER_ADMIN, UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN]} 
                 />
               }>
                 <Route path="user-management" element={<UserManagement />} />
@@ -113,7 +118,7 @@ const App: React.FC = () => {
               {/* Settings - accessible to super admin and business owner */}
               <Route element={
                 <ProtectedRoute 
-                  requiredRoles={[UserRole.SUPER_ADMIN, UserRole.BUSINESS_OWNER]} 
+                  requiredRoles={[UserRole.SUPER_ADMIN, UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN]} 
                 />
               }>
                 <Route path="settings" element={<div>Settings (Coming Soon)</div>} />

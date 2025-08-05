@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   BUSINESS_OWNER = 'BUSINESS_OWNER',
+  BUSINESS_ADMIN = 'BUSINESS_ADMIN',
   DOCTOR = 'DOCTOR',
   EMPLOYEE = 'EMPLOYEE'
 }

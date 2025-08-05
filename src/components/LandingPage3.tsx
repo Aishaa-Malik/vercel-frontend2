@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import PricingSection from './PricingSection';
 
 const LandingPage3: React.FC = () => {
   return (
@@ -134,6 +135,9 @@ const LandingPage3: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Pricing Section */}
+      <PricingSection />
 
       {/* CTA Section */}
       <div className="bg-blue-700">

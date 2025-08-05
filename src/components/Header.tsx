@@ -29,6 +29,12 @@ const Header: React.FC = () => {
               Home
             </Link>
             <Link
+              to="/#pricing"
+              className="text-gray-600 hover:text-blue-600"
+            >
+              Pricing
+            </Link>
+            <Link
               to="/dashboard"
               className={`text-gray-600 hover:text-blue-600 ${
                 location.pathname.startsWith('/dashboard') ? 'font-semibold text-blue-600' : ''
@@ -88,6 +94,13 @@ const Header: React.FC = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Home
+              </Link>
+              <Link
+                to="/#pricing"
+                className="text-gray-600 hover:text-blue-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Pricing
               </Link>
               <Link
                 to="/dashboard"

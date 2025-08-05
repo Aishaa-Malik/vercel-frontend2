@@ -79,16 +79,31 @@ const PricingSection: React.FC = () => {
       
       // Store the email in localStorage for later verification
       localStorage.setItem('paymentEmail', email);
+         const baseUrl   = 'https://rzp.io/rzp/WYPXJsZt';          // your Payment-Page link
+         const callback  = encodeURIComponent(
+                'https://vercel-frontend2-taupe.vercel.app/payment-callback'
+              );
+
+              const url = `${baseUrl}?redirect=${callback}` +
+                              `&prefill[email]=${encodeURIComponent(email)}` +
+                              `&notes[plan]=${selectedPlan.id}`;
+
+                              window.open(url, '_blank', 'width=800,height=650');
+
+                              setPaymentStatus('idle');
+                             localStorage.setItem('paymentInitiated', 'true');
+                             setIsProcessing(false);         
+
       
       // Redirect directly to the Razorpay payment link
       // After payment, the user will be redirected back to our site
       // We'll use a URL parameter to track the return URL
-      const returnUrl = encodeURIComponent(window.location.origin + '/payment-callback');
+     //const returnUrl = encodeURIComponent(window.location.origin + '/payment-callback');
       
       // In a real implementation, you would append the return URL to your Razorpay link
       // For example: https://rzp.io/rzp/WYPXJsZt?callback=${returnUrl}
       // For now, we'll use the direct link as specified
-      window.location.href = "https://rzp.io/rzp/WYPXJsZt";
+     // window.location.href = "https://rzp.io/rzp/WYPXJsZt";
       
       // Note: The verification and role update will need to be handled 
       // when the user returns from the payment page, likely in a callback route

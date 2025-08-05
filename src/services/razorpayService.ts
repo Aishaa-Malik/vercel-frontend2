@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BACKEND_API_URL = 'http://localhost:5001/api';
+const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/';
 
 // Function to verify payment and update user role
 export const verifyPaymentAndUpdateRole = async (

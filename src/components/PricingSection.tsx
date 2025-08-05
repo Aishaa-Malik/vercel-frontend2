@@ -88,7 +88,7 @@ const PricingSection: React.FC = () => {
                               `&prefill[email]=${encodeURIComponent(email)}` +
                               `&notes[plan]=${selectedPlan.id}`;
 
-                              window.open(url, '_blank', 'width=800,height=650');
+                              window.location.href = url;
 
                               setPaymentStatus('idle');
                              localStorage.setItem('paymentInitiated', 'true');

@@ -300,64 +300,54 @@ const AppointmentsPage: React.FC = () => {
 
 
 const visibleAppointments = useMemo(() => {
-  if (!appointments.length) return [];
+  if (!appointments.length || !allSubscriptions?.length) return [];
 
-  // If no subscriptions, show no appointments
-  if (!allSubscriptions?.length) return [];
-
-  // Sort subscriptions by start date for efficient lookup
-  const sortedSubscriptions = [...allSubscriptions].sort((a, b) => 
+  // Sort billing cycles once by start date - O(m log m)
+  const sortedCycles = [...allSubscriptions].sort((a, b) => 
     a.billing_cycle_start.localeCompare(b.billing_cycle_start)
   );
 
-  // Helper function to find subscription that covers a date
-  const findCoveringSubscription = (date: string) => {
-    return sortedSubscriptions.find(sub => 
-      date >= sub.billing_cycle_start && date < sub.billing_cycle_end
-    );
-  };
-
-  // First, determine which appointments are covered by any subscription
-  const appointmentsWithSubs = appointments.map(appointment => {
-    const coveringSub = findCoveringSubscription(appointment.appointment_date);
-    return { appointment, subscription: coveringSub };
+  // Filter valid appointments - O(n * log m) with early exit
+  const validAppointments = appointments.filter(appointment => {
+    return sortedCycles.some(cycle => {
+      // Early exit if appointment is before this cycle
+      if (appointment.appointment_date < cycle.billing_cycle_start) return false;
+      
+      // Check if appointment falls in this cycle
+      return appointment.appointment_date >= cycle.billing_cycle_start && 
+             appointment.appointment_date < cycle.billing_cycle_end;
+    });
   });
 
-  // Filter out appointments with no subscription coverage
-  const validAppointments = appointmentsWithSubs.filter(item => item.subscription);
-
-  // If no active subscription, show all valid appointments
+  // Now apply the limit logic only to current active cycle
   if (!activeSubscription) {
-    return validAppointments
-      .map(item => item.appointment)
-      .sort((a, b) => {
-        const ta = toTs(a.appointment_date, a.appointment_time);
-        const tb = toTs(b.appointment_date, b.appointment_time);
-        return tb - ta;
-      });
+    return validAppointments; // Show all valid appointments if no active cycle
   }
 
-  // Get current subscription details
   const { billing_cycle_start, billing_cycle_end, plans } = activeSubscription;
   const totalLimit = plans.appointment_limit || 0;
 
-  // Separate current cycle and previous cycles
-  const currentCycleAppointments = validAppointments.filter(
-    item => item.appointment.appointment_date >= billing_cycle_start && 
-            item.appointment.appointment_date < billing_cycle_end
-  ).map(item => item.appointment);
+  // Sort by date descending
+  const sorted = validAppointments.sort((a, b) => {
+    const ta = toTs(a.appointment_date, a.appointment_time);
+    const tb = toTs(b.appointment_date, b.appointment_time);
+    return tb - ta;
+  });
 
-  const previousCycleAppointments = validAppointments.filter(
-    item => item.appointment.appointment_date < billing_cycle_start
-  ).map(item => item.appointment);
+  // Previous cycles (from ALL historical cycles)
+  const previousCycles = sorted.filter(
+    a => a.appointment_date < billing_cycle_start
+  );
 
-  // Apply limit only to current cycle appointments
-  const limitedCurrentCycle = totalLimit > 0 
-    ? currentCycleAppointments.slice(0, totalLimit) 
-    : [];
+  // Current active cycle
+  const currentCycle = sorted.filter(
+    a => a.appointment_date >= billing_cycle_start && a.appointment_date < billing_cycle_end
+  );
 
-  // Combine and sort all visible appointments
-  return [...previousCycleAppointments, ...limitedCurrentCycle].sort((a, b) => {
+  // Apply limit only to current cycle
+  const limitedCurrentCycle = totalLimit > 0 ? currentCycle.slice(0, totalLimit) : [];
+
+  return [...previousCycles, ...limitedCurrentCycle].sort((a, b) => {
     const ta = toTs(a.appointment_date, a.appointment_time);
     const tb = toTs(b.appointment_date, b.appointment_time);
     return tb - ta;

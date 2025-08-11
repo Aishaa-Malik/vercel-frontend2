@@ -52,6 +52,10 @@ export const getUserRole = async (userId: string) => {
     .select('role')
     .eq('user_id', userId)
     .single();
+
+    console.log('Fetched role:', data); // Add this line
+   console.log('User ID:', userId);   // Add this line
+
     
   if (error) throw error;
   return data?.role as UserRole;

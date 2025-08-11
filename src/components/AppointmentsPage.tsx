@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseService';
 
 interface Appointment {
   id: string;
   patient_name: string;
-  doctor: string; // Changed from doctor_name to doctor
-  appointment_date: string;
-  appointment_time: string;
+  doctor: string;
+  appointment_date: string; // YYYY-MM-DD
+  appointment_time: string; // HH:mm or HH:mm:ss
   status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
   patient_email?: string;
   patient_contact?: string;
@@ -16,8 +16,36 @@ interface Appointment {
   amount?: number;
   currency?: string;
   payment_method?: string;
+  prescription?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+interface AppointmentLimits {
+  canBook: boolean;
+  remainingAppointments: number;
+  totalLimit: number;
+}
+
+interface ActiveSubscription {
+  id: string;
+  billing_cycle_start: string; // YYYY-MM-DD
+  billing_cycle_end: string;   // YYYY-MM-DD
+  plans: {
+    name: string;
+    appointment_limit: number;
+  } | any; // Allow for both object and array structures
+}
+
+interface Subscription {
+  id: string;
+  billing_cycle_start: string;
+  billing_cycle_end: string;
+  status: string;
+  plans: {
+    name: string;
+    appointment_limit: number;
+  };
 }
 
 const AppointmentsPage: React.FC = () => {
@@ -28,19 +56,147 @@ const AppointmentsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancellingIds, setCancellingIds] = useState<Set<string>>(new Set());
+  const [uploadingIds, setUploadingIds] = useState<Set<string>>(new Set());
+  const [appointmentLimits, setAppointmentLimits] = useState<AppointmentLimits>({
+    canBook: true,
+    remainingAppointments: 0,
+    totalLimit: 0
+  });
+  const [activeSubscription, setActiveSubscription] = useState<ActiveSubscription | null>(null);
+  const [allSubscriptions, setAllSubscriptions] = useState<Subscription[]>([]);
 
-  // Fetch appointments from Supabase
-  useEffect(() => {
-    fetchAppointments();
-  }, [user?.tenantId]);
 
+  // Check appointment limits function (also stores active subscription for filtering)
+  const checkAppointmentLimit = async (tenantId: string): Promise<AppointmentLimits> => {
+    try {
+      const { data: subscription, error: subError } = await supabase
+        .from('subscriptions')
+        .select(`
+          id,
+          billing_cycle_start,
+          billing_cycle_end,
+          plans!inner (
+            name,
+            appointment_limit
+          )
+        `)
+        .eq('tenant_id', tenantId)
+        .eq('status', 'active')
+        .gte('billing_cycle_end', new Date().toISOString().split('T')[0])
+        .single();
+
+      if (subError || !subscription || !subscription.plans) {
+        setActiveSubscription(null);
+        return { canBook: false, remainingAppointments: 0, totalLimit: 0 };
+      }
+
+      setActiveSubscription(subscription as unknown as ActiveSubscription);
+
+      // Count appointments in this active billing cycle
+      const { count: appointmentCount, error: countError } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .gte('appointment_date', subscription.billing_cycle_start)
+        .lt('appointment_date', subscription.billing_cycle_end);
+
+      if (countError) throw countError;
+
+      const usedAppointments = appointmentCount || 0;
+      
+      // Handle plans data which could be in different formats
+      let totalLimit = 0;
+      if (subscription.plans) {
+        // Use type assertion to handle the plans object
+        const plansObj = subscription.plans as any;
+        totalLimit = plansObj.appointment_limit || 0;
+      }
+
+
+      const remainingAppointments = Math.max(0, totalLimit - usedAppointments);
+
+      return {
+        canBook: remainingAppointments > 0,
+        remainingAppointments,
+        totalLimit
+      };
+    } catch (error) {
+      console.error('Error checking appointment limit:', error);
+      setActiveSubscription(null);
+      return { canBook: false, remainingAppointments: 0, totalLimit: 0 };
+    }
+  };
+
+  // File upload function
+  const handleFileUpload = async (appointmentId: string, file: File) => {
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Only .jpg, .jpeg, .png, and .pdf files are allowed');
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      setError('File size must be less than 10MB');
+      return;
+    }
+
+    try {
+      setUploadingIds(prev => new Set(prev).add(appointmentId));
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `prescription_${appointmentId}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('prescriptions')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('prescriptions')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('appointments')
+        .update({ 
+          prescription: publicUrl,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', appointmentId);
+
+      if (updateError) throw updateError;
+
+      setAppointments(prev => 
+        prev.map(apt => 
+          apt.id === appointmentId 
+            ? { ...apt, prescription: publicUrl }
+            : apt
+        )
+      );
+
+      setError(null);
+    } catch (err: any) {
+      console.error('Error uploading file:', err);
+      setError('Failed to upload prescription file');
+    } finally {
+      setUploadingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(appointmentId);
+        return newSet;
+      });
+    }
+  };
+
+  // Fetch appointments
   const fetchAppointments = async () => {
     if (!user?.tenantId) return;
 
     try {
       setIsLoading(true);
       
-      // Updated query to match your actual table structure
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -57,9 +213,11 @@ const AppointmentsPage: React.FC = () => {
           amount,
           currency,
           payment_method,
+          prescription,
           created_at,
           updated_at
         `)
+        .eq('tenant_id', user.tenantId)
         .order('appointment_date', { ascending: false })
         .order('appointment_time', { ascending: true });
 
@@ -74,12 +232,21 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
-  // Cancel appointment function
+  useEffect(() => {
+    fetchAppointments();
+  }, [user?.tenantId]);
+
+  useEffect(() => {
+    if (user?.tenantId) {
+      checkAppointmentLimit(user.tenantId).then(setAppointmentLimits);
+    }
+  }, [user?.tenantId]);
+
+  // Cancel appointment
   const cancelAppointment = async (appointment: Appointment) => {
     try {
       setCancellingIds(prev => new Set(prev).add(appointment.id));
 
-      // Use Supabase to update the appointment status
       const { error: updateError } = await supabase
         .from('appointments')
         .update({ status: 'cancelled', updated_at: new Date().toISOString() })
@@ -87,22 +254,13 @@ const AppointmentsPage: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      // Remove appointment from local state
       setAppointments(prev => prev.filter(apt => apt.id !== appointment.id));
 
-      // Send HTTP request to n8n with date and time
       try {
-        console.log('in try');
-        // Use a proxy endpoint or direct n8n webhook URL that's CORS-enabled
-        const n8nWebhookUrl = 'https://aishaiitbombay.app.n8n.cloud/webhook/appointment-cancel'; // Replace with your actual webhook URL
-        
-        console.log('cancel cancel  Appointment cancelled:', appointment.id);
-
+        const n8nWebhookUrl = 'https://aishaiitbombay.app.n8n.cloud/webhook/appointment-cancel';
         await fetch(n8nWebhookUrl, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             appointment_id: appointment.id,
             appointment_date: appointment.appointment_date,
@@ -112,14 +270,13 @@ const AppointmentsPage: React.FC = () => {
             action: 'cancel'
           }),
         });
-
-        console.log('cancel cancel cancel cancel Appointment cancelled:', appointment.id);
-
       } catch (n8nError) {
         console.error('Failed to notify n8n:', n8nError);
-        // Don't throw here as the appointment is already cancelled in the database
       }
 
+      if (user?.tenantId) {
+        checkAppointmentLimit(user.tenantId).then(setAppointmentLimits);
+      }
     } catch (err: any) {
       console.error('Error cancelling appointment:', err);
       setError('Failed to cancel appointment');
@@ -132,30 +289,103 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
-  // Filter appointments based on status and search query
-  const filteredAppointments = appointments.filter(appointment => {
-    const matchesFilter = filter === 'all' || appointment.status === filter;
-    const matchesSearch = 
-      appointment.patient_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      appointment.doctor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (appointment.patient_contact && appointment.patient_contact.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (appointment.booking_reference && appointment.booking_reference.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesFilter && matchesSearch;
+  // Utility: parse date+time to timestamp
+  const toTs = (d: string, t: string) => {
+    const time = t?.length === 5 ? `${t}:00` : t || '00:00:00';
+    return new Date(`${d}T${time}`).getTime();
+  };
+
+  // Build visible list with limit logic
+// Build visible list with limit logic
+
+
+const visibleAppointments = useMemo(() => {
+  if (!appointments.length) return [];
+
+  // If no subscriptions, show no appointments
+  if (!allSubscriptions?.length) return [];
+
+  // Sort subscriptions by start date for efficient lookup
+  const sortedSubscriptions = [...allSubscriptions].sort((a, b) => 
+    a.billing_cycle_start.localeCompare(b.billing_cycle_start)
+  );
+
+  // Helper function to find subscription that covers a date
+  const findCoveringSubscription = (date: string) => {
+    return sortedSubscriptions.find(sub => 
+      date >= sub.billing_cycle_start && date < sub.billing_cycle_end
+    );
+  };
+
+  // First, determine which appointments are covered by any subscription
+  const appointmentsWithSubs = appointments.map(appointment => {
+    const coveringSub = findCoveringSubscription(appointment.appointment_date);
+    return { appointment, subscription: coveringSub };
   });
 
-  // Get status badge color
+  // Filter out appointments with no subscription coverage
+  const validAppointments = appointmentsWithSubs.filter(item => item.subscription);
+
+  // If no active subscription, show all valid appointments
+  if (!activeSubscription) {
+    return validAppointments
+      .map(item => item.appointment)
+      .sort((a, b) => {
+        const ta = toTs(a.appointment_date, a.appointment_time);
+        const tb = toTs(b.appointment_date, b.appointment_time);
+        return tb - ta;
+      });
+  }
+
+  // Get current subscription details
+  const { billing_cycle_start, billing_cycle_end, plans } = activeSubscription;
+  const totalLimit = plans.appointment_limit || 0;
+
+  // Separate current cycle and previous cycles
+  const currentCycleAppointments = validAppointments.filter(
+    item => item.appointment.appointment_date >= billing_cycle_start && 
+            item.appointment.appointment_date < billing_cycle_end
+  ).map(item => item.appointment);
+
+  const previousCycleAppointments = validAppointments.filter(
+    item => item.appointment.appointment_date < billing_cycle_start
+  ).map(item => item.appointment);
+
+  // Apply limit only to current cycle appointments
+  const limitedCurrentCycle = totalLimit > 0 
+    ? currentCycleAppointments.slice(0, totalLimit) 
+    : [];
+
+  // Combine and sort all visible appointments
+  return [...previousCycleAppointments, ...limitedCurrentCycle].sort((a, b) => {
+    const ta = toTs(a.appointment_date, a.appointment_time);
+    const tb = toTs(b.appointment_date, b.appointment_time);
+    return tb - ta;
+  });
+
+}, [appointments, allSubscriptions, activeSubscription]);
+
+  // Apply filter/search on visibleAppointments
+  const filteredAppointments = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return visibleAppointments.filter(appointment => {
+      const matchesFilter = filter === 'all' || appointment.status === filter;
+      const matchesSearch = 
+        appointment.patient_name.toLowerCase().includes(q) ||
+        appointment.doctor.toLowerCase().includes(q) ||
+        (appointment.patient_contact && appointment.patient_contact.toLowerCase().includes(q)) ||
+        (appointment.booking_reference && appointment.booking_reference.toLowerCase().includes(q));
+      return matchesFilter && matchesSearch;
+    });
+  }, [visibleAppointments, filter, searchQuery]);
+
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'scheduled':
-        return 'bg-blue-100 text-blue-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      case 'no-show':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'scheduled': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'no-show': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -168,7 +398,6 @@ const AppointmentsPage: React.FC = () => {
   };
 
   const formatTime = (timeString: string) => {
-    // Convert 24-hour format to 12-hour format for display
     const [hours, minutes] = timeString.split(':');
     const hour12 = parseInt(hours) % 12 || 12;
     const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
@@ -199,19 +428,75 @@ const AppointmentsPage: React.FC = () => {
           >
             Refresh
           </button>
-          <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors">
+          <button 
+            className={`px-4 py-2 rounded-md transition-colors ${
+              appointmentLimits.canBook 
+                ? 'bg-green-500 hover:bg-green-600 text-white' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            disabled={!appointmentLimits.canBook}
+          >
             + New Appointment
           </button>
         </div>
       </div>
 
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-blue-800">
+              Monthly Appointment Usage
+            </h3>
+            <p className="text-sm text-blue-600">
+              {appointmentLimits.totalLimit - appointmentLimits.remainingAppointments} / {appointmentLimits.totalLimit} appointments used this month
+            </p>
+          </div>
+          <div className="text-right">
+            <div className={`text-lg font-bold ${appointmentLimits.canBook ? 'text-green-600' : 'text-red-600'}`}>
+              {appointmentLimits.remainingAppointments} remaining
+            </div>
+          </div>
+        </div>
+        {!appointmentLimits.canBook && (
+          <div className="mt-2 text-sm text-red-600">
+            You've reached your monthly appointment limit. Please upgrade your plan to book more appointments.
+          </div>
+        )}
+        <div className="mt-2">
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className={`h-2 rounded-full ${appointmentLimits.canBook ? 'bg-blue-600' : 'bg-red-600'}`}
+              style={{ 
+                width: `${appointmentLimits.totalLimit ? ((appointmentLimits.totalLimit - appointmentLimits.remainingAppointments) / appointmentLimits.totalLimit) * 100 : 0}%` 
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mb-6">
-          {error}
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">{error}</div>
+            <div className="ml-auto pl-3">
+              <button
+                onClick={() => setError(null)}
+                className="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       )}
       
-      {/* Filters and Search */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <div className="flex-1">
@@ -238,8 +523,10 @@ const AppointmentsPage: React.FC = () => {
               <button 
                 key={status}
                 onClick={() => setFilter(status)}
-                className={`px-3 py-1 rounded-full text-sm ${
-                  filter === status ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                  filter === status 
+                    ? 'bg-blue-100 text-blue-800 border border-blue-300' 
+                    : 'bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200'
                 }`}
               >
                 {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -249,7 +536,6 @@ const AppointmentsPage: React.FC = () => {
         </div>
       </div>
       
-      {/* Appointments Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -271,6 +557,9 @@ const AppointmentsPage: React.FC = () => {
                   Payment
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Prescription
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Reference
                 </th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -281,13 +570,13 @@ const AppointmentsPage: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredAppointments.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                    No appointments found
+                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                    {searchQuery || filter !== 'all' ? 'No matching appointments found' : 'No appointments found'}
                   </td>
                 </tr>
               ) : (
                 filteredAppointments.map((appointment) => (
-                  <tr key={appointment.id}>
+                  <tr key={appointment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{appointment.patient_name}</div>
                       {appointment.patient_contact && (
@@ -325,26 +614,84 @@ const AppointmentsPage: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      {appointment.prescription ? (
+                        <a 
+                          href={appointment.prescription} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full hover:bg-green-200 transition-colors"
+                        >
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                          View
+                        </a>
+                      ) : (
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleFileUpload(appointment.id, file);
+                              }
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            disabled={uploadingIds.has(appointment.id)}
+                          />
+                          <button 
+                            className="inline-flex items-center px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={uploadingIds.has(appointment.id)}
+                          >
+                            {uploadingIds.has(appointment.id) ? (
+                              <>
+                                <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Uploading...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                </svg>
+                                Upload
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       {appointment.booking_reference && (
-                        <div className="text-sm text-gray-900 font-mono">
+                        <div className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">
                           {appointment.booking_reference}
                         </div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900">View</button>
-                      <button className="text-blue-600 hover:text-blue-900">Edit</button>
-                      <button className="text-blue-600 hover:text-blue-900" onClick={() => console.log(appointment.status)}>
-                        {appointment.status}
+                      <button className="text-blue-600 hover:text-blue-900 hover:underline transition-colors">
+                        View
                       </button>
-                      
-                      { (
+                      {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
                         <button 
                           onClick={() => cancelAppointment(appointment)}
                           disabled={cancellingIds.has(appointment.id)}
-                          className="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {cancellingIds.has(appointment.id) ? 'Cancelling...' : 'Cancel'}
+                          {cancellingIds.has(appointment.id) ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-1 h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Cancelling...
+                            </>
+                          ) : (
+                            'Cancel'
+                          )}
                         </button>
                       )}
                     </td>

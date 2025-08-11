@@ -64,6 +64,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Fetch additional info
       const userId = session.user.id;
       const role = await getUserRole(userId);
+      if (!role) {
+        throw new Error('Unable to determine user role. Please contact support.');
+      }
+    
+      
       const tenantId = await getUserTenant(userId);
 
       const userData: User = {
@@ -133,7 +138,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return requiredRoles.includes(user.role);
   };
 
-  // Check for existing session on component mount
   useEffect(() => {
     const checkAuthStatus = async () => {
       setIsLoading(true);
@@ -141,27 +145,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const token = localStorage.getItem('authToken');
         
         if (token) {
-          // In a real app, validate the token with your backend
-          // For demo purposes, we'll just set a hardcoded user
+          // Validate token with Supabase
+          const { getCurrentSession, getUserRole, getUserTenant } = await import('../services/supabaseService');
           
-          // Hardcoded user data (for demo)
-          const userData: User = {
-            id: '1',
-            email: 'demo@example.com',
-            name: 'Demo User',
-            role: UserRole.BUSINESS_OWNER,
-            tenantId: 'tenant-1'
-          };
+          const session = await getCurrentSession();
           
-          // Hardcoded tenant data (for demo)
-          const tenantData: Tenant = {
-            id: 'tenant-1',
-            name: 'City Hospital'
-          };
-          
-          setUser(userData);
-          setTenant(tenantData);
-          setIsAuthenticated(true);
+          if (session?.user) {
+            const userId = session.user.id;
+            const role = await getUserRole(userId);
+            const tenantId = await getUserTenant(userId);
+            
+            const userData: User = {
+              id: userId,  // Real UUID from Supabase
+              email: session.user.email ?? '',
+              name: session.user.user_metadata?.full_name ?? session.user.email?.split('@')[0] ?? 'User',
+              role: role ?? UserRole.EMPLOYEE,
+              tenantId: tenantId // Real UUID from database
+            };
+            
+            // Fetch tenant data if tenantId exists
+            if (tenantId) {
+              // Use getTenantDetails instead of getTenantById
+              const { getTenantDetails } = await import('../services/supabaseService');
+              const tenantData = await getTenantDetails(tenantId);
+              setTenant(tenantData);
+            }
+            
+            setUser(userData);
+            setIsAuthenticated(true);
+          } else {
+            // Invalid session
+            throw new Error('Invalid session');
+          }
         }
       } catch (error) {
         console.error('Authentication error:', error);
@@ -173,10 +188,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
       }
     };
-
+  
     checkAuthStatus();
   }, []);
 
+  
   return (
     <AuthContext.Provider
       value={{

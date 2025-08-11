@@ -34,7 +34,7 @@ const DashboardLayout: React.FC = () => {
         return [
           ...commonItems,
           { name: 'Revenue', path: '/dashboard/revenue', icon: 'cash-register' },
-          { name: 'User Management', path: '/dashboard/user-management', icon: 'users' },
+          { name: 'User Management', path: '/dashboard/users', icon: 'users' },
           { name: 'Settings', path: '/dashboard/settings', icon: 'cog' },
         ];
       case UserRole.DOCTOR:

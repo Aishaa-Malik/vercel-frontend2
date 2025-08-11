@@ -1,137 +1,161 @@
-import React from 'react'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-// import LandingPage from './components/LandingPage'
-import LoginPage from './components/LoginPage'
-//import PaymentPage from './components/PaymentPage'
-import Header from './components/Header'
-//import Mentors from './components/Mentors'
-// import About from './components/About'
-// import Contact from './components/Contact'
-import AppointmentsPage from './components/AppointmentsPage'
-import RevenuePage from './components/dashboard/RevenuePage'
-import UnauthorizedPage from './components/UnauthorizedPage'
-import ProtectedRoute from './components/ProtectedRoute'
-import DashboardLayout from './components/dashboard/DashboardLayout'
-import DashboardHome from './components/dashboard/DashboardHome'
-import UserManagement from './components/dashboard/UserManagement'
-import TenantsManagement from './components/dashboard/TenantsManagement'
-import { AuthProvider, UserRole } from './contexts/AuthContext'
-import LandingPage3 from './components/LandingPage3'
-import UpdatePassword from './components/UpdatePassword'
-import OAuthCallback from './components/OAuthCallback'
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth, UserRole } from './contexts/AuthContext';
+import './App.css';
+
+// Components
+import Header from './components/Header';
+import LandingPage3 from './components/LandingPage3';
+import LoginPage from './components/LoginPage';
+import DashboardLayout from './components/dashboard/DashboardLayout';
+import DashboardHome from './components/dashboard/DashboardHome';
+import RevenuePage from './components/dashboard/RevenuePage';
+import TenantsManagement from './components/dashboard/TenantsManagement';
+import UserManagement from './components/dashboard/UserManagement';
+import AppointmentsPage from './components/AppointmentsPage';
+import OAuthCallback from './components/OAuthCallback';
 import PaymentCallback from './components/PaymentCallback';
+import ProtectedRoute from './components/ProtectedRoute';
+import UnauthorizedPage from './components/UnauthorizedPage';
+import UpdatePassword from './components/UpdatePassword';
+import OnboardingForm from './components/OnboardingForm';
 
-const App: React.FC = () => {
+// Turf owner components
+import TurfDashboardLayout from './components/turf/TurfDashboardLayout';
+import TurfDashboardHome from './components/turf/TurfDashboardHome';
 
-  return (
-    <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-gradient-to-br">
-          {/* Only show header on non-dashboard routes */}
-          <Routes>
-            <Route path="/dashboard/*" element={null} />
-            <Route path="*" element={<Header />} />
-          </Routes>
-          
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<LandingPage3 />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/update-password" element={<UpdatePassword />} />
-            {/* <Route path="/mentors" element={<Mentors />} />
-            <Route path="/about" element={<About/>} />
-            <Route path="/contact" element={<Contact/>} /> */}
-            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+// Check if user needs onboarding
+const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-            <Route path="/oauth-callback" element={<OAuthCallback />} />
-            
-            <Route path="/payment-callback" element={<PaymentCallback />} />
-
-            {/* Dashboard routes with role-based protection */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              {/* Dashboard home - accessible to all authenticated users */}
-              <Route element={
-                <ProtectedRoute 
-                  requiredRoles={[
-                    UserRole.SUPER_ADMIN, 
-                    UserRole.BUSINESS_OWNER,
-                    UserRole.BUSINESS_ADMIN,
-                    UserRole.DOCTOR,
-                    UserRole.EMPLOYEE
-                  ]} 
-                />
-              }>
-                <Route index element={<DashboardHome />} />
-              </Route>
-
-              {/* Appointments - accessible to all authenticated users */}
-              <Route element={
-                <ProtectedRoute 
-                  requiredRoles={[
-                    UserRole.SUPER_ADMIN, 
-                    UserRole.BUSINESS_OWNER,
-                    UserRole.BUSINESS_ADMIN,
-                    UserRole.DOCTOR,
-                    UserRole.EMPLOYEE
-                  ]} 
-                />
-              }>
-                <Route path="appointments" element={<AppointmentsPage />} />
-              </Route>
-
-              {/* Revenue - accessible to super admin and business owner only */}
-              <Route element={
-                <ProtectedRoute 
-                  requiredRoles={[UserRole.SUPER_ADMIN, UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN]} 
-                />
-              }>
-                <Route path="revenue" element={<RevenuePage />} />
-              </Route>
-
-              {/* User Management - accessible to super admin and business owner only */}
-              <Route element={
-                <ProtectedRoute 
-                  requiredRoles={[UserRole.SUPER_ADMIN, UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN]} 
-                />
-              }>
-                <Route path="user-management" element={<UserManagement />} />
-              </Route>
-
-              {/* Tenants Management - accessible to super admin only */}
-              <Route element={
-                <ProtectedRoute 
-                  requiredRoles={[UserRole.SUPER_ADMIN]} 
-                />
-              }>
-                <Route path="tenants" element={<TenantsManagement />} />
-              </Route>
-
-              {/* Analytics - accessible to super admin only */}
-              <Route element={
-                <ProtectedRoute 
-                  requiredRoles={[UserRole.SUPER_ADMIN]} 
-                />
-              }>
-                <Route path="analytics" element={<div>Analytics Dashboard (Coming Soon)</div>} />
-              </Route>
-
-              {/* Settings - accessible to super admin and business owner */}
-              <Route element={
-                <ProtectedRoute 
-                  requiredRoles={[UserRole.SUPER_ADMIN, UserRole.BUSINESS_OWNER, UserRole.BUSINESS_ADMIN]} 
-                />
-              }>
-                <Route path="settings" element={<div>Settings (Coming Soon)</div>} />
-              </Route>
-            </Route>
-
-            {/* Fallback 404 route */}
-            <Route path="*" element={<div>404 Page Not Found</div>} />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
-  );
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await fetch(`/api/check-onboarding?userId=${user.id}`).then(res => res.json());
+        
+        if (error) throw error;
+        setNeedsOnboarding(data?.needsOnboarding || false);
+      } catch (err) {
+        console.error('Error checking onboarding status:', err);
+        // Default to not needing onboarding if there's an error
+        setNeedsOnboarding(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkOnboardingStatus();
+    console.log("needsOnboarding", needsOnboarding);
+  }, [user?.id]);
+  
+  if (isLoading) return <div>Loading...</div>;
+  
+  if (needsOnboarding) {
+    return <Navigate to="/onboarding" replace />;
+  }
+  
+  return <>{children}</>;
 };
 
-export default App
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<LandingPage3 />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/oauth-callback" element={<OAuthCallback />} />
+            <Route path="/payment-callback" element={<PaymentCallback />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
+            
+            {/* Onboarding Route */}
+            <Route 
+              path="/onboarding" 
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER]}>
+                  <OnboardingForm />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Doctor Dashboard Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER, UserRole.DOCTOR]}>
+                  <OnboardingCheck>
+                    <DashboardLayout />
+                  </OnboardingCheck>
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<DashboardHome />} />
+              <Route path="appointments" element={<AppointmentsPage />} />
+              <Route path="revenue" element={<RevenuePage />} />
+              <Route path="tenants" element={<TenantsManagement />} />
+              <Route path="users" element={<UserManagement />} />
+            </Route>
+
+            {/* Direct routes for Revenue and User Management */}
+            <Route path="/revenue" element={
+              <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER, UserRole.DOCTOR]}>
+                <OnboardingCheck>
+                  <DashboardLayout />
+                </OnboardingCheck>
+              </ProtectedRoute>
+            }>
+              <Route index element={<RevenuePage />} />
+            </Route>
+            
+            <Route path="/UserManagement" element={
+              <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER, UserRole.DOCTOR]}>
+                <OnboardingCheck>
+                  <DashboardLayout />
+                </OnboardingCheck>
+              </ProtectedRoute>
+            }>
+              <Route index element={<UserManagement />} />
+            </Route>
+            
+            {/* Additional route for /users */}
+            <Route path="/users" element={
+              <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER, UserRole.DOCTOR]}>
+                <OnboardingCheck>
+                  <DashboardLayout />
+                </OnboardingCheck>
+              </ProtectedRoute>
+            }>
+              <Route index element={<UserManagement />} />
+            </Route>
+
+            {/* Turf Owner Dashboard Routes */}
+            <Route
+              path="/turf-dashboard"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER]}>
+                  <OnboardingCheck>
+                    <TurfDashboardLayout />
+                  </OnboardingCheck>
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<TurfDashboardHome />} />
+              <Route path="bookings" element={<div>Bookings Page</div>} />
+              <Route path="schedule" element={<div>Schedule Page</div>} />
+              <Route path="revenue" element={<div>Revenue Page</div>} />
+              <Route path="settings" element={<div>Settings Page</div>} />
+            </Route>
+          </Routes>
+        </div>
+      </AuthProvider>
+    </Router>
+  );
+}
+
+export default App;

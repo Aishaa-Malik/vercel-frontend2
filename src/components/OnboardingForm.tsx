@@ -90,13 +90,15 @@ const OnboardingForm: React.FC = () => {
       const { error: saveError } = await supabase
         .from('business_profiles')
         .upsert({
-          user_id: user.id,
+          email: user.email,
           tenant_id: user.tenantId,
           business_type: userType,
           business_name: userType === 'turf' ? turfName : null,
           time_slots: formattedTimeSlots,
           operating_days: selectedDays,
           onboarding_completed: true
+        }, { 
+          onConflict: 'email'  // Specify which column to check for conflicts
         });
       
       if (saveError) throw saveError;

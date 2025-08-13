@@ -143,6 +143,48 @@ const OAuthCallback: React.FC = () => {
     };
   };
 
+  // Add this function after the checkUserSetup function
+const checkBusinessProfile = async (userId: string) => {
+  try {
+    logWithDebug('Checking business profile...');
+    
+    // Get user's tenant_id from user_tenants table
+    const { data: userTenant, error: tenantError } = await supabase
+      .from('user_tenants')
+      .select('tenant_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (tenantError) {
+      throw new Error(`Error fetching user tenant: ${tenantError.message}`);
+    }
+
+    if (!userTenant?.tenant_id) {
+      logWithDebug('No tenant found for user');
+      return { businessType: null };
+    }
+
+    // Get business profile using tenant_id
+    const { data: businessProfile, error: businessError } = await supabase
+      .from('business_profiles')
+      .select('business_type')
+      .eq('tenant_id', userTenant.tenant_id)
+      .maybeSingle();
+
+    if (businessError) {
+      throw new Error(`Error fetching business profile: ${businessError.message}`);
+    }
+
+    logWithDebug(`Business type found: ${businessProfile?.business_type || 'none'}`);
+    return { businessType: businessProfile?.business_type || null };
+
+  } catch (error: any) {
+    logWithDebug(`Error checking business profile: ${error.message}`);
+    return { businessType: null };
+  }
+};
+
+
   // Main OAuth processing function
   useEffect(() => {
     if (hasProcessed.current) return;
@@ -211,9 +253,30 @@ const OAuthCallback: React.FC = () => {
           window.history.replaceState(null, '', window.location.pathname);
         }
 
-        logWithDebug('Redirecting to dashboard...');
-        navigate('/dashboard', { replace: true });
+        // logWithDebug('Redirecting to dashboard...');
+        // navigate('/dashboard', { replace: true });
 
+        // Complete authentication
+        logWithDebug(`Completing authentication with role: ${userRole}`);
+        await loginFromSession(session, userRole);
+
+        // Clear URL hash
+        if (window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+
+        // Check business profile to determine redirect route
+        const { businessType } = await checkBusinessProfile(session.user.id);
+
+        if (businessType === 'turf') {
+          logWithDebug('Redirecting to turf dashboard...');
+          navigate('/turf-dashboard', { replace: true }); // or your preferred turf route
+        } else {
+          logWithDebug('Redirecting to default dashboard...');
+          navigate('/dashboard', { replace: true });
+        }
+
+        
       } catch (err: any) {
         console.error('OAuth callback error:', err);
         logWithDebug(`Error: ${err.message}`);

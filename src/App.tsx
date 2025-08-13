@@ -27,7 +27,7 @@ import TurfDashboardHome from './components/turf/TurfDashboardHome';
 // Check if user needs onboarding
 const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
-  const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(null);
+  const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -35,10 +35,18 @@ const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
       if (!user?.id) return;
       
       try {
-        const { data, error } = await fetch(`/api/check-onboarding?userId=${user.id}`).then(res => res.json());
+        console.log("Fetching onboarding status for user:", user.id);
+        const response = await fetch(`http://localhost:5001/api/check-onboarding?email=${user.email}&userId=${user.id}`);
+
+        console.log("Onboarding check response:", response);
+        console.log("Onboarding check response status:", response.status);
+        const { data, error } = await response.json();
+        console.log("data", data);
         
         if (error) throw error;
         setNeedsOnboarding(data?.needsOnboarding || false);
+        console.log("data", data);
+        console.log("needsOnboarding", data?.needsOnboarding);
       } catch (err) {
         console.error('Error checking onboarding status:', err);
         // Default to not needing onboarding if there's an error
@@ -50,11 +58,14 @@ const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
     
     checkOnboardingStatus();
     console.log("needsOnboarding", needsOnboarding);
+    // Add a more visible log to track when the check is performed
+    console.log("========= ONBOARDING CHECK PERFORMED =========");
   }, [user?.id]);
   
   if (isLoading) return <div>Loading...</div>;
   
   if (needsOnboarding) {
+    console.log("needsOnboarding", needsOnboarding);
     return <Navigate to="/onboarding" replace />;
   }
   

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth, UserRole } from '../../contexts/AuthContext';
 
-const TurfDashboardHome: React.FC = () => {
+const DashboardHome: React.FC = () => {
   const { user, tenant } = useAuth();
 
   // Render different dashboard content based on user role
@@ -294,4 +294,4 @@ const DefaultDashboard: React.FC = () => {
   );
 };
 
-export default TurfDashboardHome; 
+export default DashboardHome; 

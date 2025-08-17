@@ -1,22 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../services/supabaseService';
+import { useAuth } from '../../contexts/AuthContext'
+import { supabase } from '../../services/supabaseService';
 
 interface Appointment {
   id: string;
-  patient_name: string;
-  doctor: string;
+  customer_name: string;
   appointment_date: string; // YYYY-MM-DD
   appointment_time: string; // HH:mm or HH:mm:ss
   status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
-  patient_email?: string;
-  patient_contact?: string;
+  customer_email?: string;
+  customer_contact?: string;
   booking_reference?: string;
   payment_id?: string;
   amount?: number;
   currency?: string;
   payment_method?: string;
-  prescription?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -48,7 +46,7 @@ interface Subscription {
   };
 }
 
-const AppointmentsPage: React.FC = () => {
+const TurfAppointmentsPage: React.FC = () => {
   const { tenant, user } = useAuth();
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -94,7 +92,7 @@ const AppointmentsPage: React.FC = () => {
 
       // Count appointments in this active billing cycle
       const { count: appointmentCount, error: countError } = await supabase
-        .from('appointments')
+        .from('TurfAppointments')
         .select('*', { count: 'exact', head: true })
         .eq('tenant_id', tenantId)
         .gte('appointment_date', subscription.billing_cycle_start)
@@ -127,69 +125,6 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
-  // File upload function
-  const handleFileUpload = async (appointmentId: string, file: File) => {
-    if (!file) return;
-
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      setError('Only .jpg, .jpeg, .png, and .pdf files are allowed');
-      return;
-    }
-
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      setError('File size must be less than 10MB');
-      return;
-    }
-
-    try {
-      setUploadingIds(prev => new Set(prev).add(appointmentId));
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `prescription_${appointmentId}_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('prescriptions')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('prescriptions')
-        .getPublicUrl(fileName);
-
-      const { error: updateError } = await supabase
-        .from('appointments')
-        .update({ 
-          prescription: publicUrl,
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', appointmentId);
-
-      if (updateError) throw updateError;
-
-      setAppointments(prev => 
-        prev.map(apt => 
-          apt.id === appointmentId 
-            ? { ...apt, prescription: publicUrl }
-            : apt
-        )
-      );
-
-      setError(null);
-    } catch (err: any) {
-      console.error('Error uploading file:', err);
-      setError('Failed to upload prescription file');
-    } finally {
-      setUploadingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(appointmentId);
-        return newSet;
-      });
-    }
-  };
-
   // Fetch appointments
   const fetchAppointments = async () => {
     if (!user?.tenantId) return;
@@ -198,13 +133,12 @@ const AppointmentsPage: React.FC = () => {
       setIsLoading(true);
       
       const { data, error } = await supabase
-        .from('appointments')
+        .from('TurfAppointments')
         .select(`
           id,
-          patient_name,
-          patient_email,
-          patient_contact,
-          doctor,
+          customer_name,
+          customer_email,
+          customer_contact,
           appointment_date,
           appointment_time,
           status,
@@ -213,7 +147,6 @@ const AppointmentsPage: React.FC = () => {
           amount,
           currency,
           payment_method,
-          prescription,
           created_at,
           updated_at
         `)
@@ -226,7 +159,7 @@ const AppointmentsPage: React.FC = () => {
       setAppointments(data || []);
     } catch (err: any) {
       console.error('Error fetching appointments:', err);
-      setError('Failed to load appointments');
+      setError('Failed to load bookings');
     } finally {
       setIsLoading(false);
     }
@@ -248,7 +181,7 @@ const AppointmentsPage: React.FC = () => {
       setCancellingIds(prev => new Set(prev).add(appointment.id));
 
       const { error: updateError } = await supabase
-        .from('appointments')
+        .from('TurfAppointments')
         .update({ status: 'cancelled', updated_at: new Date().toISOString() })
         .eq('id', appointment.id);
 
@@ -257,7 +190,7 @@ const AppointmentsPage: React.FC = () => {
       setAppointments(prev => prev.filter(apt => apt.id !== appointment.id));
 
       try {
-        const n8nWebhookUrl = 'https://aishaa01.app.n8n.cloud/webhook/appointment-cancel';
+        const n8nWebhookUrl = 'https://aishaiitbombay.app.n8n.cloud/webhook/appointment-cancel';
         await fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -265,8 +198,7 @@ const AppointmentsPage: React.FC = () => {
             appointment_id: appointment.id,
             appointment_date: appointment.appointment_date,
             appointment_time: appointment.appointment_time,
-            patient_name: appointment.patient_name,
-            doctor: appointment.doctor,
+            customer_name: appointment.customer_name,
             action: 'cancel'
           }),
         });
@@ -371,9 +303,8 @@ const visibleAppointments = useMemo(() => {
     return visibleAppointments.filter(appointment => {
       const matchesFilter = filter === 'all' || appointment.status === filter;
       const matchesSearch = 
-        appointment.patient_name.toLowerCase().includes(q) ||
-        appointment.doctor.toLowerCase().includes(q) ||
-        (appointment.patient_contact && appointment.patient_contact.toLowerCase().includes(q)) ||
+        appointment.customer_name.toLowerCase().includes(q) ||
+        (appointment.customer_contact && appointment.customer_contact.toLowerCase().includes(q)) ||
         (appointment.booking_reference && appointment.booking_reference.toLowerCase().includes(q));
       return matchesFilter && matchesSearch;
     });
@@ -419,7 +350,7 @@ const visibleAppointments = useMemo(() => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Appointments</h1>
-          <p className="text-gray-600">Manage patient appointments for {tenant?.name || 'your organization'}</p>
+          <p className="text-gray-600">Manage customer appointments for {tenant?.name || 'your organization'}</p>
         </div>
         <div className="mt-4 md:mt-0">
           <button 
@@ -445,10 +376,10 @@ const visibleAppointments = useMemo(() => {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-medium text-blue-800">
-              Monthly Appointment Usage
+              Monthly Booking Usage
             </h3>
             <p className="text-sm text-blue-600">
-              {appointmentLimits.totalLimit - appointmentLimits.remainingAppointments} / {appointmentLimits.totalLimit} appointments used this month
+              {appointmentLimits.totalLimit - appointmentLimits.remainingAppointments} / {appointmentLimits.totalLimit} Bookings used this month
             </p>
           </div>
           <div className="text-right">
@@ -459,7 +390,7 @@ const visibleAppointments = useMemo(() => {
         </div>
         {!appointmentLimits.canBook && (
           <div className="mt-2 text-sm text-red-600">
-            You've reached your monthly appointment limit. Please upgrade your plan to book more appointments.
+            You've reached your monthly booking limit. Please upgrade your plan to book more bookings.
           </div>
         )}
         <div className="mt-2">
@@ -511,7 +442,7 @@ const visibleAppointments = useMemo(() => {
                 id="search"
                 name="search"
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Search by patient name, doctor, contact, or booking reference"
+                placeholder="Search by customer name, contact, or booking reference"
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -542,10 +473,7 @@ const visibleAppointments = useMemo(() => {
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Patient
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Doctor
+                  customer
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Date & Time
@@ -555,9 +483,6 @@ const visibleAppointments = useMemo(() => {
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Payment
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Prescription
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Reference
@@ -571,23 +496,20 @@ const visibleAppointments = useMemo(() => {
               {filteredAppointments.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                    {searchQuery || filter !== 'all' ? 'No matching appointments found' : 'No appointments found'}
+                    {searchQuery || filter !== 'all' ? 'No matching bookings found' : 'No bookings found'}
                   </td>
                 </tr>
               ) : (
                 filteredAppointments.map((appointment) => (
                   <tr key={appointment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{appointment.patient_name}</div>
-                      {appointment.patient_contact && (
-                        <div className="text-sm text-gray-500">{appointment.patient_contact}</div>
+                      <div className="text-sm font-medium text-gray-900">{appointment.customer_name}</div>
+                      {appointment.customer_contact && (
+                        <div className="text-sm text-gray-500">{appointment.customer_contact}</div>
                       )}
-                      {appointment.patient_email && (
-                        <div className="text-sm text-gray-500">{appointment.patient_email}</div>
+                      {appointment.customer_email && (
+                        <div className="text-sm text-gray-500">{appointment.customer_email}</div>
                       )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{appointment.doctor}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatDate(appointment.appointment_date)}</div>
@@ -614,55 +536,7 @@ const visibleAppointments = useMemo(() => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {appointment.prescription ? (
-                        <a 
-                          href={appointment.prescription} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full hover:bg-green-200 transition-colors"
-                        >
-                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                          View
-                        </a>
-                      ) : (
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept=".jpg,.jpeg,.png,.pdf"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleFileUpload(appointment.id, file);
-                              }
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            disabled={uploadingIds.has(appointment.id)}
-                          />
-                          <button 
-                            className="inline-flex items-center px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={uploadingIds.has(appointment.id)}
-                          >
-                            {uploadingIds.has(appointment.id) ? (
-                              <>
-                                <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Uploading...
-                              </>
-                            ) : (
-                              <>
-                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                </svg>
-                                Upload
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      )}
+                     
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {appointment.booking_reference && (
@@ -706,4 +580,4 @@ const visibleAppointments = useMemo(() => {
   );
 };
 
-export default AppointmentsPage;
+export default TurfAppointmentsPage;

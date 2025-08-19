@@ -27,6 +27,8 @@ import TurfDashboardHome from './components/turf/TurfDashboardHome';
 import TurfRevenuePage from './components/turf/TurfRevenuePage';
 import TurfUserManagement from './components/turf/TurfUserManagement';
 import TurfAppointmentsPage from './components/turf/TurfAppointmentsPage';
+import TurfEmployeeDashboard from './components/turf/TurfEmployeeDashboard';
+import TurfEmployeeDashboardLayout from './components/turf/TurfEmployeeDashboardLayout';
 
 // Check if user needs onboarding
 const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
@@ -162,9 +164,26 @@ function App() {
             >
               <Route index element={<TurfDashboardHome />} />
               <Route path="revenue" element={<TurfRevenuePage/>} />
-              <Route path="bookings" element={<TurfAppointmentsPage/>} />
+              <Route path="appointments" element={<TurfAppointmentsPage/>} />
               <Route path="users" element={<TurfUserManagement />} />
               <Route path="settings" element={<div>Settings Page</div>} />
+            </Route>
+            
+            {/* Turf Employee Dashboard Routes */}
+            <Route
+              path="/turf-dashboard/employee"
+              element={
+                <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER, UserRole.EMPLOYEE]}>
+                  <OnboardingCheck>
+                    <TurfEmployeeDashboardLayout />
+                  </OnboardingCheck>
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<TurfEmployeeDashboard />} />
+              <Route path="bookings" element={<TurfAppointmentsPage/>} />
+              {/* <Route path="revenue" element={<TurfRevenuePage/>} /> */}
+              <Route path="users" element={<TurfUserManagement />} />
             </Route>
           </Routes>
         </div>

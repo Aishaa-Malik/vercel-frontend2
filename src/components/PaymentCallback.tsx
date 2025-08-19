@@ -29,12 +29,26 @@ const PaymentCallback: React.FC = () => {
         const razorpay_order_id = searchParams.get('razorpay_order_id');
         const razorpay_signature = searchParams.get('razorpay_signature');
         
+        // Extract plan information from URL notes or localStorage
+        let plan = 'basic'; // Default plan
+        const planFromNotes = searchParams.get('notes[plan]');
+        if (planFromNotes) {
+          plan = planFromNotes;
+        } else {
+          // Fallback: try to get plan from localStorage if not in URL
+          const storedPlan = localStorage.getItem('selectedPlan');
+          if (storedPlan) {
+            plan = storedPlan;
+          }
+        }
+        
         // Log payment parameters for debugging
         console.log('Payment callback parameters:', { 
           razorpay_payment_id, 
           razorpay_order_id, 
           razorpay_signature,
-          email
+          email,
+          plan
         });
 
         // For testing purposes - if no payment details are in URL, we'll still process the payment
@@ -43,7 +57,8 @@ const PaymentCallback: React.FC = () => {
           razorpay_payment_id: razorpay_payment_id || 'test_payment_' + Date.now(),
           razorpay_order_id: razorpay_order_id || 'test_order_' + Date.now(),
           razorpay_signature: razorpay_signature || 'test_signature_' + Date.now(),
-          email
+          email,
+          plan
         };
 
         console.log('Sending payment verification request:', paymentData);
@@ -58,7 +73,7 @@ const PaymentCallback: React.FC = () => {
         console.log('Payment verification response:', response.data);
 
         if (response.data.success) {
-          handleSuccessfulPayment();
+          handleSuccessfulPayment(response.data);
         } else {
           handleFailedPayment(response.data.message || 'Payment verification failed');
         }
@@ -74,12 +89,14 @@ const PaymentCallback: React.FC = () => {
       }
     };
 
-    const handleSuccessfulPayment = () => {
+    const handleSuccessfulPayment = (responseData: any) => {
       setStatus('success');
-      setMessage('Payment successful! You are now registered as a Business Admin.');
+      const planName = responseData.plan ? responseData.plan.charAt(0).toUpperCase() + responseData.plan.slice(1) : 'Basic';
+      setMessage(`Payment successful! You are now registered as a Business Admin with the ${planName} plan.`);
       
-      // Clear the email from localStorage
+      // Clear the email and plan from localStorage
       localStorage.removeItem('paymentEmail');
+      localStorage.removeItem('selectedPlan');
       
       // Redirect to dashboard after 3 seconds
       setTimeout(() => {

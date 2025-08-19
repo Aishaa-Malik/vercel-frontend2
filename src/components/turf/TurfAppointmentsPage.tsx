@@ -43,7 +43,7 @@ interface Subscription {
   plans: {
     name: string;
     appointment_limit: number;
-  };
+  }[];
 }
 
 const TurfAppointmentsPage: React.FC = () => {
@@ -81,7 +81,7 @@ const TurfAppointmentsPage: React.FC = () => {
         .eq('tenant_id', tenantId)
         .eq('status', 'active')
         .gte('billing_cycle_end', new Date().toISOString().split('T')[0])
-        .single();
+        .maybeSingle();
 
       if (subError || !subscription || !subscription.plans) {
         setActiveSubscription(null);
@@ -125,6 +125,35 @@ const TurfAppointmentsPage: React.FC = () => {
     }
   };
 
+  // Add this new function
+const fetchAllSubscriptions = async () => {
+  if (!user?.tenantId) return;
+
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select(`
+        id,
+        billing_cycle_start,
+        billing_cycle_end,
+        status,
+        plans!inner (
+          name,
+          appointment_limit
+        )
+      `)
+      .eq('tenant_id', user.tenantId)
+      .order('billing_cycle_start', { ascending: true });
+
+    if (error) throw error;
+    
+    console.log('All subscriptions:', data);
+    setAllSubscriptions(data);
+  } catch (err: any) {
+    console.error('Error fetching subscriptions:', err);
+  }
+};
+
   // Fetch appointments
   const fetchAppointments = async () => {
     if (!user?.tenantId) return;
@@ -155,10 +184,14 @@ const TurfAppointmentsPage: React.FC = () => {
         .order('appointment_time', { ascending: true });
 
       if (error) throw error;
+      console.log('Fetched appointment data:', data); // ✅ Log the fetched data
 
       setAppointments(data || []);
+      console.log('Appointments', appointments);
+
     } catch (err: any) {
-      console.error('Error fetching appointments:', err);
+      console.log('Error fetching appointments:', err);
+      console.log('Here');
       setError('Failed to load bookings');
     } finally {
       setIsLoading(false);
@@ -167,6 +200,7 @@ const TurfAppointmentsPage: React.FC = () => {
 
   useEffect(() => {
     fetchAppointments();
+    fetchAllSubscriptions();
   }, [user?.tenantId]);
 
   useEffect(() => {
@@ -221,6 +255,8 @@ const TurfAppointmentsPage: React.FC = () => {
     }
   };
 
+console.log('error', error);
+
   // Utility: parse date+time to timestamp
   const toTs = (d: string, t: string) => {
     const time = t?.length === 5 ? `${t}:00` : t || '00:00:00';
@@ -234,8 +270,23 @@ const TurfAppointmentsPage: React.FC = () => {
 const visibleAppointments = useMemo(() => {
   if (!appointments.length) return [];
 
+  console.log('Computing visibleAppointments:', {
+    appointmentsLength: appointments.length,
+    allSubscriptionsLength: allSubscriptions?.length,
+    activeSubscription: activeSubscription
+  });
+
   // If no subscriptions, show no appointments
-  if (!allSubscriptions?.length) return [];
+    if (!appointments.length) {
+    console.log('No appointments found');
+    return [];
+  }
+
+  // If no subscriptions, show no appointments
+  if (!allSubscriptions?.length) {
+    console.log('No subscriptions found - showing no appointments');
+    return [];
+  }
 
   // Sort subscriptions by start date for efficient lookup
   const sortedSubscriptions = [...allSubscriptions].sort((a, b) => 
@@ -349,8 +400,8 @@ const visibleAppointments = useMemo(() => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Appointments</h1>
-          <p className="text-gray-600">Manage customer appointments for {tenant?.name || 'your organization'}</p>
+          <h1 className="text-2xl font-bold text-gray-800">Bookings</h1>
+          <p className="text-gray-600">Manage Customer Bookings for {tenant?.name || 'your organization'}</p>
         </div>
         <div className="mt-4 md:mt-0">
           <button 

@@ -77,26 +77,28 @@ const PricingSection: React.FC = () => {
       setIsProcessing(true);
       setErrorMessage('');
       
-      // Store the email in localStorage for later verification
+      // Store the email and selected plan in localStorage for later verification
       localStorage.setItem('paymentEmail', email);
-         const baseUrl = 'https://rzp.io/rzp/WYPXJsZt';          // your Payment-Page link
-         
-         // Use appropriate callback URL based on environment
-         const callbackUrl = process.env.NODE_ENV === 'development'
-           ? 'http://localhost:3000/payment-callback'
-           : 'https://vercel-frontend2-taupe.vercel.app/payment-callback';
-           
-         const callback = encodeURIComponent(callbackUrl);
+      localStorage.setItem('selectedPlan', selectedPlan.id);
+      
+      const baseUrl = 'https://rzp.io/rzp/WYPXJsZt';          // your Payment-Page link
+      
+      // Use appropriate callback URL based on environment
+      const callbackUrl = process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000/payment-callback'
+        : 'https://vercel-frontend2-taupe.vercel.app/payment-callback';
+        
+      const callback = encodeURIComponent(callbackUrl);
 
-         const url = `${baseUrl}?redirect=${callback}` +
-                     `&prefill[email]=${encodeURIComponent(email)}` +
-                     `&notes[plan]=${selectedPlan.id}`;
+      const url = `${baseUrl}?redirect=${callback}` +
+                  `&prefill[email]=${encodeURIComponent(email)}` +
+                  `&notes[plan]=${selectedPlan.id}`;
 
-                              window.location.href = url;
+      window.location.href = url;
 
-                              setPaymentStatus('idle');
-                             localStorage.setItem('paymentInitiated', 'true');
-                             setIsProcessing(false);         
+      setPaymentStatus('idle');
+      localStorage.setItem('paymentInitiated', 'true');
+      setIsProcessing(false);         
 
       
       // Redirect directly to the Razorpay payment link

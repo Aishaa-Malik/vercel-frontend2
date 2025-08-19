@@ -29,15 +29,28 @@ const OAuthCallback: React.FC = () => {
         .eq('email', userEmail)
         .maybeSingle();
 
-      if (approvalError) {
-        throw new Error(`Error checking approved users: ${approvalError.message}`);
+        const { data: turf_approved_users, error: turf_approvalError } = await supabase
+        .from('turf_approved_users')
+        .select('email, role, tenant_id, activated_at')
+        .eq('email', userEmail)
+        .maybeSingle();
+
+      if (approvalError || turf_approvalError) {
+        throw new Error(`Error checking approved users: ${approvalError?.message || turf_approvalError?.message}`);
       }
 
-      if (!approvedUser) {
+      if (!approvedUser && !turf_approved_users) {
         throw new Error('You are not on the approved users list. Please contact your administrator.');
       }
 
-      if (approvedUser.activated_at) {
+      // Use the first non-null approved user record (from either table)
+      const userRecord = approvedUser ?? turf_approved_users;
+      
+      if (!userRecord) {
+        throw new Error('User record not found in either approved_users or turf_approved_users tables.');
+      }
+
+      if (userRecord && userRecord.activated_at) {
         logWithDebug('User already activated, checking existing records...');
       } else {
         logWithDebug('Found approved user, proceeding with setup...');
@@ -69,7 +82,7 @@ const OAuthCallback: React.FC = () => {
         .from('user_roles')
         .insert({
           user_id: userId,
-          role: approvedUser.role
+          role: userRecord?.role ?? null
         })
         .select()
         .single();
@@ -77,16 +90,16 @@ const OAuthCallback: React.FC = () => {
       if (roleError && roleError.code !== '23505') { // Ignore unique violation
         throw new Error(`Role assignment failed: ${roleError.message}`);
       }
-      logWithDebug(`✅ Role assigned: ${approvedUser.role}`);
+      logWithDebug(`✅ Role assigned: ${userRecord?.role || 'unknown'}`);
 
       // Step 4: Create tenant assignment (if tenant_id exists)
-      if (approvedUser.tenant_id) {
+      if (userRecord?.tenant_id) {
         logWithDebug('Assigning tenant...');
         const { error: tenantError } = await supabase
           .from('user_tenants')
           .insert({
             user_id: userId,
-            tenant_id: approvedUser.tenant_id
+            tenant_id: userRecord.tenant_id
           });
 
         if (tenantError && tenantError.code !== '23505') { // Ignore unique violation
@@ -95,11 +108,15 @@ const OAuthCallback: React.FC = () => {
         logWithDebug('✅ Tenant assigned');
       }
 
-      // Step 5: Mark approved user as activated
-      if (!approvedUser.activated_at) {
+      // Step 5: Mark approved user as activated in the appropriate table
+      if (userRecord && !userRecord.activated_at) {
         logWithDebug('Marking user as activated...');
+        
+        // Determine which table to update based on which record was found
+        const tableName = approvedUser ? 'approved_users' : 'turf_approved_users';
+        
         const { error: activationError } = await supabase
-          .from('approved_users')
+          .from(tableName)
           .update({
             activated_at: new Date().toISOString(),
             user_id: userId
@@ -107,14 +124,14 @@ const OAuthCallback: React.FC = () => {
           .eq('email', userEmail);
 
         if (activationError) {
-          console.warn('Warning: Could not mark user as activated:', activationError.message);
+          console.warn(`Warning: Could not mark user as activated in ${tableName}:`, activationError.message);
         } else {
-          logWithDebug('✅ User marked as activated');
+          logWithDebug(`✅ User marked as activated in ${tableName}`);
         }
       }
 
       logWithDebug('✅ Manual user setup completed successfully');
-      return { role: approvedUser.role };
+      return { role: userRecord.role };
 
     } catch (error: any) {
       logWithDebug(`❌ Manual setup failed: ${error.message}`);
@@ -267,15 +284,35 @@ const checkBusinessProfile = async (userId: string) => {
 
         // Check business profile to determine redirect route
         const { businessType } = await checkBusinessProfile(session.user.id);
+        console.log('businessType', businessType);
+
+        // Get user role from user_roles table
+        const { data: userRoleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        const userRoleValue = userRoleData?.role;
+        console.log('userRole', userRoleValue);
 
         if (businessType === 'turf') {
-          logWithDebug('Redirecting to turf dashboard...');
-          navigate('/turf-dashboard', { replace: true }); // or your preferred turf route
+          // For turf business type
+          if (userRoleValue === 'BUSINESS_OWNER') {
+            logWithDebug('Redirecting to turf owner dashboard...');
+            navigate('/turf-dashboard', { replace: true });
+          } else if (userRoleValue === 'EMPLOYEE') {
+            logWithDebug('Redirecting to turf employee dashboard...');
+            navigate('/turf-dashboard/employee', { replace: true });
+          } else {
+            logWithDebug('Redirecting to default turf dashboard...');
+            navigate('/turf-dashboard', { replace: true });
+          }
         } else {
+          // For non-turf business types (doctor, etc.)
           logWithDebug('Redirecting to default dashboard...');
           navigate('/dashboard', { replace: true });
         }
-
         
       } catch (err: any) {
         console.error('OAuth callback error:', err);
@@ -301,15 +338,28 @@ const checkBusinessProfile = async (userId: string) => {
         .eq('email', email)
         .maybeSingle();
 
-      if (approvalError) {
-        throw new Error(`Error checking approval: ${approvalError.message}`);
+    const { data: turfApprovedUser, error: turfApprovalError } = await supabase
+        .from('turf_approved_users')
+        .select('email, role')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (approvalError || turfApprovalError) {
+        throw new Error(`Error checking approval: ${approvalError?.message || turfApprovalError?.message}`);
       }
 
-      if (!approvedUser) {
+      if (!approvedUser && !turfApprovedUser) {
         throw new Error('You are not on the approved users list. Please contact your administrator.');
       }
+      
+      // Use the first non-null approved user record
+      const userRecord = approvedUser ?? turfApprovedUser;
+      
+      if (!userRecord) {
+        throw new Error('User record not found in either approved_users or turf_approved_users tables.');
+      }
 
-      logWithDebug(`User ${email} is approved with role: ${approvedUser.role}`);
+      logWithDebug(`User ${email} is approved with role: ${userRecord.role}`);
 
       const { error: magicLinkError } = await supabase.auth.signInWithOtp({
         email: email,

@@ -5,14 +5,14 @@ import { supabase } from '../../services/supabaseService';
 
 interface Transaction {
   id: string;
-  player_name: string;
-  booking_date: string;
+  customer_name: string;
+  appointment_date: string;
   payment_method: string;
   amount: number;
   currency: string;
   status: string;
   created_at: string;
-  player_contact?: string;
+  customer_contact?: string;
   booking_reference?: string;
 }
 
@@ -138,30 +138,30 @@ const TurfRevenuePage: React.FC = () => {
       });
       
       const { data: periodTransactions, error: transactionError } = await supabase
-  .from('bookings')
+  .from('TurfAppointments')
   .select(`
     id,
-    player_name,
-    player_contact,
-    booking_date,
+    customer_name,
+    customer_contact,
+    appointment_date,
     payment_method,
     amount,
     currency,
     status,
     created_at,
     booking_reference
-  `).gte('booking_date', dateRange.startDate.toISOString()) // Filter by booking_date instead of created_at
-    .lte('booking_date', dateRange.endDate.toISOString())
+  `).gte('appointment_date', dateRange.startDate.toISOString()) // Filter by booking_date instead of created_at
+    .lte('appointment_date', dateRange.endDate.toISOString())
     .not('amount', 'is', null)
-    .order('booking_date', { ascending: false }); // Remove date and status filters temporarily
+    .order('appointment_date', { ascending: false }); // Remove date and status filters temporarily
 
       // Fetch all transactions for the selected period
       // const { data: periodTransactions, error: transactionError } = await supabase
       //   .from('bookings')
       //   .select(`
       //     id,
-      //     player_name,
-      //     player_contact,
+      //     customer_name,
+      //     customer_contact,
       //     booking_date,
       //     payment_method,
       //     amount,
@@ -197,7 +197,7 @@ const TurfRevenuePage: React.FC = () => {
       if (periodTransactions && periodTransactions.length > 0) {
         console.log('First transaction:', {
           id: periodTransactions[0].id,
-          date: periodTransactions[0].booking_date,
+          date: periodTransactions[0].appointment_date,
           amount: periodTransactions[0].amount,
           status: periodTransactions[0].status
         });
@@ -205,13 +205,13 @@ const TurfRevenuePage: React.FC = () => {
         console.log('No transactions found. Checking for any bookings in the table...');
         
         // Try a broader query to see if there are any bookings at all
-        const { data: anybookings } = await supabase
-          .from('bookings')
-          .select('id, booking_date, amount, status')
+        const { data: anyTurfAppointments } = await supabase
+          .from('TurfAppointments')
+          .select('id, appointment_date, amount, status')
           .not('amount', 'is', null)
           .limit(5);
           
-        console.log('Sample of available bookings:', anybookings);
+        console.log('Sample of available bookings:', anyTurfAppointments);
       }
 
 
@@ -426,10 +426,10 @@ const TurfRevenuePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Average per Booking */}
+        {/* Average per appointment */}
         <div className="bg-white rounded-lg shadow p-6">
           <div>
-            <p className="text-sm font-medium text-gray-600">Average per Booking</p>
+            <p className="text-sm font-medium text-gray-600">Average per appointment</p>
             <p className="text-2xl font-bold text-gray-900 mt-2">
               {metrics.bookings > 0 
                 ? formatCurrency(Math.round(metrics.revenue / metrics.bookings))
@@ -487,7 +487,7 @@ const TurfRevenuePage: React.FC = () => {
                   Booking Date
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  player
+                  customer
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Service
@@ -521,10 +521,10 @@ const TurfRevenuePage: React.FC = () => {
                   <tr key={transaction.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="font-medium">
-                        {formatDateOnly(transaction.booking_date)}
+                        {formatDateOnly(transaction.appointment_date)}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {new Date(transaction.booking_date).toLocaleTimeString('en-IN', {
+                        {new Date(transaction.appointment_date).toLocaleTimeString('en-IN', {
                           hour: '2-digit',
                           minute: '2-digit'
                         })}
@@ -532,11 +532,11 @@ const TurfRevenuePage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {transaction.player_name}
+                        {transaction.customer_name}
                       </div>
-                      {transaction.player_contact && (
+                      {transaction.customer_contact && (
                         <div className="text-xs text-gray-500">
-                          {transaction.player_contact}
+                          {transaction.customer_contact}
                         </div>
                       )}
                     </td>

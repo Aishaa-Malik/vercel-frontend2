@@ -109,7 +109,7 @@ const TurfUserManagement: React.FC = () => {
 
       // Step 5: Fetch pending invitations using the correct tenant ID
       const { data: pendingUsers, error: pendingError } = await supabase
-        .from('approved_users')
+        .from('turf_approved_users')
         .select('email, role, created_at, activated_at')
         .eq('tenant_id', actualTenantId) // Use the UUID tenant ID
         .is('activated_at', null);
@@ -189,7 +189,7 @@ const TurfUserManagement: React.FC = () => {
       
       // Insert with the correct tenant_id
       const { error: insertError } = await supabase
-        .from('approved_users')
+        .from('turf_approved_users')
         .insert({
           email: inviteEmail,
           role: inviteRole,
@@ -254,7 +254,7 @@ const TurfUserManagement: React.FC = () => {
         // Delete from approved_users for pending invitations
         // Use the correct tenant ID here too
         const { error } = await supabase
-          .from('approved_users')
+          .from('turf_approved_users')
           .delete()
           .eq('email', targetUser.email)
           .eq('tenant_id', user?.tenantId); // Use user.tenantId instead of tenant.id

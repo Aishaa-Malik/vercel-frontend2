@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-
 const TurfDashboardLayout: React.FC = () => {
   const { tenant, user, logout } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const navigation = [
     { name: 'Dashboard', href: '/turf-dashboard', icon: 'home' },
     { name: 'Bookings', href: '/turf-dashboard/bookings', icon: 'calendar' },
@@ -15,11 +13,9 @@ const TurfDashboardLayout: React.FC = () => {
     { name: 'Revenue', href: '/turf-dashboard/revenue', icon: 'chart-bar' }
     // { name: 'Settings', href: '/turf-dashboard/settings', icon: 'cog' },
   ];
-
   const isActive = (path: string) => {
     return location.pathname === path;
   };
-
   const renderIcon = (iconName: string) => {
     switch (iconName) {
       case 'home':
@@ -57,7 +53,6 @@ const TurfDashboardLayout: React.FC = () => {
         return null;
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Mobile menu */}
@@ -69,7 +64,6 @@ const TurfDashboardLayout: React.FC = () => {
             }`}
             onClick={() => setMobileMenuOpen(false)}
           ></div>
-
           <div
             className={`relative flex-1 flex flex-col max-w-xs w-full bg-white transition ease-in-out duration-300 transform ${
               mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
@@ -87,7 +81,6 @@ const TurfDashboardLayout: React.FC = () => {
                 </svg>
               </button>
             </div>
-
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-4">
                 <span className="text-xl font-bold text-blue-600">Turf Dashboard</span>
@@ -139,7 +132,6 @@ const TurfDashboardLayout: React.FC = () => {
           </div>
         </div>
       </div>
-
       {/* Static sidebar for desktop */}
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
         <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
@@ -192,7 +184,6 @@ const TurfDashboardLayout: React.FC = () => {
           </div>
         </div>
       </div>
-
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
         <div className="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-white">
@@ -207,7 +198,6 @@ const TurfDashboardLayout: React.FC = () => {
             </svg>
           </button>
         </div>
-
         <main className="flex-1">
           <Outlet />
         </main>
@@ -215,5 +205,4 @@ const TurfDashboardLayout: React.FC = () => {
     </div>
   );
 };
-
 export default TurfDashboardLayout;

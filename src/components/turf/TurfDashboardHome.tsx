@@ -13,8 +13,8 @@ const TurfDashboardHome: React.FC = () => {
         return <SuperAdminDashboard />;
       case UserRole.BUSINESS_OWNER:
         return <BusinessOwnerDashboard />;
-      case UserRole.DOCTOR:
-        return <DoctorDashboard />;
+      // case UserRole.DOCTOR:
+      //   return <DoctorDashboard />;
       case UserRole.EMPLOYEE:
         return <EmployeeDashboard />;
       default:

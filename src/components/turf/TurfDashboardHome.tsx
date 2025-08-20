@@ -123,6 +123,7 @@ const SuperAdminDashboard: React.FC = () => {
 };
 
 // Business Owner Dashboard
+// Business Owner Dashboard
 const BusinessOwnerDashboard: React.FC = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -183,53 +184,6 @@ const BusinessOwnerDashboard: React.FC = () => {
             Manage Staff
           </button>
         </div>
-      </div>
-    </div>
-  );
-};
-
-// Doctor Dashboard
-const DoctorDashboard: React.FC = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Today's Schedule */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Today's Schedule</h3>
-        <ul className="divide-y">
-          {[1, 2, 3, 4].map((i) => (
-            <li key={i} className="py-3">
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-medium">Patient {i}</p>
-                  <p className="text-sm text-gray-500">{`${i + 8}:00 AM - ${i + 8}:30 AM`}</p>
-                </div>
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center">
-                  Upcoming
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Patient Notes */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Patient Notes</h3>
-        <ul className="divide-y">
-          {[1, 2, 3].map((i) => (
-            <li key={i} className="py-3">
-              <div>
-                <div className="flex justify-between">
-                  <p className="font-medium">Patient {i}</p>
-                  <p className="text-xs text-gray-500">Yesterday</p>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  Follow-up appointment scheduled. Patient reported improvement in symptoms.
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );

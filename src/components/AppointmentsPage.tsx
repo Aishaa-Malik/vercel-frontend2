@@ -8,7 +8,7 @@ interface Appointment {
   doctor: string;
   appointment_date: string; // YYYY-MM-DD
   appointment_time: string; // HH:mm or HH:mm:ss
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  status: 'Scheduled' | 'Completed' | 'Cancelled' | 'no-show';
   patient_email?: string;
   patient_contact?: string;
   booking_reference?: string;
@@ -51,6 +51,8 @@ interface Subscription {
 const AppointmentsPage: React.FC = () => {
   const { tenant, user } = useAuth();
   const [filter, setFilter] = useState('all');
+  // Status options with proper capitalization
+  const statusOptions = ['all', 'Scheduled', 'Completed', 'Cancelled', 'No-show'];
   const [searchQuery, setSearchQuery] = useState('');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -369,7 +371,9 @@ const visibleAppointments = useMemo(() => {
   const filteredAppointments = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return visibleAppointments.filter(appointment => {
-      const matchesFilter = filter === 'all' || appointment.status === filter;
+      // Case insensitive filter matching
+      const matchesFilter = filter === 'all' || 
+        appointment.status.toLowerCase() === filter.toLowerCase();
       const matchesSearch = 
         appointment.patient_name.toLowerCase().includes(q) ||
         appointment.doctor.toLowerCase().includes(q) ||
@@ -381,9 +385,9 @@ const visibleAppointments = useMemo(() => {
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'Scheduled': return 'bg-blue-100 text-blue-800';
+      case 'Completed': return 'bg-green-100 text-green-800';
+      case 'Cancelled': return 'bg-red-100 text-red-800';
       case 'no-show': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -519,7 +523,7 @@ const visibleAppointments = useMemo(() => {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {['all', 'scheduled', 'completed', 'cancelled', 'no-show'].map((status) => (
+            {statusOptions.map((status) => (
               <button 
                 key={status}
                 onClick={() => setFilter(status)}
@@ -529,7 +533,7 @@ const visibleAppointments = useMemo(() => {
                     : 'bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200'
                 }`}
               >
-                {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === 'all' ? 'All' : status}
               </button>
             ))}
           </div>
@@ -675,7 +679,7 @@ const visibleAppointments = useMemo(() => {
                       <button className="text-blue-600 hover:text-blue-900 hover:underline transition-colors">
                         View
                       </button>
-                      {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
+                      {appointment.status !== 'Cancelled' && appointment.status !== 'Completed' && (
                         <button 
                           onClick={() => cancelAppointment(appointment)}
                           disabled={cancellingIds.has(appointment.id)}

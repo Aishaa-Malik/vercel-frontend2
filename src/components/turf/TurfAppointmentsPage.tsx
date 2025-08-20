@@ -7,7 +7,7 @@ interface Appointment {
   customer_name: string;
   appointment_date: string; // YYYY-MM-DD
   appointment_time: string; // HH:mm or HH:mm:ss
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  status: 'Scheduled' | 'Completed' | 'Cancelled' | 'no-show';
   customer_email?: string;
   customer_contact?: string;
   booking_reference?: string;
@@ -46,9 +46,199 @@ interface Subscription {
   }[];
 }
 
+// Modal Component
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose}></div>
+        
+        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        
+        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div className="flex justify-between items-center mb-4">
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 float-right"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Booking Detail Modal Component
+interface BookingDetailModalProps {
+  booking: Appointment | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen, onClose }) => {
+  if (!booking) return null;
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour12 = parseInt(hours) % 12 || 12;
+    const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <div className="sm:flex sm:items-start">
+        <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+            Booking Details
+          </h3>
+          
+          <div className="overflow-hidden bg-white shadow rounded-lg">
+            <table className="min-w-full divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-200">
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 w-1/3">
+                    Booking Reference
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {booking.booking_reference || 'N/A'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Customer Name
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {booking.customer_name}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Customer Email
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {booking.customer_email || 'N/A'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Customer Contact
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {booking.customer_contact || 'N/A'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Date & Time
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {formatDate(booking.appointment_date)} at {formatTime(booking.appointment_time)}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Status
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      booking.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
+                      booking.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                      booking.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                      booking.status === 'no-show' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Payment Amount
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {booking.amount ? `${booking.currency || 'INR'} ${booking.amount}` : 'N/A'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Payment Method
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {booking.payment_method ? booking.payment_method.toUpperCase() : 'N/A'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Payment ID
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {booking.payment_id || 'N/A'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Created At
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {booking.created_at ? new Date(booking.created_at).toLocaleString() : 'N/A'}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    Last Updated
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {booking.updated_at ? new Date(booking.updated_at).toLocaleString() : 'N/A'}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="mt-6 sm:flex sm:flex-row-reverse">
+            <button
+              type="button"
+              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+              onClick={onClose}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
 const TurfAppointmentsPage: React.FC = () => {
   const { tenant, user } = useAuth();
   const [filter, setFilter] = useState('all');
+  // Status options with proper capitalization
+  const statusOptions = ['all', 'Scheduled', 'Completed', 'Cancelled', 'No-show'];
   const [searchQuery, setSearchQuery] = useState('');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +252,10 @@ const TurfAppointmentsPage: React.FC = () => {
   });
   const [activeSubscription, setActiveSubscription] = useState<ActiveSubscription | null>(null);
   const [allSubscriptions, setAllSubscriptions] = useState<Subscription[]>([]);
-
+  
+  // Modal state
+  const [selectedBooking, setSelectedBooking] = useState<Appointment | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Check appointment limits function (also stores active subscription for filtering)
   const checkAppointmentLimit = async (tenantId: string): Promise<AppointmentLimits> => {
@@ -110,7 +303,6 @@ const TurfAppointmentsPage: React.FC = () => {
         totalLimit = plansObj.appointment_limit || 0;
       }
 
-
       const remainingAppointments = Math.max(0, totalLimit - usedAppointments);
 
       return {
@@ -126,33 +318,33 @@ const TurfAppointmentsPage: React.FC = () => {
   };
 
   // Add this new function
-const fetchAllSubscriptions = async () => {
-  if (!user?.tenantId) return;
+  const fetchAllSubscriptions = async () => {
+    if (!user?.tenantId) return;
 
-  try {
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select(`
-        id,
-        billing_cycle_start,
-        billing_cycle_end,
-        status,
-        plans!inner (
-          name,
-          appointment_limit
-        )
-      `)
-      .eq('tenant_id', user.tenantId)
-      .order('billing_cycle_start', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select(`
+          id,
+          billing_cycle_start,
+          billing_cycle_end,
+          status,
+          plans!inner (
+            name,
+            appointment_limit
+          )
+        `)
+        .eq('tenant_id', user.tenantId)
+        .order('billing_cycle_start', { ascending: true });
 
-    if (error) throw error;
-    
-    console.log('All subscriptions:', data);
-    setAllSubscriptions(data);
-  } catch (err: any) {
-    console.error('Error fetching subscriptions:', err);
-  }
-};
+      if (error) throw error;
+      
+      console.log('All subscriptions:', data);
+      setAllSubscriptions(data);
+    } catch (err: any) {
+      console.error('Error fetching subscriptions:', err);
+    }
+  };
 
   // Fetch appointments
   const fetchAppointments = async () => {
@@ -224,7 +416,7 @@ const fetchAllSubscriptions = async () => {
       setAppointments(prev => prev.filter(apt => apt.id !== appointment.id));
 
       try {
-        const n8nWebhookUrl = 'https://aishaiitbombay.app.n8n.cloud/webhook/appointment-cancel';
+        const n8nWebhookUrl = 'https://aishaa01.app.n8n.cloud/webhook/appointment-cancel';
         await fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -255,7 +447,7 @@ const fetchAllSubscriptions = async () => {
     }
   };
 
-console.log('error', error);
+  console.log('error', error);
 
   // Utility: parse date+time to timestamp
   const toTs = (d: string, t: string) => {
@@ -264,95 +456,88 @@ console.log('error', error);
   };
 
   // Build visible list with limit logic
-// Build visible list with limit logic
+  const visibleAppointments = useMemo(() => {
+    if (!appointments.length) return [];
 
+    console.log('Computing visibleAppointments:', {
+      appointmentsLength: appointments.length,
+      allSubscriptionsLength: allSubscriptions?.length,
+      activeSubscription: activeSubscription
+    });
 
-const visibleAppointments = useMemo(() => {
-  if (!appointments.length) return [];
+    // If no subscriptions, show no appointments
+    if (!allSubscriptions?.length) {
+      console.log('No subscriptions found - showing no appointments');
+      return [];
+    }
 
-  console.log('Computing visibleAppointments:', {
-    appointmentsLength: appointments.length,
-    allSubscriptionsLength: allSubscriptions?.length,
-    activeSubscription: activeSubscription
-  });
-
-  // If no subscriptions, show no appointments
-    if (!appointments.length) {
-    console.log('No appointments found');
-    return [];
-  }
-
-  // If no subscriptions, show no appointments
-  if (!allSubscriptions?.length) {
-    console.log('No subscriptions found - showing no appointments');
-    return [];
-  }
-
-  // Sort subscriptions by start date for efficient lookup
-  const sortedSubscriptions = [...allSubscriptions].sort((a, b) => 
-    a.billing_cycle_start.localeCompare(b.billing_cycle_start)
-  );
-
-  // Helper function to find subscription that covers a date
-  const findCoveringSubscription = (date: string) => {
-    return sortedSubscriptions.find(sub => 
-      date >= sub.billing_cycle_start && date < sub.billing_cycle_end
+    // Sort subscriptions by start date for efficient lookup
+    const sortedSubscriptions = [...allSubscriptions].sort((a, b) => 
+      a.billing_cycle_start.localeCompare(b.billing_cycle_start)
     );
-  };
 
-  // First, determine which appointments are covered by any subscription
-  const appointmentsWithSubs = appointments.map(appointment => {
-    const coveringSub = findCoveringSubscription(appointment.appointment_date);
-    return { appointment, subscription: coveringSub };
-  });
+    // Helper function to find subscription that covers a date
+    const findCoveringSubscription = (date: string) => {
+      return sortedSubscriptions.find(sub => 
+        date >= sub.billing_cycle_start && date < sub.billing_cycle_end
+      );
+    };
 
-  // Filter out appointments with no subscription coverage
-  const validAppointments = appointmentsWithSubs.filter(item => item.subscription);
+    // First, determine which appointments are covered by any subscription
+    const appointmentsWithSubs = appointments.map(appointment => {
+      const coveringSub = findCoveringSubscription(appointment.appointment_date);
+      return { appointment, subscription: coveringSub };
+    });
 
-  // If no active subscription, show all valid appointments
-  if (!activeSubscription) {
-    return validAppointments
-      .map(item => item.appointment)
-      .sort((a, b) => {
-        const ta = toTs(a.appointment_date, a.appointment_time);
-        const tb = toTs(b.appointment_date, b.appointment_time);
-        return tb - ta;
-      });
-  }
+    // Filter out appointments with no subscription coverage
+    const validAppointments = appointmentsWithSubs.filter(item => item.subscription);
 
-  // Get current subscription details
-  const { billing_cycle_start, billing_cycle_end, plans } = activeSubscription;
-  const totalLimit = plans.appointment_limit || 0;
+    // If no active subscription, show all valid appointments
+    if (!activeSubscription) {
+      return validAppointments
+        .map(item => item.appointment)
+        .sort((a, b) => {
+          const ta = toTs(a.appointment_date, a.appointment_time);
+          const tb = toTs(b.appointment_date, b.appointment_time);
+          return tb - ta;
+        });
+    }
 
-  // Separate current cycle and previous cycles
-  const currentCycleAppointments = validAppointments.filter(
-    item => item.appointment.appointment_date >= billing_cycle_start && 
-            item.appointment.appointment_date < billing_cycle_end
-  ).map(item => item.appointment);
+    // Get current subscription details
+    const { billing_cycle_start, billing_cycle_end, plans } = activeSubscription;
+    const totalLimit = plans.appointment_limit || 0;
 
-  const previousCycleAppointments = validAppointments.filter(
-    item => item.appointment.appointment_date < billing_cycle_start
-  ).map(item => item.appointment);
+    // Separate current cycle and previous cycles
+    const currentCycleAppointments = validAppointments.filter(
+      item => item.appointment.appointment_date >= billing_cycle_start && 
+              item.appointment.appointment_date < billing_cycle_end
+    ).map(item => item.appointment);
 
-  // Apply limit only to current cycle appointments
-  const limitedCurrentCycle = totalLimit > 0 
-    ? currentCycleAppointments.slice(0, totalLimit) 
-    : [];
+    const previousCycleAppointments = validAppointments.filter(
+      item => item.appointment.appointment_date < billing_cycle_start
+    ).map(item => item.appointment);
 
-  // Combine and sort all visible appointments
-  return [...previousCycleAppointments, ...limitedCurrentCycle].sort((a, b) => {
-    const ta = toTs(a.appointment_date, a.appointment_time);
-    const tb = toTs(b.appointment_date, b.appointment_time);
-    return tb - ta;
-  });
+    // Apply limit only to current cycle appointments
+    const limitedCurrentCycle = totalLimit > 0 
+      ? currentCycleAppointments.slice(0, totalLimit) 
+      : [];
 
-}, [appointments, allSubscriptions, activeSubscription]);
+    // Combine and sort all visible appointments
+    return [...previousCycleAppointments, ...limitedCurrentCycle].sort((a, b) => {
+      const ta = toTs(a.appointment_date, a.appointment_time);
+      const tb = toTs(b.appointment_date, b.appointment_time);
+      return tb - ta;
+    });
+
+  }, [appointments, allSubscriptions, activeSubscription]);
 
   // Apply filter/search on visibleAppointments
   const filteredAppointments = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return visibleAppointments.filter(appointment => {
-      const matchesFilter = filter === 'all' || appointment.status === filter;
+      // Case insensitive filter matching
+      const matchesFilter = filter === 'all' || 
+        appointment.status.toLowerCase() === filter.toLowerCase();
       const matchesSearch = 
         appointment.customer_name.toLowerCase().includes(q) ||
         (appointment.customer_contact && appointment.customer_contact.toLowerCase().includes(q)) ||
@@ -363,9 +548,9 @@ const visibleAppointments = useMemo(() => {
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'Scheduled': return 'bg-blue-100 text-blue-800';
+      case 'Completed': return 'bg-green-100 text-green-800';
+      case 'Cancelled': return 'bg-red-100 text-red-800';
       case 'no-show': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -384,6 +569,18 @@ const visibleAppointments = useMemo(() => {
     const hour12 = parseInt(hours) % 12 || 12;
     const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
     return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  // Handle view booking function
+  const handleViewBooking = (appointment: Appointment) => {
+    setSelectedBooking(appointment);
+    setShowModal(true);
+  };
+
+  // Handle close modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedBooking(null);
   };
 
   if (isLoading) {
@@ -501,7 +698,7 @@ const visibleAppointments = useMemo(() => {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {['all', 'scheduled', 'completed', 'cancelled', 'no-show'].map((status) => (
+            {statusOptions.map((status) => (
               <button 
                 key={status}
                 onClick={() => setFilter(status)}
@@ -511,7 +708,7 @@ const visibleAppointments = useMemo(() => {
                     : 'bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200'
                 }`}
               >
-                {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === 'all' ? 'All' : status}
               </button>
             ))}
           </div>
@@ -546,7 +743,7 @@ const visibleAppointments = useMemo(() => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredAppointments.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                     {searchQuery || filter !== 'all' ? 'No matching bookings found' : 'No bookings found'}
                   </td>
                 </tr>
@@ -587,9 +784,6 @@ const visibleAppointments = useMemo(() => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                     
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
                       {appointment.booking_reference && (
                         <div className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">
                           {appointment.booking_reference}
@@ -597,10 +791,13 @@ const visibleAppointments = useMemo(() => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900 hover:underline transition-colors">
+                      <button 
+                        onClick={() => handleViewBooking(appointment)} 
+                        className="text-blue-600 hover:text-blue-900 hover:underline transition-colors"
+                      >
                         View
                       </button>
-                      {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
+                      {appointment.status !== 'Cancelled' && appointment.status !== 'Completed' && (
                         <button 
                           onClick={() => cancelAppointment(appointment)}
                           disabled={cancellingIds.has(appointment.id)}
@@ -627,6 +824,13 @@ const visibleAppointments = useMemo(() => {
           </table>
         </div>
       </div>
+
+      {/* Booking Detail Modal */}
+      <BookingDetailModal 
+        booking={selectedBooking}
+        isOpen={showModal}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

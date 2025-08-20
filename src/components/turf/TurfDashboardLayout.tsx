@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+
 const TurfDashboardLayout: React.FC = () => {
   const { tenant, user, logout } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const navigation = [
     { name: 'Dashboard', href: '/turf-dashboard', icon: 'home' },
     { name: 'Bookings', href: '/turf-dashboard/bookings', icon: 'calendar' },
     { name: 'User Management', href: '/turf-dashboard/users', icon: 'calendar' },
     // { name: 'Schedule', href: '/turf-dashboard/schedule', icon: 'clock' },
-    { name: 'Revenue', href: '/turf-dashboard/revenue', icon: 'chart-bar' }
-    // { name: 'Settings', href: '/turf-dashboard/settings', icon: 'cog' },
+    { name: 'Revenue', href: '/turf-dashboard/revenue', icon: 'chart-bar' },
+    { name: 'Settings', href: '/turf-dashboard/settings', icon: 'cog' },
   ];
+
   const isActive = (path: string) => {
     return location.pathname === path;
   };
+
   const renderIcon = (iconName: string) => {
     switch (iconName) {
       case 'home':
@@ -53,6 +57,7 @@ const TurfDashboardLayout: React.FC = () => {
         return null;
     }
   };
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Mobile menu */}
@@ -109,16 +114,24 @@ const TurfDashboardLayout: React.FC = () => {
                 ))}
               </nav>
             </div>
+            
+            {/* Mobile User Profile Section - Updated */}
             <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
               <div className="flex items-center">
-                <div>
-                  <div className="bg-gray-300 rounded-full h-9 w-9 flex items-center justify-center text-gray-700 font-semibold">
-                    {user?.email?.charAt(0).toUpperCase()}
-                  </div>
+                {/* User Avatar Circle - Blue background like employee dashboard */}
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-semibold text-lg">
+                    {user?.name?.charAt(0).toUpperCase() || 'A'}
+                  </span>
                 </div>
-                <div className="ml-3">
-                  <p className="text-base font-medium text-gray-700 group-hover:text-gray-900">
-                    {tenant?.name || 'Turf Owner'}
+                
+                {/* User Info */}
+                <div className="ml-3 min-w-0 flex-1">
+                  <p className="text-base font-medium text-gray-800 truncate">
+                    {user?.name || 'Turf Owner'}
+                  </p>
+                  <p className="text-sm text-gray-600 truncate">
+                    {user?.email || 'owner@business.com'}
                   </p>
                   <button
                     onClick={() => logout()}
@@ -132,6 +145,7 @@ const TurfDashboardLayout: React.FC = () => {
           </div>
         </div>
       </div>
+
       {/* Static sidebar for desktop */}
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
         <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
@@ -162,16 +176,24 @@ const TurfDashboardLayout: React.FC = () => {
               ))}
             </nav>
           </div>
+          
+          {/* Desktop User Profile Section - Updated */}
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-            <div className="flex items-center">
-              <div>
-                <div className="bg-gray-300 rounded-full h-9 w-9 flex items-center justify-center text-gray-700 font-semibold">
-                  {user?.email?.charAt(0).toUpperCase()}
-                </div>
+            <div className="flex items-center w-full">
+              {/* User Avatar Circle - Blue background like employee dashboard */}
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-semibold text-lg">
+                  {user?.name?.charAt(0).toUpperCase() || 'A'}
+                </span>
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                  {tenant?.name || 'Turf Owner'}
+              
+              {/* User Info */}
+              <div className="ml-3 min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-800 truncate">
+                  {user?.name || 'Turf Owner'}
+                </p>
+                <p className="text-xs text-gray-600 truncate">
+                  {user?.email || 'owner@business.com'}
                 </p>
                 <button
                   onClick={() => logout()}
@@ -184,6 +206,7 @@ const TurfDashboardLayout: React.FC = () => {
           </div>
         </div>
       </div>
+
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
         <div className="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-white">
@@ -205,4 +228,5 @@ const TurfDashboardLayout: React.FC = () => {
     </div>
   );
 };
+
 export default TurfDashboardLayout;

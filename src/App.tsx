@@ -12,6 +12,7 @@ import DashboardHome from './components/dashboard/DashboardHome';
 import RevenuePage from './components/dashboard/RevenuePage';
 import TenantsManagement from './components/dashboard/TenantsManagement';
 import UserManagement from './components/dashboard/UserManagement';
+import SettingsPage from './components/dashboard/SettingsPage';
 import AppointmentsPage from './components/AppointmentsPage';
 import OAuthCallback from './components/OAuthCallback';
 import PaymentCallback from './components/PaymentCallback';
@@ -29,6 +30,7 @@ import TurfUserManagement from './components/turf/TurfUserManagement';
 import TurfAppointmentsPage from './components/turf/TurfAppointmentsPage';
 import TurfEmployeeDashboard from './components/turf/TurfEmployeeDashboard';
 import TurfEmployeeDashboardLayout from './components/turf/TurfEmployeeDashboardLayout';
+import TurfSettingsPage from './components/turf/TurfSettingsPage';
 
 // Check if user needs onboarding
 const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
@@ -117,6 +119,7 @@ function App() {
               <Route path="revenue" element={<RevenuePage />} />
               <Route path="tenants" element={<TenantsManagement />} />
               <Route path="users" element={<UserManagement />} />
+              <Route path="settings" element={<SettingsPage />} />
             </Route>
 
             {/* Direct routes for Revenue and User Management */}
@@ -164,9 +167,9 @@ function App() {
             >
               <Route index element={<TurfDashboardHome />} />
               <Route path="revenue" element={<TurfRevenuePage/>} />
-              <Route path="appointments" element={<TurfAppointmentsPage/>} />
+              <Route path="bookings" element={<TurfAppointmentsPage/>} />
               <Route path="users" element={<TurfUserManagement />} />
-              <Route path="settings" element={<div>Settings Page</div>} />
+              <Route path="settings" element={<TurfSettingsPage />} />
             </Route>
             
             {/* Turf Employee Dashboard Routes */}

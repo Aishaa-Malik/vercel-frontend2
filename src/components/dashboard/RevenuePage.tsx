@@ -189,7 +189,7 @@ const RevenuePage: React.FC = () => {
         query: {
           startDate: dateRange.startDate.toISOString(),
           endDate: dateRange.endDate.toISOString(),
-          statuses: ['scheduled', 'completed', 'paid']
+          statuses: ['Scheduled', 'Completed', 'Paid']
         }
       });
 

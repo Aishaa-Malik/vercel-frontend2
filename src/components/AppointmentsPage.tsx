@@ -68,7 +68,14 @@ const AppointmentsPage: React.FC = () => {
   const [showNewAppointmentForm, setShowNewAppointmentForm] = useState(false);
   const [activeSubscription, setActiveSubscription] = useState<ActiveSubscription | null>(null);
   const [allSubscriptions, setAllSubscriptions] = useState<Subscription[]>([]);
+  
+  // Add refresh trigger state
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Function to trigger refresh
+  const triggerRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   // Check appointment limits function (also stores active subscription for filtering)
   const checkAppointmentLimit = async (tenantId: string): Promise<AppointmentLimits> => {
@@ -115,7 +122,6 @@ const AppointmentsPage: React.FC = () => {
         const plansObj = subscription.plans as any;
         totalLimit = plansObj.appointment_limit || 0;
       }
-
 
       const remainingAppointments = Math.max(0, totalLimit - usedAppointments);
 
@@ -236,15 +242,16 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
+  // Updated useEffect with refreshTrigger dependency
   useEffect(() => {
     fetchAppointments();
-  }, [user?.tenantId]);
+  }, [user?.tenantId, refreshTrigger]);
 
   useEffect(() => {
     if (user?.tenantId) {
       checkAppointmentLimit(user.tenantId).then(setAppointmentLimits);
     }
-  }, [user?.tenantId]);
+  }, [user?.tenantId, refreshTrigger]); // Also add refreshTrigger here to update limits
 
   // Cancel appointment
   const cancelAppointment = async (appointment: Appointment) => {
@@ -300,74 +307,71 @@ const AppointmentsPage: React.FC = () => {
   };
 
   // Build visible list with limit logic
-// Build visible list with limit logic
+  const visibleAppointments = useMemo(() => {
+    if (!appointments.length) return [];
 
+    // If no subscriptions, show no appointments
+    if (!allSubscriptions?.length) return [];
 
-const visibleAppointments = useMemo(() => {
-  if (!appointments.length) return [];
-
-  // If no subscriptions, show no appointments
-  if (!allSubscriptions?.length) return [];
-
-  // Sort subscriptions by start date for efficient lookup
-  const sortedSubscriptions = [...allSubscriptions].sort((a, b) => 
-    a.billing_cycle_start.localeCompare(b.billing_cycle_start)
-  );
-
-  // Helper function to find subscription that covers a date
-  const findCoveringSubscription = (date: string) => {
-    return sortedSubscriptions.find(sub => 
-      date >= sub.billing_cycle_start && date < sub.billing_cycle_end
+    // Sort subscriptions by start date for efficient lookup
+    const sortedSubscriptions = [...allSubscriptions].sort((a, b) => 
+      a.billing_cycle_start.localeCompare(b.billing_cycle_start)
     );
-  };
 
-  // First, determine which appointments are covered by any subscription
-  const appointmentsWithSubs = appointments.map(appointment => {
-    const coveringSub = findCoveringSubscription(appointment.appointment_date);
-    return { appointment, subscription: coveringSub };
-  });
+    // Helper function to find subscription that covers a date
+    const findCoveringSubscription = (date: string) => {
+      return sortedSubscriptions.find(sub => 
+        date >= sub.billing_cycle_start && date < sub.billing_cycle_end
+      );
+    };
 
-  // Filter out appointments with no subscription coverage
-  const validAppointments = appointmentsWithSubs.filter(item => item.subscription);
+    // First, determine which appointments are covered by any subscription
+    const appointmentsWithSubs = appointments.map(appointment => {
+      const coveringSub = findCoveringSubscription(appointment.appointment_date);
+      return { appointment, subscription: coveringSub };
+    });
 
-  // If no active subscription, show all valid appointments
-  if (!activeSubscription) {
-    return validAppointments
-      .map(item => item.appointment)
-      .sort((a, b) => {
-        const ta = toTs(a.appointment_date, a.appointment_time);
-        const tb = toTs(b.appointment_date, b.appointment_time);
-        return tb - ta;
-      });
-  }
+    // Filter out appointments with no subscription coverage
+    const validAppointments = appointmentsWithSubs.filter(item => item.subscription);
 
-  // Get current subscription details
-  const { billing_cycle_start, billing_cycle_end, plans } = activeSubscription;
-  const totalLimit = plans.appointment_limit || 0;
+    // If no active subscription, show all valid appointments
+    if (!activeSubscription) {
+      return validAppointments
+        .map(item => item.appointment)
+        .sort((a, b) => {
+          const ta = toTs(a.appointment_date, a.appointment_time);
+          const tb = toTs(b.appointment_date, b.appointment_time);
+          return tb - ta;
+        });
+    }
 
-  // Separate current cycle and previous cycles
-  const currentCycleAppointments = validAppointments.filter(
-    item => item.appointment.appointment_date >= billing_cycle_start && 
-            item.appointment.appointment_date < billing_cycle_end
-  ).map(item => item.appointment);
+    // Get current subscription details
+    const { billing_cycle_start, billing_cycle_end, plans } = activeSubscription;
+    const totalLimit = plans.appointment_limit || 0;
 
-  const previousCycleAppointments = validAppointments.filter(
-    item => item.appointment.appointment_date < billing_cycle_start
-  ).map(item => item.appointment);
+    // Separate current cycle and previous cycles
+    const currentCycleAppointments = validAppointments.filter(
+      item => item.appointment.appointment_date >= billing_cycle_start && 
+              item.appointment.appointment_date < billing_cycle_end
+    ).map(item => item.appointment);
 
-  // Apply limit only to current cycle appointments
-  const limitedCurrentCycle = totalLimit > 0 
-    ? currentCycleAppointments.slice(0, totalLimit) 
-    : [];
+    const previousCycleAppointments = validAppointments.filter(
+      item => item.appointment.appointment_date < billing_cycle_start
+    ).map(item => item.appointment);
 
-  // Combine and sort all visible appointments
-  return [...previousCycleAppointments, ...limitedCurrentCycle].sort((a, b) => {
-    const ta = toTs(a.appointment_date, a.appointment_time);
-    const tb = toTs(b.appointment_date, b.appointment_time);
-    return tb - ta;
-  });
+    // Apply limit only to current cycle appointments
+    const limitedCurrentCycle = totalLimit > 0 
+      ? currentCycleAppointments.slice(0, totalLimit) 
+      : [];
 
-}, [appointments, allSubscriptions, activeSubscription]);
+    // Combine and sort all visible appointments
+    return [...previousCycleAppointments, ...limitedCurrentCycle].sort((a, b) => {
+      const ta = toTs(a.appointment_date, a.appointment_time);
+      const tb = toTs(b.appointment_date, b.appointment_time);
+      return tb - ta;
+    });
+
+  }, [appointments, allSubscriptions, activeSubscription]);
 
   // Apply filter/search on visibleAppointments
   const filteredAppointments = useMemo(() => {
@@ -429,7 +433,7 @@ const visibleAppointments = useMemo(() => {
         </div>
         <div className="mt-4 md:mt-0">
           <button 
-            onClick={() => fetchAppointments()}
+            onClick={triggerRefresh} // Use triggerRefresh instead of fetchAppointments
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors mr-2"
           >
             Refresh
@@ -443,15 +447,14 @@ const visibleAppointments = useMemo(() => {
         </div>
       </div>
 
-      {/* Monthly booking usage box removed as requested */}
-
       {showNewAppointmentForm && (
         <NewAppointmentForm 
           onClose={() => setShowNewAppointmentForm(false)}
           onSuccess={() => {
             setShowNewAppointmentForm(false);
-            fetchAppointments();
+            // Removed fetchAppointments() call since triggerRefresh is now called in the form
           }}
+          onRefresh={triggerRefresh} // Pass the refresh trigger function
         />
       )}
 

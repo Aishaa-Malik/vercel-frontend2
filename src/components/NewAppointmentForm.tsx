@@ -16,9 +16,10 @@ interface FormValues {
 interface NewAppointmentFormProps {
   onClose: () => void;
   onSuccess: () => void;
+  onRefresh?: () => void; // Add this new prop
 }
 
-const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSuccess }) => {
+const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSuccess, onRefresh }) => {
   const { tenant, user } = useAuth();
   const [formData, setFormData] = useState<FormValues>({
     name: '',
@@ -90,18 +91,12 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
          // Combine dateStr and timeStr into a single DateTime in IST format
       const startDateTime = `${dateStr}T${timeStr}:00.000+05:30`;
 
-       // Calculate end time (1 hour later)
-  const startDate = new Date(startDateTime);
-  const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-  const endDateTime = endDate.toISOString().replace('Z', '+05:30');
-
         await fetch('https://aishaa01.app.n8n.cloud/webhook/create-google-cal-event', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ 
             tenant_id, 
-            startDateTime,  // "2025-08-22T22:10:00.000+05:30"
-            endDateTime,    // "2025-08-22T23:10:00.000+05:30"
+            startDateTime,
             summary: row.customer_name 
           })
         });
@@ -110,6 +105,11 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
         // Continue anyway since the appointment was created
       }
 
+      // Call the refresh trigger before success callbacks
+      if (onRefresh) {
+        onRefresh();
+      }
+      
       onSuccess();
       onClose();
     } catch (err: any) {

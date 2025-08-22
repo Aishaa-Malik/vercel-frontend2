@@ -1,5 +1,5 @@
-import React, { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { ReactNode, useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, UserRole } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -13,7 +13,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRoles,
   redirectPath = '/login',
 }) => {
-  const { isAuthenticated, isLoading, hasPermission } = useAuth();
+  const { isAuthenticated, isLoading, hasPermission, user } = useAuth();
+  const location = useLocation();
+
+  // Debug logging
+  useEffect(() => {
+    if (user) {
+      console.log('ProtectedRoute - User business type:', user.businessType);
+      console.log('ProtectedRoute - Current path:', location.pathname);
+    }
+  }, [user, location.pathname]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -26,6 +35,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If not authenticated, redirect to login
   if (!isAuthenticated) {
+    console.log('User not authenticated, redirecting to login');
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -33,6 +43,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (!hasPermission(requiredRoles)) {
     // Redirect to unauthorized page or dashboard based on user role
     return <Navigate to="/unauthorized" replace />;
+  }
+  
+  // Business type routing check
+  if (user && user.businessType === 'turf' && 
+      location.pathname.startsWith('/dashboard') && 
+      !location.pathname.includes('/oauth/') && 
+      !location.pathname.includes('/onboarding')) {
+    console.log('Turf user trying to access doctor dashboard, redirecting to turf dashboard');
+    return <Navigate to="/turf-dashboard" replace />;
+  }
+  
+  if (user && user.businessType === 'doctor' && 
+      location.pathname.startsWith('/turf-dashboard') && 
+      !location.pathname.includes('/oauth/') && 
+      !location.pathname.includes('/onboarding')) {
+    console.log('Doctor user trying to access turf dashboard, redirecting to doctor dashboard');
+    return <Navigate to="/dashboard" replace />;
   }
 
   // User is authenticated and has the required role, render the children

@@ -10,8 +10,8 @@ const TurfDashboardLayout: React.FC = () => {
   const navigation = [
     { name: 'Dashboard', href: '/turf-dashboard', icon: 'home' },
     { name: 'Bookings', href: '/turf-dashboard/bookings', icon: 'calendar' },
+    { name: 'Schedule', href: '/turf-dashboard/schedule', icon: 'clock' },
     { name: 'User Management', href: '/turf-dashboard/users', icon: 'calendar' },
-    // { name: 'Schedule', href: '/turf-dashboard/schedule', icon: 'clock' },
     { name: 'Revenue', href: '/turf-dashboard/revenue', icon: 'chart-bar' },
     { name: 'Settings', href: '/turf-dashboard/settings', icon: 'cog' },
   ];

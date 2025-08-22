@@ -32,6 +32,19 @@ const LoginPage: React.FC = () => {
       }
       
       info.push(`Auth API: ${sessionError ? 'Unreachable' : 'Available'}`);
+      info.push(`Session exists: ${!!sessionData?.session}`);
+      if (sessionData?.session) {
+        info.push(`User ID: ${sessionData.session.user.id}`);
+        info.push(`User email: ${sessionData.session.user.email}`);
+        info.push(`Session expires: ${new Date(sessionData.session.expires_at! * 1000).toLocaleString()}`);
+      }
+      
+      // Check localStorage token
+      const localToken = localStorage.getItem('authToken');
+      info.push(`Local token exists: ${!!localToken}`);
+      if (localToken) {
+        info.push(`Local token (first 10 chars): ${localToken.substring(0, 10)}...`);
+      }
       
       // Test 3: Check if we can access the database
       try {
@@ -44,6 +57,18 @@ const LoginPage: React.FC = () => {
         } else {
           info.push(`approved_users count: ${count || 0}`);
         }
+        
+        // Check turf_approved_users too
+        const { count: turfCount, error: turfDbError } = await supabase
+          .from('turf_approved_users')
+          .select('*', { count: 'exact', head: true });
+          
+        if (turfDbError) {
+          info.push(`Turf DB Error: ${turfDbError.message}`);
+        } else {
+          info.push(`turf_approved_users count: ${turfCount || 0}`);
+        }
+        
       } catch (dbErr) {
         info.push(`DB Access Error: ${(dbErr as Error).message}`);
       }
@@ -56,7 +81,7 @@ const LoginPage: React.FC = () => {
         provider: 'google',
         options: {
           skipBrowserRedirect: true,
-          redirectTo: `${window.location.origin}/oauth-callback`
+          redirectTo: `${window.location.origin}/oauth/callback`
         }
       });
       
@@ -72,6 +97,12 @@ const LoginPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  // Function to clear local authentication state - useful for debugging
+  const clearAuthState = () => {
+    localStorage.removeItem('authToken');
+    setConfigInfo('Local auth token cleared');
   };
 
   const handleGoogleLogin = async () => {
@@ -100,7 +131,7 @@ const LoginPage: React.FC = () => {
       }
     
       // Use window.location.origin to get the current domain & port
-      const redirectUrl = `${window.location.origin}/oauth-callback`;
+      const redirectUrl = `${window.location.origin}/oauth/callback`;
       console.log(`Redirect URL: ${redirectUrl}`);
       
       // Continue with OAuth flow
@@ -121,6 +152,14 @@ const LoginPage: React.FC = () => {
       if (error) {
         console.error("OAuth error:", error);
         setError(`Google login failed: ${error.message}`);
+      } else if (data && data.url) {
+        // Redirect the user to the OAuth URL
+        console.log("Redirecting to OAuth URL:", data.url);
+        // Use direct window.location.href to ensure proper redirect
+        window.location.href = data.url;
+      } else {
+        console.error("No OAuth URL returned");
+        setError("Failed to initiate Google login. Please try again.");
       }
     } catch (err: any) {
       console.error("Login preparation error:", err);
@@ -353,14 +392,25 @@ const LoginPage: React.FC = () => {
         </form>
       </div>
       <div className="mt-4 text-center">
-        <button
-          type="button"
-          onClick={testSupabaseConfig}
-          className="text-sm text-gray-500 underline"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Testing...' : 'Test Supabase Config'}
-        </button>
+        <div className="flex justify-center space-x-4">
+          <button
+            type="button"
+            onClick={testSupabaseConfig}
+            className="text-sm text-gray-500 underline"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Testing...' : 'Test Supabase Config'}
+          </button>
+          
+          <button
+            type="button"
+            onClick={clearAuthState}
+            className="text-sm text-red-500 underline"
+            disabled={isLoading}
+          >
+            Clear Auth State
+          </button>
+        </div>
         
         {configInfo && (
           <div className="mt-4 p-4 bg-gray-100 text-left rounded text-xs font-mono whitespace-pre-wrap max-h-64 overflow-auto">

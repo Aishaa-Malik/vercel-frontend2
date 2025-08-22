@@ -18,6 +18,7 @@ const DashboardLayout: React.FC = () => {
     const commonItems = [
       { name: 'Dashboard', path: '/dashboard', icon: 'home' },
       { name: 'Appointments', path: '/dashboard/appointments', icon: 'calendar' },
+      { name: 'Schedule', path: '/dashboard/schedule', icon: 'calendar-alt' },
     ];
 
     switch (user.role) {
@@ -185,4 +186,4 @@ const DashboardLayout: React.FC = () => {
   );
 };
 
-export default DashboardLayout; 
+export default DashboardLayout;

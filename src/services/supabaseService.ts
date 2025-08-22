@@ -73,14 +73,26 @@ export const getUserTenant = async (userId: string) => {
 };
 
 export const getTenantDetails = async (tenantId: string) => {
-  const { data, error } = await supabase
-    .from('tenants')
-    .select('*')
-    .eq('id', tenantId)
-    .single();
+  try {
+    console.log('Fetching tenant details for ID:', tenantId);
+    const { data, error } = await supabase
+      .from('tenants')
+      .select('*')
+      .eq('id', tenantId)
+      .single();
+      
+    if (error) {
+      console.error('Supabase error fetching tenant:', error);
+      throw error;
+    }
     
-  if (error) throw error;
-  return data;
+    console.log('Tenant details fetched successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Exception in getTenantDetails:', error);
+    // Return a minimal tenant object to prevent UI errors
+    return { id: tenantId, name: 'Unknown Tenant' };
+  }
 };
 
 // Tenant management functions
@@ -180,6 +192,40 @@ export const getRevenueData = async (tenantId: string, startDate: string, endDat
   return data;
 };
 
+export const getUserBusinessType = async (userId: string) => {
+  try {
+    // First, get the tenant_id for the user
+    const { data: userTenant, error: tenantError } = await supabase
+      .from('user_tenants')
+      .select('tenant_id')
+      .eq('user_id', userId)
+      .single();
+      
+    if (tenantError || !userTenant?.tenant_id) {
+      console.error('Error getting user tenant:', tenantError);
+      return null;
+    }
+    
+    // Then get the business_type using the tenant_id
+    const { data: businessProfile, error: profileError } = await supabase
+      .from('business_profiles')
+      .select('business_type')
+      .eq('tenant_id', userTenant.tenant_id)
+      .single();
+      
+    if (profileError) {
+      console.error('Error getting business type:', profileError);
+      return null;
+    }
+    
+    console.log('Business type found:', businessProfile?.business_type);
+    return businessProfile?.business_type || null;
+  } catch (error) {
+    console.error('Error in getUserBusinessType:', error);
+    return null;
+  }
+};
+
 export const getAppointments = async (tenantId: string, filters: any = {}) => {
   let query = supabase
     .from('appointments')
@@ -206,4 +252,4 @@ export const getAppointments = async (tenantId: string, filters: any = {}) => {
   const { data, error } = await query;
   if (error) throw error;
   return data;
-}; 
+};

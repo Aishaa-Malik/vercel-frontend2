@@ -14,6 +14,7 @@ import TenantsManagement from './components/dashboard/TenantsManagement';
 import UserManagement from './components/dashboard/UserManagement';
 import SettingsPage from './components/dashboard/SettingsPage';
 import AppointmentsPage from './components/AppointmentsPage';
+import SchedulePage from './components/SchedulePage';
 import OAuthCallback from './components/OAuthCallback';
 import PaymentCallback from './components/PaymentCallback';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -88,7 +89,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage3 />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/oauth-callback" element={<OAuthCallback />} />
+            <Route path="/oauth/callback" element={<OAuthCallback/>} />
             <Route path="/payment-callback" element={<PaymentCallback />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/update-password" element={<UpdatePassword />} />
@@ -116,6 +117,7 @@ function App() {
             >
               <Route index element={<DashboardHome />} />
               <Route path="appointments" element={<AppointmentsPage />} />
+              <Route path="schedule" element={<SchedulePage />} />
               <Route path="revenue" element={<RevenuePage />} />
               <Route path="tenants" element={<TenantsManagement />} />
               <Route path="users" element={<UserManagement />} />
@@ -168,6 +170,7 @@ function App() {
               <Route index element={<TurfDashboardHome />} />
               <Route path="revenue" element={<TurfRevenuePage/>} />
               <Route path="bookings" element={<TurfAppointmentsPage/>} />
+              <Route path="schedule" element={<SchedulePage />} />
               <Route path="users" element={<TurfUserManagement />} />
               <Route path="settings" element={<TurfSettingsPage />} />
             </Route>
@@ -185,6 +188,7 @@ function App() {
             >
               <Route index element={<TurfEmployeeDashboard />} />
               <Route path="bookings" element={<TurfAppointmentsPage/>} />
+              <Route path="schedule" element={<SchedulePage />} />
               {/* <Route path="revenue" element={<TurfRevenuePage/>} /> */}
               <Route path="users" element={<TurfUserManagement />} />
             </Route>

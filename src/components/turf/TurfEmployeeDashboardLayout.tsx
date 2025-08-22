@@ -128,6 +128,19 @@ const TurfEmployeeDashboardLayout: React.FC = () => {
               </div>
               {isSidebarOpen && <span>Bookings</span>}
             </Link>
+            <Link
+              to="/turf-dashboard/employee/schedule"
+              className={`flex items-center px-4 py-2 mb-2 rounded-md ${
+                location.pathname.includes('/employee/schedule')
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <div className={`mr-3 ${location.pathname.includes('/employee/schedule') ? 'text-blue-600' : 'text-gray-400'}`}>
+                {renderIcon('event')}
+              </div>
+              {isSidebarOpen && <span>Schedule</span>}
+            </Link>
             {/* <Link
               to="/turf-dashboard/employee/revenue"
               className={`flex items-center px-4 py-2 mb-2 rounded-md ${

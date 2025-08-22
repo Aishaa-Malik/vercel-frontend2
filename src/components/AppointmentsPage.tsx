@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseService';
+import NewAppointmentForm from './NewAppointmentForm';
 
 interface Appointment {
   id: string;
@@ -64,6 +65,7 @@ const AppointmentsPage: React.FC = () => {
     remainingAppointments: 0,
     totalLimit: 0
   });
+  const [showNewAppointmentForm, setShowNewAppointmentForm] = useState(false);
   const [activeSubscription, setActiveSubscription] = useState<ActiveSubscription | null>(null);
   const [allSubscriptions, setAllSubscriptions] = useState<Subscription[]>([]);
 
@@ -433,50 +435,25 @@ const visibleAppointments = useMemo(() => {
             Refresh
           </button>
           <button 
-            className={`px-4 py-2 rounded-md transition-colors ${
-              appointmentLimits.canBook 
-                ? 'bg-green-500 hover:bg-green-600 text-white' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            disabled={!appointmentLimits.canBook}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
+            onClick={() => setShowNewAppointmentForm(true)}
           >
             + New Appointment
           </button>
         </div>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium text-blue-800">
-              Monthly Appointment Usage
-            </h3>
-            <p className="text-sm text-blue-600">
-              {appointmentLimits.totalLimit - appointmentLimits.remainingAppointments} / {appointmentLimits.totalLimit} appointments used this month
-            </p>
-          </div>
-          <div className="text-right">
-            <div className={`text-lg font-bold ${appointmentLimits.canBook ? 'text-green-600' : 'text-red-600'}`}>
-              {appointmentLimits.remainingAppointments} remaining
-            </div>
-          </div>
-        </div>
-        {!appointmentLimits.canBook && (
-          <div className="mt-2 text-sm text-red-600">
-            You've reached your monthly appointment limit. Please upgrade your plan to book more appointments.
-          </div>
-        )}
-        <div className="mt-2">
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className={`h-2 rounded-full ${appointmentLimits.canBook ? 'bg-blue-600' : 'bg-red-600'}`}
-              style={{ 
-                width: `${appointmentLimits.totalLimit ? ((appointmentLimits.totalLimit - appointmentLimits.remainingAppointments) / appointmentLimits.totalLimit) * 100 : 0}%` 
-              }}
-            />
-          </div>
-        </div>
-      </div>
+      {/* Monthly booking usage box removed as requested */}
+
+      {showNewAppointmentForm && (
+        <NewAppointmentForm 
+          onClose={() => setShowNewAppointmentForm(false)}
+          onSuccess={() => {
+            setShowNewAppointmentForm(false);
+            fetchAppointments();
+          }}
+        />
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mb-6">

@@ -163,14 +163,6 @@ const TurfSettingsPage: React.FC = () => {
       setIsConnecting(true);
       setConnectError(null);
       
-      // Validate tenant_id exists before proceeding
-      if (!tenant?.id) {
-        console.error('Cannot initiate OAuth: tenant_id is missing');
-        setConnectError('Cannot connect to Google Calendar: tenant information is missing');
-        setIsConnecting(false);
-        return;
-      }
-      
       // Construct Google OAuth URL
       const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       googleAuthUrl.searchParams.set('client_id', '942527714249-cdbhr135tk3icfqse2edotf1idttem55.apps.googleusercontent.com'); // Google client ID
@@ -179,11 +171,19 @@ const TurfSettingsPage: React.FC = () => {
       googleAuthUrl.searchParams.set('response_type', 'code');
       googleAuthUrl.searchParams.set('access_type', 'offline');
       googleAuthUrl.searchParams.set('prompt', 'consent'); // Forces refresh_token
-      // Ensure both user_id and tenant_id are included and not undefined
+      
+      // Ensure user_id is included and tenant_id if available
       const stateObj = {
-        user_id: user?.id || '',
-        tenant_id: tenant.id // We've validated this exists
+        user_id: user?.id || ''
       };
+      
+      // Only add tenant_id if it exists
+      if (tenant?.id) {
+        Object.assign(stateObj, { tenant_id: tenant.id });
+      } else {
+        console.log('No tenant ID available for Google Calendar integration');
+      }
+      
       console.log('OAuth state object:', stateObj);
       googleAuthUrl.searchParams.set('state', JSON.stringify(stateObj));
       
@@ -209,10 +209,10 @@ const TurfSettingsPage: React.FC = () => {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6 dark:text-white">Settings</h1>
       
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+      <div className="bg-black bg-opacity-80 rounded-lg shadow p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4 dark:text-white">Subscription Details</h2>
         <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-          <p className="text-gray-600 dark:text-gray-400 mb-1">Current Plan</p>
+          <p className="text-gray-700 dark:text-gray-300 mb-1">Current Plan</p>
           <p className="text-2xl font-medium dark:text-white flex items-center">
             <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full mr-2">{planName}</span>
             <span className="text-green-600 dark:text-green-400 text-sm">Active</span>
@@ -261,7 +261,7 @@ const TurfSettingsPage: React.FC = () => {
         )}
       </div>
       
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-black bg-opacity-80 rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-4 dark:text-white">Integrations</h2>
         
         <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -271,7 +271,7 @@ const TurfSettingsPage: React.FC = () => {
             </svg>
             Google Calendar
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
             Connect your Google Calendar to automatically sync your bookings with your calendar.
           </p>
           

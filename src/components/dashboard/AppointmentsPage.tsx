@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../services/supabaseService';
-import NewAppointmentForm from './NewAppointmentForm';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../services/supabaseService';
+import NewAppointmentForm from '../NewAppointmentForm';
 
 interface Appointment {
   id: string;
@@ -202,10 +202,16 @@ const AppointmentsPage: React.FC = () => {
 
   // Fetch appointments
   const fetchAppointments = async () => {
-    if (!user?.tenantId) return;
+    if (!user?.tenantId) {
+      console.error('No tenant ID available for fetching appointments');
+      setError('No tenant ID available');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       setIsLoading(true);
+      console.log('Fetching appointments for tenant:', user.tenantId);
       
       const { data, error } = await supabase
         .from('appointments')
@@ -225,14 +231,19 @@ const AppointmentsPage: React.FC = () => {
           payment_method,
           prescription,
           created_at,
-          updated_at
+          updated_at,
+          tenant_id
         `)
         .eq('tenant_id', user.tenantId)
         .order('appointment_date', { ascending: false })
         .order('appointment_time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching appointments:', error);
+        throw error;
+      }
 
+      console.log('Appointments fetched:', data?.length || 0);
       setAppointments(data || []);
     } catch (err: any) {
       console.error('Error fetching appointments:', err);

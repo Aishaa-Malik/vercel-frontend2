@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth, UserRole } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './App.css';
 
 // Components
@@ -13,7 +14,7 @@ import RevenuePage from './components/dashboard/RevenuePage';
 import TenantsManagement from './components/dashboard/TenantsManagement';
 import UserManagement from './components/dashboard/UserManagement';
 import SettingsPage from './components/dashboard/SettingsPage';
-import AppointmentsPage from './components/AppointmentsPage';
+import AppointmentsPage from './components/dashboard/AppointmentsPage';
 import SchedulePage from './components/SchedulePage';
 import OAuthCallback from './components/OAuthCallback';
 import PaymentCallback from './components/PaymentCallback';
@@ -32,6 +33,7 @@ import TurfAppointmentsPage from './components/turf/TurfAppointmentsPage';
 import TurfEmployeeDashboard from './components/turf/TurfEmployeeDashboard';
 import TurfEmployeeDashboardLayout from './components/turf/TurfEmployeeDashboardLayout';
 import TurfSettingsPage from './components/turf/TurfSettingsPage';
+import TurfSchedulePage from './components/turf/TurfSchedulePage';
 
 // Check if user needs onboarding
 const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
@@ -85,6 +87,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <ThemeProvider>
         <div className="App">
           <Routes>
             <Route path="/" element={<LandingPage3 />} />
@@ -170,7 +173,7 @@ function App() {
               <Route index element={<TurfDashboardHome />} />
               <Route path="revenue" element={<TurfRevenuePage/>} />
               <Route path="bookings" element={<TurfAppointmentsPage/>} />
-              <Route path="schedule" element={<SchedulePage />} />
+              <Route path="schedule" element={<TurfSchedulePage />} />
               <Route path="users" element={<TurfUserManagement />} />
               <Route path="settings" element={<TurfSettingsPage />} />
             </Route>
@@ -188,12 +191,13 @@ function App() {
             >
               <Route index element={<TurfEmployeeDashboard />} />
               <Route path="bookings" element={<TurfAppointmentsPage/>} />
-              <Route path="schedule" element={<SchedulePage />} />
+              <Route path="schedule" element={<TurfSchedulePage />} />
               {/* <Route path="revenue" element={<TurfRevenuePage/>} /> */}
               <Route path="users" element={<TurfUserManagement />} />
             </Route>
           </Routes>
         </div>
+        </ThemeProvider>
       </AuthProvider>
     </Router>
   );

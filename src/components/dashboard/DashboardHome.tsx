@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth, UserRole } from '../../contexts/AuthContext';
+import { supabase } from '../../services/supabaseService';
 
 const DashboardHome: React.FC = () => {
   const { user, tenant } = useAuth();
@@ -190,46 +191,96 @@ const BusinessOwnerDashboard: React.FC = () => {
 
 // Doctor Dashboard
 const DoctorDashboard: React.FC = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Today's Schedule */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Today's Schedule</h3>
-        <ul className="divide-y">
-          {[1, 2, 3, 4].map((i) => (
-            <li key={i} className="py-3">
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-medium">Patient {i}</p>
-                  <p className="text-sm text-gray-500">{`${i + 8}:00 AM - ${i + 8}:30 AM`}</p>
-                </div>
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center">
-                  Upcoming
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+  const { user, tenant } = useAuth();
+  const [totalAppointments, setTotalAppointments] = useState<number>(0);
+  const [todayAppointments, setTodayAppointments] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-      {/* Patient Notes */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Patient Notes</h3>
-        <ul className="divide-y">
-          {[1, 2, 3].map((i) => (
-            <li key={i} className="py-3">
-              <div>
-                <div className="flex justify-between">
-                  <p className="font-medium">Patient {i}</p>
-                  <p className="text-xs text-gray-500">Yesterday</p>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  Follow-up appointment scheduled. Patient reported improvement in symptoms.
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!user?.tenantId) return;
+      
+      try {
+        setIsLoading(true);
+        
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Fetch total appointments
+        const { count: totalCount, error: totalError } = await supabase
+          .from('Appointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', user.tenantId);
+        
+        if (totalError) throw totalError;
+        
+        // Fetch today's appointments
+        const { count: todayCount, error: todayError } = await supabase
+          .from('Appointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', user.tenantId)
+          .eq('appointment_date', today);
+        
+        if (todayError) throw todayError;
+        
+        // Fetch total revenue
+        const { data: revenueData, error: revenueError } = await supabase
+          .from('Appointments')
+          .select('amount')
+          .eq('tenant_id', user.tenantId);
+        
+        if (revenueError) throw revenueError;
+        
+        // Calculate total revenue
+        const revenue = revenueData.reduce((sum, appointment) => {
+          return sum + (appointment.amount || 0);
+        }, 0);
+        
+        setTotalAppointments(totalCount || 0);
+        setTodayAppointments(todayCount || 0);
+        setTotalRevenue(revenue);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, [user?.tenantId]);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Business Stats - Full Width */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 md:col-span-3">
+        <h3 className="text-lg font-semibold mb-4 dark:text-white">Business Overview</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-md flex flex-col items-center justify-center">
+            <p className="text-sm text-blue-500 mb-2">Total Appointments</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-16 bg-blue-200 rounded"></div>
+            ) : (
+              <p className="text-3xl font-bold">{totalAppointments}</p>
+            )}
+          </div>
+          <div className="bg-green-50 dark:bg-green-900 p-6 rounded-md flex flex-col items-center justify-center">
+            <p className="text-sm text-green-500 mb-2">Today's Appointments</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-16 bg-green-200 dark:bg-green-700 rounded"></div>
+            ) : (
+              <p className="text-3xl font-bold dark:text-white">{todayAppointments}</p>
+            )}
+          </div>
+          <div className="bg-purple-50 dark:bg-purple-900 p-6 rounded-md flex flex-col items-center justify-center">
+            <p className="text-sm text-purple-500 mb-2">Total Revenue</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-24 bg-purple-200 dark:bg-purple-700 rounded"></div>
+            ) : (
+              <p className="text-3xl font-bold dark:text-white">₹{totalRevenue.toLocaleString()}</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -294,4 +345,4 @@ const DefaultDashboard: React.FC = () => {
   );
 };
 
-export default DashboardHome; 
+export default DashboardHome;

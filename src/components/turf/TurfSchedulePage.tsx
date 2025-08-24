@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../services/supabaseService';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../services/supabaseService';
 
 interface TenantIntegration {
   id: string;
@@ -13,7 +13,7 @@ interface TenantIntegration {
   };
 }
 
-const SchedulePage: React.FC = () => {
+const TurfSchedulePage: React.FC = () => {
   const { tenant, user } = useAuth();
   const [calendarId, setCalendarId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +83,7 @@ const SchedulePage: React.FC = () => {
         </div>
         <div className="mt-4">
           <button 
-            onClick={() => window.location.href = '/dashboard/settings'}
+            onClick={() => window.location.href = '/turf-dashboard/settings'}
             className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-300 flex items-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -138,4 +138,4 @@ const SchedulePage: React.FC = () => {
   );
 };
 
-export default SchedulePage;
+export default TurfSchedulePage;

@@ -36,7 +36,7 @@ const OAuthCallback: React.FC = () => {
           setMessage('Authentication failed.');
           // Figure out if we need to go to turf dashboard or regular dashboard
           const isForTurf = window.location.href.includes('turf');
-          const redirectPath = isForTurf ? '/turf-dashboard/settings' : '/dashboard/settings';
+          const redirectPath = isForTurf ? '/turf-dashboard' : '/dashboard';
           navigate(`${redirectPath}?error=oauth_failed`, { replace: true });
           return;
         }
@@ -59,15 +59,19 @@ const OAuthCallback: React.FC = () => {
               throw new Error('Missing user_id in state');
             }
             
+            // Check if tenant_id exists but don't throw error if missing
+            if (!stateData.tenant_id) {
+              console.warn('Missing tenant_id in state, will proceed with user-only integration');
+            }
+            
             // Call Supabase Edge Function to handle token exchange
             console.log('Calling Edge Function with code and state data');
 
-           // console.log('Code:', code);
-            console.log('hello doston - State Data:', stateData.tenant_id);
+            console.log('State Data - tenant_id:', stateData.tenant_id || 'Not provided');
             const { data, error } = await supabase.functions.invoke('handle-google-oauth', {
               body: {
                 code,
-                tenant_id: stateData.tenant_id || null, // Handle missing tenant_id
+                tenant_id: stateData.tenant_id || null,
                 user_id: stateData.user_id
               }
             });
@@ -80,9 +84,9 @@ const OAuthCallback: React.FC = () => {
             setStatus('success');
             setMessage('Calendar connected successfully!');
             
-            // Redirect back to settings with success
+            // Redirect back to dashboard with success
             const isForTurf = window.location.pathname.includes('turf');
-            const redirectPath = isForTurf ? '/turf-dashboard/settings' : '/dashboard/settings';
+            const redirectPath = isForTurf ? '/turf-dashboard' : '/dashboard';
             navigate(`${redirectPath}?connected=true`, { replace: true });
           } catch (error) {
             console.error('Token exchange failed:', error);
@@ -90,7 +94,7 @@ const OAuthCallback: React.FC = () => {
             setMessage('Failed to connect your calendar.');
             // Figure out if we need to go to turf dashboard or regular dashboard
             const isForTurfError = window.location.href.includes('turf');
-            const redirectPathError = isForTurfError ? '/turf-dashboard/settings' : '/dashboard/settings';
+            const redirectPathError = isForTurfError ? '/turf-dashboard' : '/dashboard';
             navigate(`${redirectPathError}?error=token_exchange_failed`, { replace: true });
           }
         } else {
@@ -98,8 +102,8 @@ const OAuthCallback: React.FC = () => {
           setMessage('Missing required parameters.');
           // Determine which dashboard to redirect to
           const redirectToTurf = window.location.href.includes('turf');
-          const settingsPath = redirectToTurf ? '/turf-dashboard/settings' : '/dashboard/settings';
-          navigate(`${settingsPath}?error=missing_params`, { replace: true });
+          const dashboardPath = redirectToTurf ? '/turf-dashboard' : '/dashboard';
+          navigate(`${dashboardPath}?error=missing_params`, { replace: true });
         }
       } catch (error) {
         console.error('OAuth callback error:', error);
@@ -107,7 +111,7 @@ const OAuthCallback: React.FC = () => {
         setMessage('An unexpected error occurred.');
         // Determine which dashboard to redirect to in case of error
         const goToTurf = window.location.href.includes('turf');
-        const errorPath = goToTurf ? '/turf-dashboard/settings' : '/dashboard/settings';
+        const errorPath = goToTurf ? '/turf-dashboard' : '/dashboard';
         navigate(`${errorPath}?error=unknown`, { replace: true });
       }
     };
@@ -124,11 +128,11 @@ const OAuthCallback: React.FC = () => {
           <button 
             onClick={() => {
               const toTurf = window.location.href.includes('turf');
-              navigate(toTurf ? '/turf-dashboard/settings' : '/dashboard/settings');
+              navigate(toTurf ? '/turf-dashboard' : '/dashboard');
             }}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
           >
-            Return to Settings
+            Return to Dashboard
           </button>
         )}
       </div>

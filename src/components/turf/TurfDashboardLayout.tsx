@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import DarkModeToggle from '../DarkModeToggle';
 
 const TurfDashboardLayout: React.FC = () => {
   const { tenant, user, logout } = useAuth();
+  const { darkMode } = useTheme();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -59,7 +62,7 @@ const TurfDashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
       {/* Mobile menu */}
       <div className="lg:hidden">
         <div className="fixed inset-0 flex z-40">
@@ -209,7 +212,7 @@ const TurfDashboardLayout: React.FC = () => {
 
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
-        <div className="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-white">
+        <div className={`sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <button
             type="button"
             className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900"
@@ -220,6 +223,9 @@ const TurfDashboardLayout: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
+        </div>
+        <div className="flex items-center justify-end p-4">
+          <DarkModeToggle />
         </div>
         <main className="flex-1">
           <Outlet />

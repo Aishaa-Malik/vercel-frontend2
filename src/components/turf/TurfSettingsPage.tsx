@@ -207,74 +207,85 @@ const TurfSettingsPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold mb-6 dark:text-white">Settings</h1>
       
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Subscription Details</h2>
-        <div className="mb-4">
-          <p className="text-gray-600 mb-1">Current Plan</p>
-          <p className="text-lg font-medium">{planName}</p>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4 dark:text-white">Subscription Details</h2>
+        <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <p className="text-gray-600 dark:text-gray-400 mb-1">Current Plan</p>
+          <p className="text-2xl font-medium dark:text-white flex items-center">
+            <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full mr-2">{planName}</span>
+            <span className="text-green-600 dark:text-green-400 text-sm">Active</span>
+          </p>
         </div>
         
         <button 
           onClick={toggleUsageLimit}
-          className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-300"
+          className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-300 flex items-center"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+          </svg>
           Check Bookings Usage Limit
         </button>
         
         {showUsageLimit && (
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mt-4">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md p-4 mt-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-medium text-blue-800">
+                <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
                   Monthly Booking Usage
                 </h3>
-                <p className="text-sm text-blue-600">
+                <p className="text-sm text-blue-600 dark:text-blue-300">
                   {bookingUsage.used} / {bookingUsage.total} Bookings used this month
                 </p>
               </div>
               <div className="text-right">
-                <div className={`text-lg font-bold ${(bookingUsage.total - bookingUsage.used) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`text-lg font-bold ${(bookingUsage.total - bookingUsage.used) > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {bookingUsage.total - bookingUsage.used} remaining
                 </div>
               </div>
             </div>
-            <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div 
-                className="bg-blue-600 h-2 rounded-full" 
+                className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full" 
                 style={{ width: `${Math.min((bookingUsage.used / Math.max(bookingUsage.total, 1)) * 100, 100)}%` }}
               ></div>
             </div>
             {bookingUsage.used >= bookingUsage.total && (
-              <p className="text-sm text-red-600 mt-2">
-                You've reached your monthly booking limit. Please upgrade your plan to book more bookings.
+              <p className="text-sm text-red-600 dark:text-red-400 mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded">
+                <span className="font-medium">Limit reached:</span> You've reached your monthly booking limit. Please upgrade your plan to book more bookings.
               </p>
             )}
           </div>
         )}
       </div>
       
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Integrations</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold mb-4 dark:text-white">Integrations</h2>
         
-        <div className="mb-4">
-          <h3 className="font-medium mb-2">Google Calendar</h3>
-          <p className="text-gray-600 mb-4">
+        <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <h3 className="font-medium mb-2 dark:text-white flex items-center">
+            <svg className="w-5 h-5 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            Google Calendar
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Connect your Google Calendar to automatically sync your bookings with your calendar.
           </p>
           
           {isGoogleCalendarConnected ? (
             <div>
               <div className="flex items-center">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   Connected
                 </span>
                 <button 
-                  className="ml-4 text-sm text-red-600 hover:text-red-800"
+                  className="ml-4 text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors duration-200"
                   onClick={() => {
                     // Logic to disconnect Google Calendar would go here
                     alert('This would disconnect your Google Calendar');
@@ -284,7 +295,7 @@ const TurfSettingsPage: React.FC = () => {
                 </button>
               </div>
               {connectSuccess && (
-                <p className="text-sm text-green-600 mt-2 font-medium">{connectSuccess}</p>
+                <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">{connectSuccess}</p>
               )}
             </div>
           ) : (
@@ -292,11 +303,11 @@ const TurfSettingsPage: React.FC = () => {
               <button 
                 onClick={handleConnectGoogleCalendar}
                 disabled={isConnecting}
-                className="inline-flex items-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {isConnecting ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -313,7 +324,7 @@ const TurfSettingsPage: React.FC = () => {
                 )}
               </button>
               {connectError && (
-                <p className="text-sm text-red-600 mt-2">{connectError}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-2">{connectError}</p>
               )}
             </div>
           )}

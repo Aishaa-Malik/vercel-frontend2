@@ -109,26 +109,26 @@ const LoginPage: React.FC = () => {
     console.log("Initiating Google login flow");
     
     try {
-      // First check if user email is in approved_users (optional)
-      const userEmail = prompt("Enter your email to verify access (or cancel to skip):");
-      if (userEmail) {
-        const { data, error } = await supabase
-          .from('approved_users')
-          .select('email')
-          .eq('email', userEmail)
-          .maybeSingle();
+    //   // First check if user email is in approved_users (optional)
+    //   const userEmail = prompt("Enter your email to verify access (or cancel to skip):");
+    //   if (userEmail) {
+    //     const { data, error } = await supabase
+    //       .from('approved_users')
+    //       .select('email')
+    //       .eq('email', userEmail)
+    //       .maybeSingle();
         
-        if (error) {
-          throw new Error(`Error checking approved users: ${error.message}`);
-        }
+    //     if (error) {
+    //       throw new Error(`Error checking approved users: ${error.message}`);
+    //     }
         
-        if (!data) {
-          setError("Email not found in approved users list. Please contact your administrator.");
-          return;
-        }
+    //     if (!data) {
+    //       setError("Email not found in approved users list. Please contact your administrator.");
+    //       return;
+    //     }
         
-        console.log("User is in approved list, continuing with Google login");
-      }
+    //     console.log("User is in approved list, continuing with Google login");
+    //   }
     
       // Use window.location.origin to get the current domain & port
       const redirectUrl = `${window.location.origin}/oauth/callback`;

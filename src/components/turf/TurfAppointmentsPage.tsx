@@ -3,6 +3,9 @@ import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../services/supabaseService';
 import NewAppointmentForm from '../NewAppointmentForm';
 
+
+
+
 interface Appointment {
   id: string;
   customer_name: string;
@@ -53,6 +56,8 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
 }
+
+
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -113,39 +118,39 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="sm:flex sm:items-start">
         <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
             Booking Details
           </h3>
           
-          <div className="overflow-hidden bg-white shadow rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-              <tbody className="bg-white divide-y divide-gray-200">
+          <div className="overflow-hidden bg-white dark:bg-gray-800 shadow rounded-lg">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 <tr>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 w-1/3">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-gray-700 w-1/3">
                     Booking Reference
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300">
                     {booking.booking_reference || 'N/A'}
                   </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-gray-700">
                     Customer Name
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300">
                     {booking.customer_name}
                   </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-gray-700">
                     Customer Email
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300">
                     {booking.customer_email || 'N/A'}
                   </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-gray-700">
                     Customer Contact
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
@@ -258,6 +263,13 @@ const TurfAppointmentsPage: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<Appointment | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showNewAppointmentForm, setShowNewAppointmentForm] = useState(false);
+
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+   // Function to trigger refresh
+  const triggerRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   // Check appointment limits function (also stores active subscription for filtering)
   const checkAppointmentLimit = async (tenantId: string): Promise<AppointmentLimits> => {
@@ -377,6 +389,8 @@ const TurfAppointmentsPage: React.FC = () => {
         .order('appointment_date', { ascending: false })
         .order('appointment_time', { ascending: true });
 
+        console.log('hooo data', data);
+
       if (error) throw error;
       console.log('Fetched appointment data:', data); // ✅ Log the fetched data
 
@@ -392,16 +406,57 @@ const TurfAppointmentsPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchAppointments();
-    fetchAllSubscriptions();
-  }, [user?.tenantId]);
+useEffect(() => {
+  console.log('Setting up realtime subscription for tenant:', user?.tenantId);
+  
+  if (!user?.tenantId) {
+    console.log('No tenantId available, skipping subscription');
+    return;
+  }
+
+  fetchAppointments();
+  fetchAllSubscriptions();
+
+  // Set up real-time subscription
+  const appointmentsSubscription = supabase
+    .channel('turf-appointments-changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public', 
+        table: 'TurfAppointments',
+        filter: `tenant_id=eq.${user.tenantId}`
+      },
+      (payload) => {
+        console.log('🔥 Realtime event received:', payload);
+        console.log('Event type:', payload.eventType);
+        console.log('Table:', payload.table);
+        console.log('New data:', payload.new);
+        console.log('Old data:', payload.old);
+        
+        // Refresh data when any change occurs
+        fetchAppointments();
+      }
+    )
+    .subscribe((status, err) => {
+      console.log('Subscription status:', status);
+      if (err) console.error('Subscription error:', err);
+    });
+
+  // Cleanup subscription
+  return () => {
+    console.log('Cleaning up realtime subscription');
+    supabase.removeChannel(appointmentsSubscription);
+  };
+}, [user?.tenantId, refreshTrigger]);
+
 
   useEffect(() => {
     if (user?.tenantId) {
       checkAppointmentLimit(user.tenantId).then(setAppointmentLimits);
     }
-  }, [user?.tenantId]);
+  }, [user?.tenantId, refreshTrigger]);
 
   // Cancel appointment
   const cancelAppointment = async (appointment: Appointment) => {
@@ -566,12 +621,35 @@ const TurfAppointmentsPage: React.FC = () => {
     });
   };
 
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':');
-    const hour12 = parseInt(hours) % 12 || 12;
-    const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
-    return `${hour12}:${minutes} ${ampm}`;
-  };
+const formatTime = (timeString: string) => {
+  try {
+    if (!timeString || typeof timeString !== 'string') {
+      return 'N/A';
+    }
+    
+    const parts = timeString.split(':');
+    if (parts.length < 2) {
+      return timeString; // Return original if it can't be parsed
+    }
+    
+    const [hours, minutes] = parts;
+    const hourNum = parseInt(hours, 10);
+    const minuteStr = minutes || '00';
+    
+    if (isNaN(hourNum)) {
+      return timeString; // Return original if hours is not a number
+    }
+    
+    const hour12 = hourNum % 12 || 12;
+    const ampm = hourNum >= 12 ? 'PM' : 'AM';
+    return `${hour12}:${minuteStr} ${ampm}`;
+  } catch (error) {
+    console.error('Error formatting time:', timeString, error);
+    return 'N/A';
+  }
+};
+
+
 
   // Handle view booking function
   const handleViewBooking = (appointment: Appointment) => {
@@ -599,12 +677,12 @@ const TurfAppointmentsPage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Bookings</h1>
-          <p className="text-gray-600">Manage Customer Bookings for {tenant?.name || 'your organization'}</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Bookings</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage Customer Bookings</p>
         </div>
         <div className="mt-4 md:mt-0">
           <button 
-            onClick={() => fetchAppointments()}
+           onClick={triggerRefresh} // Use triggerRefresh instead of fetchAppointments
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors mr-2"
           >
             Refresh
@@ -625,16 +703,16 @@ const TurfAppointmentsPage: React.FC = () => {
           onClose={() => setShowNewAppointmentForm(false)}
           onSuccess={() => {
             setShowNewAppointmentForm(false);
-            fetchAppointments();
           }}
+          onRefresh={triggerRefresh}
         />
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 mb-6">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 rounded-md p-4 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <svg className="h-5 w-5 text-red-400 dark:text-red-300" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             </div>
@@ -642,7 +720,7 @@ const TurfAppointmentsPage: React.FC = () => {
             <div className="ml-auto pl-3">
               <button
                 onClick={() => setError(null)}
-                className="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100"
+                className="inline-flex bg-red-50 dark:bg-red-900/50 rounded-md p-1.5 text-red-500 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-800/50"
               >
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -653,20 +731,20 @@ const TurfAppointmentsPage: React.FC = () => {
         </div>
       )}
       
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <div className="flex-1">
             <label htmlFor="search" className="sr-only">Search</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
                 </svg>
               </div>
               <input
                 id="search"
                 name="search"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-200 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 placeholder="Search by customer name, contact, or booking reference"
                 type="search"
                 value={searchQuery}
@@ -681,8 +759,8 @@ const TurfAppointmentsPage: React.FC = () => {
                 onClick={() => setFilter(status)}
                 className={`px-3 py-1 rounded-full text-sm transition-colors ${
                   filter === status 
-                    ? 'bg-blue-100 text-blue-800 border border-blue-300' 
-                    : 'bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200'
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-700' 
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 {status === 'all' ? 'All' : status}
@@ -692,12 +770,12 @@ const TurfAppointmentsPage: React.FC = () => {
         </div>
       </div>
       
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   customer
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">

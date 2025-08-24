@@ -1,6 +1,10 @@
 import React from 'react';
 import { useAuth, UserRole } from '../../contexts/AuthContext';
 
+// Business Owner Dashboard
+import { useState, useEffect } from 'react';
+import { supabase } from '../../services/supabaseService';
+
 const TurfDashboardHome: React.FC = () => {
   const { user, tenant } = useAuth();
 
@@ -28,9 +32,9 @@ const TurfDashboardHome: React.FC = () => {
         <h2 className="text-2xl font-bold text-gray-800">
           Welcome back, {user?.name}
         </h2>
-        <p className="text-gray-600">
+        {/* <p className="text-gray-600">
           {tenant ? `${tenant.name} Dashboard` : 'Dashboard'}
-        </p>
+        </p> */}
       </div>
 
       {renderDashboardContent()}
@@ -122,67 +126,97 @@ const SuperAdminDashboard: React.FC = () => {
   );
 };
 
-// Business Owner Dashboard
-// Business Owner Dashboard
+
 const BusinessOwnerDashboard: React.FC = () => {
+  const { user, tenant } = useAuth();
+  const [totalAppointments, setTotalAppointments] = useState<number>(0);
+  const [todayAppointments, setTodayAppointments] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!user?.tenantId) return;
+      
+      try {
+        setIsLoading(true);
+        
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Fetch total appointments
+        const { count: totalCount, error: totalError } = await supabase
+          .from('TurfAppointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', user.tenantId);
+        
+        if (totalError) throw totalError;
+        
+        // Fetch today's appointments
+        const { count: todayCount, error: todayError } = await supabase
+          .from('TurfAppointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', user.tenantId)
+          .eq('appointment_date', today);
+        
+        if (todayError) throw todayError;
+        
+        // Fetch total revenue
+        const { data: revenueData, error: revenueError } = await supabase
+          .from('TurfAppointments')
+          .select('amount')
+          .eq('tenant_id', user.tenantId);
+        
+        if (revenueError) throw revenueError;
+        
+        // Calculate total revenue
+        const revenue = revenueData.reduce((sum, appointment) => {
+          return sum + (appointment.amount || 0);
+        }, 0);
+        
+        setTotalAppointments(totalCount || 0);
+        setTodayAppointments(todayCount || 0);
+        setTotalRevenue(revenue);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, [user?.tenantId]);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* Business Stats */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Business Overview</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blue-50 p-4 rounded-md">
-            <p className="text-sm text-blue-500">Total Appointments</p>
-            <p className="text-2xl font-bold">48</p>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Business Stats - Full Width */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 md:col-span-3">
+        <h3 className="text-lg font-semibold mb-4 dark:text-white">Business Overview</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-md flex flex-col items-center justify-center">
+            <p className="text-sm text-blue-500 mb-2">Total Appointments</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-16 bg-blue-200 rounded"></div>
+            ) : (
+              <p className="text-3xl font-bold">{totalAppointments}</p>
+            )}
           </div>
-          <div className="bg-green-50 p-4 rounded-md">
-            <p className="text-sm text-green-500">Today's Appointments</p>
-            <p className="text-2xl font-bold">12</p>
+          <div className="bg-green-50 dark:bg-green-900 p-6 rounded-md flex flex-col items-center justify-center">
+            <p className="text-sm text-green-500 mb-2">Today's Appointments</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-16 bg-green-200 dark:bg-green-700 rounded"></div>
+            ) : (
+              <p className="text-3xl font-bold dark:text-white">{todayAppointments}</p>
+            )}
           </div>
-          <div className="bg-purple-50 p-4 rounded-md">
-            <p className="text-sm text-purple-500">Total Revenue</p>
-            <p className="text-2xl font-bold">₹24,500</p>
+          <div className="bg-purple-50 dark:bg-purple-900 p-6 rounded-md flex flex-col items-center justify-center">
+            <p className="text-sm text-purple-500 mb-2">Total Revenue</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-24 bg-purple-200 dark:bg-purple-700 rounded"></div>
+            ) : (
+              <p className="text-3xl font-bold dark:text-white">₹{totalRevenue.toLocaleString()}</p>
+            )}
           </div>
-          <div className="bg-yellow-50 p-4 rounded-md">
-            <p className="text-sm text-yellow-500">Active Staff</p>
-            <p className="text-2xl font-bold">8</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Appointments */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Appointments</h3>
-        <ul className="divide-y">
-          {[1, 2, 3].map((i) => (
-            <li key={i} className="py-3">
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-medium">Patient {i}</p>
-                  <p className="text-sm text-gray-500">Today, 2:00 PM</p>
-                </div>
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center">
-                  Confirmed
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-        <div className="space-y-3">
-          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-300">
-            View Appointments
-          </button>
-          <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition-colors duration-300">
-            View Revenue
-          </button>
-          <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded transition-colors duration-300">
-            Manage Staff
-          </button>
         </div>
       </div>
     </div>
@@ -248,4 +282,4 @@ const DefaultDashboard: React.FC = () => {
   );
 };
 
-export default TurfDashboardHome; 
+export default TurfDashboardHome;

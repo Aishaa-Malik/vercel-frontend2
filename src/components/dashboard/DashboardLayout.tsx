@@ -58,7 +58,18 @@ const DashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 relative">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center z-0" 
+        style={{
+          backgroundImage: 'url(/turf.jpg)',
+          opacity: 0.4
+        }}
+      ></div>
+      
+      {/* Content Container */}
+      <div className="flex w-full h-full z-10 relative">
       {/* Sidebar */}
       <div
         className={`${
@@ -181,6 +192,7 @@ const DashboardLayout: React.FC = () => {
         <main className="p-6">
           <Outlet />
         </main>
+      </div>
       </div>
     </div>
   );

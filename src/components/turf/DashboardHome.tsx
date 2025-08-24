@@ -28,9 +28,9 @@ const DashboardHome: React.FC = () => {
         <h2 className="text-2xl font-bold text-gray-800">
           Welcome back, {user?.name}
         </h2>
-        <p className="text-gray-600">
+        {/* <p className="text-gray-600">
           {tenant ? `${tenant.name} Dashboard` : 'Dashboard'}
-        </p>
+        </p> */}
       </div>
 
       {renderDashboardContent()}

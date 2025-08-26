@@ -286,9 +286,27 @@ const TurfSettingsPage: React.FC = () => {
                 </span>
                 <button 
                   className="ml-4 text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors duration-200"
-                  onClick={() => {
-                    // Logic to disconnect Google Calendar would go here
-                    alert('This would disconnect your Google Calendar');
+                  onClick={async () => {
+                    if (window.confirm('Are you sure you want to disconnect Google Calendar?')) {
+                      try {
+                        const { error } = await supabase
+                          .from('tenant_integrations')
+                          .update({ is_connected: false })
+                          .eq('tenant_id', tenant?.id)
+                          .eq('integration_type', 'google_calendar');
+                        
+                        if (error) {
+                          console.error('Error disconnecting calendar:', error);
+                          alert('Failed to disconnect Google Calendar. Please try again.');
+                        } else {
+                          setIsGoogleCalendarConnected(false);
+                          alert('Google Calendar disconnected successfully!');
+                        }
+                      } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while disconnecting Google Calendar.');
+                      }
+                    }
                   }}
                 >
                   Disconnect

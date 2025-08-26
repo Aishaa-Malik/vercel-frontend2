@@ -3,6 +3,229 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../services/supabaseService';
 import NewAppointmentForm from '../NewAppointmentForm';
 
+// Modal component for reuse
+const Modal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}> = ({ isOpen, onClose, children }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={onClose}></div>
+        </div>
+        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Booking Detail Modal Component
+const BookingDetailModal: React.FC<{
+  booking: Appointment | null;
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ booking, isOpen, onClose }) => {
+  if (!booking) return null;
+
+  // Format date function
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Format time function
+  const formatTime = (timeStr: string) => {
+    // Handle different time formats
+    if (timeStr.includes(':')) {
+      const [hours, minutes] = timeStr.split(':');
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12}:${minutes} ${ampm}`;
+    }
+    return timeStr;
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Appointment Details</h3>
+          <button
+            type="button"
+            className="text-gray-400 hover:text-gray-500"
+            onClick={onClose}
+          >
+            <span className="sr-only">Close</span>
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div className="mt-2">
+          <table className="min-w-full divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200">
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Booking Reference
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.booking_reference || 'N/A'}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Patient Name
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.patient_name}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Doctor
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.doctor}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Contact
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.patient_contact || 'N/A'}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Email
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.patient_email || 'N/A'}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Date
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {formatDate(booking.appointment_date)}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Time
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {formatTime(booking.appointment_time)}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Status
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${booking.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
+                      booking.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                      booking.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                      booking.status === 'no-show' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'}`}>
+                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Payment Amount
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.amount ? `${booking.currency || 'INR'} ${booking.amount}` : 'N/A'}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Payment Method
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.payment_method ? booking.payment_method.toUpperCase() : 'N/A'}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Payment ID
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.payment_id || 'N/A'}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Prescription
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.prescription ? (
+                    <a 
+                      href={booking.prescription} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full hover:bg-green-200 transition-colors"
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                      View
+                    </a>
+                  ) : 'Not uploaded'}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Created At
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.created_at ? new Date(booking.created_at).toLocaleString() : 'N/A'}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                  Last Updated
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {booking.updated_at ? new Date(booking.updated_at).toLocaleString() : 'N/A'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="mt-6 sm:flex sm:flex-row-reverse">
+          <button
+            type="button"
+            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
 interface Appointment {
   id: string;
   patient_name: string;
@@ -69,8 +292,18 @@ const AppointmentsPage: React.FC = () => {
   const [activeSubscription, setActiveSubscription] = useState<ActiveSubscription | null>(null);
   const [allSubscriptions, setAllSubscriptions] = useState<Subscription[]>([]);
   
+  // Add states for booking detail modal
+  const [selectedBooking, setSelectedBooking] = useState<Appointment | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  
   // Add refresh trigger state
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
+  // Function to handle viewing booking details
+  const handleViewBooking = (booking: Appointment) => {
+    setSelectedBooking(booking);
+    setShowModal(true);
+  };
 
   // Function to trigger refresh
   const triggerRefresh = () => {
@@ -718,17 +951,54 @@ const AppointmentsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {appointment.prescription ? (
-                        <a 
-                          href={appointment.prescription} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full hover:bg-green-200 transition-colors"
-                        >
-                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                          View
-                        </a>
+                        <div className="flex space-x-2">
+                          <a 
+                            href={appointment.prescription} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full hover:bg-green-200 transition-colors"
+                          >
+                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            View
+                          </a>
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept=".jpg,.jpeg,.png,.pdf"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleFileUpload(appointment.id, file);
+                                }
+                              }}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              disabled={uploadingIds.has(appointment.id)}
+                            />
+                            <button 
+                              className="inline-flex items-center px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={uploadingIds.has(appointment.id)}
+                            >
+                              {uploadingIds.has(appointment.id) ? (
+                                <>
+                                  <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                  Upload
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       ) : (
                         <div className="relative">
                           <input
@@ -775,7 +1045,10 @@ const AppointmentsPage: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900 hover:underline transition-colors">
+                      <button 
+                        onClick={() => handleViewBooking(appointment)}
+                        className="text-blue-600 hover:text-blue-900 hover:underline transition-colors"
+                      >
                         View
                       </button>
                       {appointment.status !== 'Cancelled' && appointment.status !== 'Completed' && (
@@ -804,8 +1077,17 @@ const AppointmentsPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        
       </div>
+          {/* Booking Detail Modal */}
+    <BookingDetailModal
+      booking={selectedBooking}
+      isOpen={showModal}
+      onClose={() => setShowModal(false)}
+    />
     </div>
+
+
   );
 };
 

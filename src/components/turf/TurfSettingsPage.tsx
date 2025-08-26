@@ -166,7 +166,7 @@ const TurfSettingsPage: React.FC = () => {
       // Construct Google OAuth URL
       const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       googleAuthUrl.searchParams.set('client_id', '942527714249-cdbhr135tk3icfqse2edotf1idttem55.apps.googleusercontent.com'); // Google client ID
-      googleAuthUrl.searchParams.set('redirect_uri', 'http://localhost:3000/oauth/callback');
+      googleAuthUrl.searchParams.set('redirect_uri', `${window.location.origin}/oauth/callback`);
       googleAuthUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar');
       googleAuthUrl.searchParams.set('response_type', 'code');
       googleAuthUrl.searchParams.set('access_type', 'offline');

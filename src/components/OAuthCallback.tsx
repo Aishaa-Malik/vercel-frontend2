@@ -13,62 +13,61 @@ const OAuthCallback: React.FC = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Check if we have a session from the OAuth redirect
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (session) {
-          console.log('Session found after OAuth redirect');
-          // Store the auth token in localStorage
-          localStorage.setItem('authToken', session.access_token);
-          // Update auth context with the new session
-          await loginFromSession(session.access_token, session.user);
-        }
-        
         const code = searchParams.get('code');
         const state = searchParams.get('state');
-        console.log('Hie Code:', code);
-        console.log('Hie State:', state); 
-        const error = searchParams.get('error') || sessionError?.message;
+        const error = searchParams.get('error');
+        
+        console.log('OAuth callback params:', { code: code?.substring(0, 20), state, error });
 
+        // Handle OAuth errors
         if (error) {
-          console.error('OAuth error:', error);
+          console.error('OAuth error from Google:', error);
           setStatus('error');
           setMessage('Authentication failed.');
-          // Figure out if we need to go to turf dashboard or regular dashboard
-          const isForTurf = window.location.href.includes('turf');
-          const redirectPath = isForTurf ? '/turf-dashboard' : '/dashboard';
-          navigate(`${redirectPath}?error=oauth_failed`, { replace: true });
+          setTimeout(() => {
+            const redirectPath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
+            navigate(`${redirectPath}?error=oauth_failed`, { replace: true });
+          }, 2000);
           return;
         }
 
+        // Handle Supabase auth session (for login flow)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (session && !code) {
+          console.log('Supabase auth session found, logging in user');
+          localStorage.setItem('authToken', session.access_token);
+          await loginFromSession(session.access_token, session.user);
+          
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 1000);
+          return;
+        }
+
+        // Handle Google Calendar integration (when code is present)
         if (code && state) {
           try {
-            // Parse state to get tenant_id and user_id
-            console.log('Raw state from Google:', state);
+            console.log('Processing Google Calendar integration...');
+            
+            // Parse state data
             let stateData;
             try {
               stateData = JSON.parse(state);
               console.log('Parsed state data:', stateData);
             } catch (parseError) {
               console.error('Failed to parse state JSON:', parseError);
-              throw new Error('Invalid state parameter');
+              throw new Error('Invalid state parameter from Google');
             }
             
             if (!stateData.user_id) {
-              console.error('Missing user_id in state');
-              throw new Error('Missing user_id in state');
+              throw new Error('Missing user_id in OAuth state');
             }
             
-            // Check if tenant_id exists but don't throw error if missing
-            if (!stateData.tenant_id) {
-              console.warn('Missing tenant_id in state, will proceed with user-only integration');
-            }
+            setMessage('Connecting your Google Calendar...');
             
-            // Call Supabase Edge Function to handle token exchange
-            console.log('Calling Edge Function with code and state data');
-
-            console.log('State Data - tenant_id:', stateData.tenant_id || 'Not provided');
-            const { data, error } = await supabase.functions.invoke('handle-google-oauth', {
+            // Call edge function for token exchange
+            console.log('Invoking handle-google-oauth edge function...');
+            const { data, error: edgeError } = await supabase.functions.invoke('handle-google-oauth', {
               body: {
                 code,
                 tenant_id: stateData.tenant_id || null,
@@ -76,64 +75,70 @@ const OAuthCallback: React.FC = () => {
               }
             });
             
-            console.log('Edge Function response:', data || 'No data', error || 'No error');
-
-            if (error) throw error;
+            if (edgeError) {
+              console.error('Edge function error:', {
+                message: edgeError.message,
+                details: edgeError.details || 'No additional details',
+                status: edgeError.status || 'Unknown status'
+              });
+              throw new Error(edgeError.message || 'Failed to process calendar integration');
+            }
 
             console.log('Calendar integration successful:', data);
             setStatus('success');
-            setMessage('Calendar connected successfully!');
+            setMessage('Google Calendar connected successfully! Redirecting...');
             
-            // Redirect back to dashboard with success
-            const isForTurf = window.location.pathname.includes('turf');
-            const redirectPath = isForTurf ? '/turf-dashboard' : '/dashboard';
-            navigate(`${redirectPath}?connected=true`, { replace: true });
-          } catch (error) {
-            console.error('Token exchange failed:', error);
+            // Redirect after success with delay
+            setTimeout(() => {
+              const redirectPath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
+              navigate(`${redirectPath}?connected=google_calendar`, { replace: true });
+            }, 1500);
+            
+          } catch (integrationError) {
+            console.error('Calendar integration error:', integrationError);
             setStatus('error');
-            setMessage('Failed to connect your calendar.');
-            // Figure out if we need to go to turf dashboard or regular dashboard
-            const isForTurfError = window.location.href.includes('turf');
-            const redirectPathError = isForTurfError ? '/turf-dashboard' : '/dashboard';
-            navigate(`${redirectPathError}?error=token_exchange_failed`, { replace: true });
+            setMessage('Failed to connect Google Calendar. Please try again.');
+            
+            setTimeout(() => {
+              const redirectPath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
+              navigate(`${redirectPath}?error=calendar_integration_failed`, { replace: true });
+            }, 2000);
           }
-        } else {
+        } else if (!session) {
+          // No code, no session - invalid callback
+          console.error('Invalid OAuth callback - missing code and session');
           setStatus('error');
-          setMessage('Missing required parameters.');
-          // Determine which dashboard to redirect to
-          const redirectToTurf = window.location.href.includes('turf');
-          const dashboardPath = redirectToTurf ? '/turf-dashboard' : '/dashboard';
-          navigate(`${dashboardPath}?error=missing_params`, { replace: true });
+          setMessage('Invalid authentication callback.');
+          
+          setTimeout(() => {
+            navigate('/login?error=invalid_callback', { replace: true });
+          }, 2000);
         }
       } catch (error) {
-        console.error('OAuth callback error:', error);
+        console.error('OAuth callback handler error:', error);
         setStatus('error');
-        setMessage('An unexpected error occurred.');
-        // Determine which dashboard to redirect to in case of error
-        const goToTurf = window.location.href.includes('turf');
-        const errorPath = goToTurf ? '/turf-dashboard' : '/dashboard';
-        navigate(`${errorPath}?error=unknown`, { replace: true });
+        setMessage('An unexpected error occurred during authentication.');
+        
+        setTimeout(() => {
+          const redirectPath = window.location.href.includes('turf') ? '/turf-dashboard' : '/login';
+          navigate(`${redirectPath}?error=callback_handler_failed`, { replace: true });
+        }, 2000);
       }
     };
 
     handleCallback();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, loginFromSession]);
 
+  // Show status UI
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-        <p className="mt-4">{message}</p>
+        {status === 'processing' && (
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        )}
+        <p className="text-gray-600">{message}</p>
         {status === 'error' && (
-          <button 
-            onClick={() => {
-              const toTurf = window.location.href.includes('turf');
-              navigate(toTurf ? '/turf-dashboard' : '/dashboard');
-            }}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-          >
-            Return to Dashboard
-          </button>
+          <p className="text-sm text-gray-500 mt-2">You will be redirected shortly...</p>
         )}
       </div>
     </div>

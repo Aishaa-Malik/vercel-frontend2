@@ -3,9 +3,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../services/supabaseService';
 import NewAppointmentForm from '../NewAppointmentForm';
 
-
-
-
 interface Appointment {
   id: string;
   customer_name: string;
@@ -672,6 +669,7 @@ const formatTime = (timeString: string) => {
       </div>
     );
   }
+console.log(filteredAppointments.length, "filteredAppointments");
 
   return (
     <div className="container mx-auto px-4 py-8">

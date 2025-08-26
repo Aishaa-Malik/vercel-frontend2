@@ -38,7 +38,7 @@ import TurfSchedulePage from './components/turf/TurfSchedulePage';
 // Check if user needs onboarding
 const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
-  const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -123,7 +123,7 @@ function App() {
               <Route path="schedule" element={<SchedulePage />} />
               <Route path="revenue" element={<RevenuePage />} />
               <Route path="tenants" element={<TenantsManagement />} />
-              <Route path="users" element={<UserManagement />} />
+              <Route path="employees" element={<UserManagement />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
 
@@ -138,7 +138,7 @@ function App() {
               <Route index element={<RevenuePage />} />
             </Route>
             
-            <Route path="/UserManagement" element={
+            <Route path="/employees" element={
               <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER, UserRole.DOCTOR]}>
                 <OnboardingCheck>
                   <DashboardLayout />
@@ -149,7 +149,7 @@ function App() {
             </Route>
             
             {/* Additional route for /users */}
-            <Route path="/users" element={
+            <Route path="/employees" element={
               <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER, UserRole.DOCTOR]}>
                 <OnboardingCheck>
                   <DashboardLayout />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -16,6 +16,11 @@ const TurfDashboardLayout: React.FC = () => {
   const { darkMode } = useTheme();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Add this to debug
+  useEffect(() => {
+    console.log('Current location:', location.pathname);
+  }, [location.pathname]);
 
   const navigation: NavItem[] = [
     { name: 'Dashboard', href: '/turf-dashboard', icon: 'home' },
@@ -75,7 +80,8 @@ const TurfDashboardLayout: React.FC = () => {
         className="absolute inset-0 bg-cover bg-center z-0" 
         style={{
           backgroundImage: 'url(/turf.jpg)',
-          opacity: 0.4
+          opacity: 0.4, 
+          pointerEvents: 'none' // Add this line to prevent blocking clicks
         }}
       ></div>
       {/* Mobile menu */}
@@ -110,6 +116,7 @@ const TurfDashboardLayout: React.FC = () => {
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 {navigation.map((item) => (
+                  
                   item.disabled ? (
                     <div
                       key={item.name}
@@ -177,7 +184,7 @@ const TurfDashboardLayout: React.FC = () => {
       </div>
 
       {/* Static sidebar for desktop */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-10">
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-50">
         <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">

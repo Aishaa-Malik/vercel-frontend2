@@ -46,7 +46,7 @@ interface Subscription {
   plans: {
     name: string;
     appointment_limit: number;
-  };
+  }[];
 }
 
 const AppointmentsPage: React.FC = () => {
@@ -94,7 +94,7 @@ const AppointmentsPage: React.FC = () => {
         .eq('tenant_id', tenantId)
         .eq('status', 'active')
         .gte('billing_cycle_end', new Date().toISOString().split('T')[0])
-        .single();
+        .maybeSingle();
 
       if (subError || !subscription || !subscription.plans) {
         setActiveSubscription(null);
@@ -134,6 +134,36 @@ const AppointmentsPage: React.FC = () => {
       console.error('Error checking appointment limit:', error);
       setActiveSubscription(null);
       return { canBook: false, remainingAppointments: 0, totalLimit: 0 };
+    }
+  };
+
+  // Add this new function - MISSING IN DOCTOR PAGE
+  const fetchAllSubscriptions = async () => {
+    if (!user?.tenantId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select(`
+          id,
+          billing_cycle_start,
+          billing_cycle_end,
+          status,
+          plans!inner (
+            name,
+            appointment_limit
+          )
+        `)
+        .eq('tenant_id', user.tenantId)
+        .order('billing_cycle_start', { ascending: true });
+
+      if (error) throw error;
+      
+      console.log('All subscriptions:', data);
+      setAllSubscriptions((data || []) as Subscription[]);
+
+    } catch (err: any) {
+      console.error('Error fetching subscriptions:', err);
     }
   };
 
@@ -243,8 +273,10 @@ const AppointmentsPage: React.FC = () => {
         throw error;
       }
 
+      console.log('hooo data', data); // Match turf logging
       console.log('Appointments fetched:', data?.length || 0);
       setAppointments(data || []);
+      console.log('Appointments', appointments); // Match turf logging
     } catch (err: any) {
       console.error('Error fetching appointments:', err);
       setError('Failed to load appointments');
@@ -253,9 +285,50 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
-  // Updated useEffect with refreshTrigger dependency
+  // Updated useEffect with realtime subscription - FIXED TO MATCH TURF
   useEffect(() => {
+    console.log('Setting up realtime subscription for tenant:', user?.tenantId);
+    
+    if (!user?.tenantId) {
+      console.log('No tenantId available, skipping subscription');
+      return;
+    }
+
     fetchAppointments();
+    fetchAllSubscriptions(); // ADD THIS MISSING CALL
+
+    // Set up real-time subscription
+    const appointmentsSubscription = supabase
+      .channel('doctor-appointments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public', 
+          table: 'appointments',
+          filter: `tenant_id=eq.${user.tenantId}`
+        },
+        (payload) => {
+          console.log('🔥 Realtime event received:', payload);
+          console.log('Event type:', payload.eventType);
+          console.log('Table:', payload.table);
+          console.log('New data:', payload.new);
+          console.log('Old data:', payload.old);
+          
+          // Refresh data when any change occurs
+          fetchAppointments();
+        }
+      )
+      .subscribe((status, err) => {
+        console.log('Subscription status:', status);
+        if (err) console.error('Subscription error:', err);
+      });
+
+    // Cleanup subscription
+    return () => {
+      console.log('Cleaning up realtime subscription');
+      supabase.removeChannel(appointmentsSubscription);
+    };
   }, [user?.tenantId, refreshTrigger]);
 
   useEffect(() => {
@@ -317,12 +390,25 @@ const AppointmentsPage: React.FC = () => {
     return new Date(`${d}T${time}`).getTime();
   };
 
-  // Build visible list with limit logic
+  // Build visible list with limit logic - FIXED TO MATCH TURF LOGIC
   const visibleAppointments = useMemo(() => {
     if (!appointments.length) return [];
 
-    // If no subscriptions, show no appointments
-    if (!allSubscriptions?.length) return [];
+    console.log('Computing visibleAppointments:', {
+      appointmentsLength: appointments.length,
+      allSubscriptionsLength: allSubscriptions?.length,
+      activeSubscription: activeSubscription
+    });
+
+    // If no subscriptions, show all appointments (CHANGED FROM RETURNING EMPTY ARRAY)
+    if (!allSubscriptions?.length) {
+      console.log('No subscriptions found - showing all appointments');
+      return appointments.sort((a, b) => {
+        const ta = toTs(a.appointment_date, a.appointment_time);
+        const tb = toTs(b.appointment_date, b.appointment_time);
+        return tb - ta;
+      });
+    }
 
     // Sort subscriptions by start date for efficient lookup
     const sortedSubscriptions = [...allSubscriptions].sort((a, b) => 
@@ -419,10 +505,31 @@ const AppointmentsPage: React.FC = () => {
   };
 
   const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':');
-    const hour12 = parseInt(hours) % 12 || 12;
-    const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
-    return `${hour12}:${minutes} ${ampm}`;
+    try {
+      if (!timeString || typeof timeString !== 'string') {
+        return 'N/A';
+      }
+      
+      const parts = timeString.split(':');
+      if (parts.length < 2) {
+        return timeString; // Return original if it can't be parsed
+      }
+      
+      const [hours, minutes] = parts;
+      const hourNum = parseInt(hours, 10);
+      const minuteStr = minutes || '00';
+      
+      if (isNaN(hourNum)) {
+        return timeString; // Return original if hours is not a number
+      }
+      
+      const hour12 = hourNum % 12 || 12;
+      const ampm = hourNum >= 12 ? 'PM' : 'AM';
+      return `${hour12}:${minuteStr} ${ampm}`;
+    } catch (error) {
+      console.error('Error formatting time:', timeString, error);
+      return 'N/A';
+    }
   };
 
   if (isLoading) {
@@ -434,6 +541,8 @@ const AppointmentsPage: React.FC = () => {
       </div>
     );
   }
+
+  console.log(filteredAppointments.length, "filteredAppointments"); // ADD DEBUGGING
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -463,7 +572,6 @@ const AppointmentsPage: React.FC = () => {
           onClose={() => setShowNewAppointmentForm(false)}
           onSuccess={() => {
             setShowNewAppointmentForm(false);
-            // Removed fetchAppointments() call since triggerRefresh is now called in the form
           }}
           onRefresh={triggerRefresh} // Pass the refresh trigger function
         />

@@ -41,8 +41,8 @@ const DashboardLayout: React.FC = () => {
       { name: 'Dashboard', href: '/dashboard', icon: 'home' },
       { name: 'Appointments', href: '/dashboard/appointments', icon: 'calendar' },
       { name: 'Schedule', href: '/dashboard/schedule', icon: 'clock' },
-      { name: 'Doctors', href: '/dashboard/doctors', icon: 'user-md' },
-      { name: 'Employees', href: '/dashboard/employees', icon: 'users' },
+      // { name: 'Doctors', href: '/dashboard/doctors', icon: 'user-md' },
+      { name: 'Employee Management', href: '/dashboard/employees', icon: 'users' },
       { name: 'Revenue', href: '/dashboard/revenue', icon: 'chart-bar' },
       { name: 'Settings', href: '/dashboard/settings', icon: 'cog' }
     ];
@@ -168,7 +168,7 @@ const DashboardLayout: React.FC = () => {
             </div>
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-4">
-                <span className="text-xl font-bold text-blue-600">Doctor Dashboard</span>
+                <span className="text-xl font-bold text-blue-600">Doctor's Dashboard</span>
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 {navItems.map((item) => (
@@ -239,7 +239,7 @@ const DashboardLayout: React.FC = () => {
       </div>
 
       {/* Static sidebar for desktop */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-10">
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-50">
         <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">

@@ -11,12 +11,13 @@ interface FormValues {
   paymentId?: string;
   amount?: string;
   paymentMethod?: string;
+  doctor?: string;
 }
 
 interface NewAppointmentFormProps {
   onClose: () => void;
   onSuccess: () => void;
-  onRefresh?: () => void; // Add this new prop
+  onRefresh?: () => void;
 }
 
 const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSuccess, onRefresh }) => {
@@ -31,10 +32,16 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
     time: '12:00',
     paymentId: '',
     amount: '',
-    paymentMethod: ''
+    paymentMethod: '',
+    doctor: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Safe role checking that works with any UserRole type
+  const userRoleString = (user?.role ?? '').toString().toLowerCase();
+  const isDoctor = ['doctor'].includes(userRoleString);
+  const isTurfUser = ['turf'].includes(userRoleString);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -55,7 +62,7 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
     setError(null);
 
     try {
-      if (!tenant?.id) {
+      if (!tenant?.id && !user?.tenantId) {
         throw new Error('Tenant information is missing');
       }
 
@@ -63,35 +70,59 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
       const dateStr = formData.date;
       const timeStr = formData.time;
 
-      // Assemble the row exactly as the table expects
-      const row = {
-        tenant_id,
-        customer_name: formData.name,
-        customer_email: formData.email,
-        customer_contact: formData.phone || null,
-        appointment_date: dateStr,
-        appointment_time: formatToPgTime(timeStr),
-        booking_reference: `booking_${Date.now()}`,
-        payment_id: formData.paymentId || null,
-        amount: formData.amount ? parseFloat(formData.amount) : null,
-        currency: "INR",
-        payment_method: formData.paymentMethod || null
-      };
+      // Determine which table to use based on user type
+      const tableName = isTurfUser ? 'TurfAppointments' : 'appointments';
+      
+      // Assemble the row based on user type
+      let row: any;
+      
+      if (isTurfUser) {
+        row = {
+          tenant_id,
+          customer_name: formData.name,
+          customer_email: formData.email,
+          customer_contact: formData.phone || null,
+          appointment_date: dateStr,
+          appointment_time: formatToPgTime(timeStr),
+          booking_reference: `booking_${Date.now()}`,
+          payment_id: formData.paymentId || null,
+          amount: formData.amount ? parseFloat(formData.amount) : null,
+          currency: "INR",
+          payment_method: formData.paymentMethod || null,
+          status: 'Scheduled'
+        };
+      } else {
+        // Doctor appointment format
+        row = {
+          tenant_id,
+          patient_name: formData.name,
+          patient_email: formData.email,
+          patient_contact: formData.phone || null,
+          doctor: formData.doctor || 'Default Doctor',
+          appointment_date: dateStr,
+          appointment_time: formatToPgTime(timeStr),
+          booking_reference: `booking_${Date.now()}`,
+          payment_id: formData.paymentId || null,
+          amount: formData.amount ? parseFloat(formData.amount) : null,
+          currency: "INR",
+          payment_method: formData.paymentMethod || null,
+          status: 'Scheduled'
+        };
+      }
 
-      // Insert into TurfAppointments
+      // Insert into appropriate table
       const { error: insertError } = await supabase
-        .from('TurfAppointments')
+        .from(tableName)
         .insert(row);
 
       if (insertError) {
-           console.log('Error inserting into TurfAppointments:', insertError);
+           console.log(`Error inserting into ${tableName}:`, insertError);
            throw insertError;
       }
 
       // Optional: Trigger webhook for Google Calendar event creation
       try {
-         // Combine dateStr and timeStr into a single DateTime in IST format
-      const startDateTime = `${dateStr}T${timeStr}:00.000+05:30`;
+         const startDateTime = `${dateStr}T${timeStr}:00.000+05:30`;
 
         await fetch('https://aisha1503.app.n8n.cloud/webhook/create-google-cal-event', {
           method: 'POST',
@@ -99,12 +130,11 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
           body: JSON.stringify({ 
             tenant_id, 
             startDateTime,
-            summary: row.customer_name 
+            summary: isTurfUser ? row.customer_name : row.patient_name 
           })
         });
       } catch (webhookError) {
         console.error('Failed to create calendar event:', webhookError);
-        // Continue anyway since the appointment was created
       }
 
       // Call the refresh trigger before success callbacks
@@ -146,7 +176,7 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-              Customer Name *
+              {isDoctor ? 'Patient Name *' : 'Customer Name *'}
             </label>
             <input
               id="name"
@@ -161,7 +191,7 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
 
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              Customer Email *
+              {isDoctor ? 'Patient Email *' : 'Customer Email *'}
             </label>
             <input
               id="email"
@@ -176,7 +206,7 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
 
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="phone">
-              Customer Contact
+              {isDoctor ? 'Patient Contact' : 'Customer Contact'}
             </label>
             <input
               id="phone"
@@ -187,6 +217,23 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
           </div>
+
+          {isDoctor && (
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="doctor">
+                Doctor Name *
+              </label>
+              <input
+                id="doctor"
+                name="doctor"
+                type="text"
+                value={formData.doctor}
+                onChange={handleChange}
+                required
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+            </div>
+          )}
 
           <div className="mb-4 grid grid-cols-2 gap-4">
             <div>

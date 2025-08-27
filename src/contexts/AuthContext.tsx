@@ -61,18 +61,29 @@ const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
       .is('activated_at', null)
       .single();
 
-    // Acceptable: No row found ("PGRST116")
-    if (approvalError && approvalError.code !== 'PGRST116') {
-      throw approvalError;
+    // Handle 406 Not Acceptable errors (they appear in the error.message)
+    if (approvalError) {
+      console.log('Approval check error:', approvalError.message);
+      if (approvalError.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine
+        // Don't throw the error, just log it and continue
+        console.error('Error checking approved_users:', approvalError);
+      }
+      // Return early as there's no approved user to process
+      return;
     }
 
     if (approvedUser) {
       // --- user_profiles ---
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile, error: profileCheckError } = await supabase
         .from('user_profiles')
         .select('id')
         .eq('id', userId)
         .single();
+
+      if (profileCheckError && profileCheckError.code !== 'PGRST116') {
+        console.error('Error checking user profile:', profileCheckError);
+        // Continue despite error
+      }
 
       if (!existingProfile) {
         const { error: profileError } = await supabase
@@ -82,16 +93,24 @@ const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
             email: userEmail,
             full_name: session?.user?.user_metadata?.full_name || userEmail.split('@')[0]
           });
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          // Continue despite error
+        }
       }
 
       // --- user_tenants ---
-      const { data: existingTenant } = await supabase
+      const { data: existingTenant, error: tenantCheckError } = await supabase
         .from('user_tenants')
         .select('user_id')
         .eq('user_id', userId)
         .eq('tenant_id', approvedUser.tenant_id)
         .single();
+
+      if (tenantCheckError && tenantCheckError.code !== 'PGRST116') {
+        console.error('Error checking user tenant:', tenantCheckError);
+        // Continue despite error
+      }
 
       if (!existingTenant) {
         const { error: tenantError } = await supabase
@@ -100,15 +119,23 @@ const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
             user_id: userId,
             tenant_id: approvedUser.tenant_id
           });
-        if (tenantError) throw tenantError;
+        if (tenantError) {
+          console.error('Error creating user-tenant relationship:', tenantError);
+          // Continue despite error
+        }
       }
 
       // --- user_roles ---
-      const { data: existingRole } = await supabase
+      const { data: existingRole, error: roleCheckError } = await supabase
         .from('user_roles')
         .select('user_id')
         .eq('user_id', userId)
         .single();
+
+      if (roleCheckError && roleCheckError.code !== 'PGRST116') {
+        console.error('Error checking user role:', roleCheckError);
+        // Continue despite error
+      }
 
       if (!existingRole) {
         const { error: roleError } = await supabase
@@ -117,17 +144,30 @@ const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
             user_id: userId,
             role: approvedUser.role
           });
-        if (roleError) throw roleError;
+        if (roleError) {
+          console.error('Error assigning user role:', roleError);
+          // Continue despite error
+        }
       }
 
       // --- Mark invitation as activated ---
-      const { error: activationError } = await supabase
-        .from('approved_users')
-        .update({ activated_at: new Date().toISOString() })
-        .eq('email', userEmail)
-        .is('activated_at', null);
+      try {
+        const { error: activationError } = await supabase
+          .from('approved_users')
+          .update({ activated_at: new Date().toISOString() })
+          .eq('email', userEmail)
+          .is('activated_at', null);
 
-      if (activationError) throw activationError;
+        if (activationError) {
+          console.error('Error marking invitation as activated:', activationError);
+          // Continue despite error
+        } else {
+          console.log('Invitation marked as activated');
+        }
+      } catch (activationError) {
+        console.error('Exception marking invitation as activated:', activationError);
+        // Continue despite error
+      }
     }
   } catch (error) {
     // DO NOT FAIL the login flow if onboarding fails; log for debugging.

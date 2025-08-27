@@ -47,29 +47,48 @@ export const getUserProfile = async (userId: string) => {
 };
 
 export const getUserRole = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
 
-    console.log('Fetched role:', data); // Add this line
-   console.log('User ID:', userId);   // Add this line
+    console.log('Fetched role:', data);
+    console.log('User ID:', userId);
 
+    if (error) {
+      console.error('Error fetching user role:', error.message);
+      // Don't throw the error, return null instead
+      return null;
+    }
     
-  if (error) throw error;
-  return data?.role as UserRole;
+    return data?.role as UserRole;
+  } catch (error) {
+    console.error('Exception in getUserRole:', error);
+    return null;
+  }
 };
 
 export const getUserTenant = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('user_tenants')
-    .select('tenant_id')
-    .eq('user_id', userId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('user_tenants')
+      .select('tenant_id')
+      .eq('user_id', userId)
+      .single();
     
-  if (error) throw error;
-  return data?.tenant_id;
+    if (error) {
+      console.error('Error fetching user tenant:', error.message);
+      // Don't throw the error, return null instead
+      return null;
+    }
+    
+    return data?.tenant_id;
+  } catch (error) {
+    console.error('Exception in getUserTenant:', error);
+    return null;
+  }
 };
 
 export const getTenantDetails = async (tenantId: string) => {

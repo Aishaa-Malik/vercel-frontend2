@@ -50,8 +50,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       location.pathname.startsWith('/dashboard') && 
       !location.pathname.includes('/oauth/') && 
       !location.pathname.includes('/onboarding')) {
-    console.log('Turf user trying to access doctor dashboard, redirecting to turf dashboard');
-    return <Navigate to="/turf-dashboard" replace />;
+    console.log('Turf user trying to access doctor dashboard');
+    
+    // Check if user is an employee and redirect to employee dashboard
+    if (user.role === UserRole.EMPLOYEE) {
+      console.log('Turf employee detected, redirecting to turf employee dashboard');
+      return <Navigate to="/turf-dashboard/employee" replace />;
+    } else {
+      console.log('Turf owner detected, redirecting to turf dashboard');
+      return <Navigate to="/turf-dashboard" replace />;
+    }
   }
   
   if (user && user.businessType === 'doctor' && 
@@ -60,6 +68,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       !location.pathname.includes('/onboarding')) {
     console.log('Doctor user trying to access turf dashboard, redirecting to doctor dashboard');
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // Additional check for turf employees trying to access the main turf dashboard
+  if (user && user.businessType === 'turf' && 
+      user.role === UserRole.EMPLOYEE && 
+      location.pathname === '/turf-dashboard' && 
+      !location.pathname.includes('/oauth/') && 
+      !location.pathname.includes('/onboarding')) {
+    console.log('Turf employee trying to access main turf dashboard, redirecting to employee dashboard');
+    return <Navigate to="/turf-dashboard/employee" replace />;
   }
 
   // User is authenticated and has the required role, render the children

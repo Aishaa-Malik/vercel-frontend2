@@ -125,6 +125,76 @@ const SuperAdminDashboard: React.FC = () => {
 
 // Business Owner Dashboard
 const BusinessOwnerDashboard: React.FC = () => {
+  const { user, tenant } = useAuth();
+  const [totalAppointments, setTotalAppointments] = useState<number>(0);
+  const [todayAppointments, setTodayAppointments] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [activeStaff, setActiveStaff] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!user?.tenantId) return;
+      
+      try {
+        setIsLoading(true);
+        
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Fetch total appointments
+        const { count: totalCount, error: totalError } = await supabase
+          .from('Appointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', user.tenantId);
+        
+        if (totalError) throw totalError;
+        
+        // Fetch today's appointments
+        const { count: todayCount, error: todayError } = await supabase
+          .from('Appointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', user.tenantId)
+          .eq('appointment_date', today);
+        
+        if (todayError) throw todayError;
+        
+        // Fetch total revenue
+        const { data: revenueData, error: revenueError } = await supabase
+          .from('Appointments')
+          .select('amount')
+          .eq('tenant_id', user.tenantId);
+        
+        if (revenueError) throw revenueError;
+        
+        // Calculate total revenue
+        const revenue = revenueData.reduce((sum, appointment) => {
+          return sum + (appointment.amount || 0);
+        }, 0);
+        
+        // Fetch active staff count
+        const { count: staffCount, error: staffError } = await supabase
+          .from('Users')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', user.tenantId)
+          .neq('role', 'BUSINESS_OWNER');
+        
+        if (staffError) throw staffError;
+        
+        setTotalAppointments(totalCount || 0);
+        setTodayAppointments(todayCount || 0);
+        setTotalRevenue(revenue);
+        setActiveStaff(staffCount || 0);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, [user?.tenantId]);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {/* Business Stats */}
@@ -133,19 +203,35 @@ const BusinessOwnerDashboard: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-blue-50 p-4 rounded-md">
             <p className="text-sm text-blue-500">Total Appointments</p>
-            <p className="text-2xl font-bold">48</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-16 bg-blue-200 rounded"></div>
+            ) : (
+              <p className="text-2xl font-bold">{totalAppointments}</p>
+            )}
           </div>
           <div className="bg-green-50 p-4 rounded-md">
             <p className="text-sm text-green-500">Today's Appointments</p>
-            <p className="text-2xl font-bold">12</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-16 bg-green-200 rounded"></div>
+            ) : (
+              <p className="text-2xl font-bold">{todayAppointments}</p>
+            )}
           </div>
           <div className="bg-purple-50 p-4 rounded-md">
             <p className="text-sm text-purple-500">Total Revenue</p>
-            <p className="text-2xl font-bold">₹24,500</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-24 bg-purple-200 rounded"></div>
+            ) : (
+              <p className="text-2xl font-bold">₹{totalRevenue.toLocaleString()}</p>
+            )}
           </div>
           <div className="bg-yellow-50 p-4 rounded-md">
             <p className="text-sm text-yellow-500">Active Staff</p>
-            <p className="text-2xl font-bold">8</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-16 bg-yellow-200 rounded"></div>
+            ) : (
+              <p className="text-2xl font-bold">{activeStaff}</p>
+            )}
           </div>
         </div>
       </div>
@@ -189,7 +275,7 @@ const BusinessOwnerDashboard: React.FC = () => {
   );
 };
 
-// Doctor Dashboard
+// Doctor Dashboard - Updated with dynamic data and matching turf design
 const DoctorDashboard: React.FC = () => {
   const { user, tenant } = useAuth();
   const [totalAppointments, setTotalAppointments] = useState<number>(0);
@@ -199,7 +285,7 @@ const DoctorDashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!user?.tenantId) return;
+      if (!user?.tenantId || !user?.id) return;
       
       try {
         setIsLoading(true);
@@ -207,35 +293,38 @@ const DoctorDashboard: React.FC = () => {
         // Get today's date in YYYY-MM-DD format
         const today = new Date().toISOString().split('T')[0];
         
-        // Fetch total appointments
+        // Fetch total appointments for this doctor
         const { count: totalCount, error: totalError } = await supabase
           .from('Appointments')
           .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', user.tenantId);
+          .eq('tenant_id', user.tenantId)
+          .eq('doctor_id', user.id);
         
         if (totalError) throw totalError;
         
-        // Fetch today's appointments
+        // Fetch today's appointments for this doctor
         const { count: todayCount, error: todayError } = await supabase
           .from('Appointments')
           .select('*', { count: 'exact', head: true })
           .eq('tenant_id', user.tenantId)
+          .eq('doctor_id', user.id)
           .eq('appointment_date', today);
         
         if (todayError) throw todayError;
         
-        // Fetch total revenue
+        // Fetch total revenue for this doctor
         const { data: revenueData, error: revenueError } = await supabase
           .from('Appointments')
           .select('amount')
-          .eq('tenant_id', user.tenantId);
+          .eq('tenant_id', user.tenantId)
+          .eq('doctor_id', user.id);
         
         if (revenueError) throw revenueError;
         
         // Calculate total revenue
-        const revenue = revenueData.reduce((sum, appointment) => {
+        const revenue = revenueData?.reduce((sum, appointment) => {
           return sum + (appointment.amount || 0);
-        }, 0);
+        }, 0) || 0;
         
         setTotalAppointments(totalCount || 0);
         setTodayAppointments(todayCount || 0);
@@ -248,7 +337,7 @@ const DoctorDashboard: React.FC = () => {
     };
     
     fetchDashboardData();
-  }, [user?.tenantId]);
+  }, [user?.tenantId, user?.id]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -256,28 +345,33 @@ const DoctorDashboard: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 md:col-span-3">
         <h3 className="text-lg font-semibold mb-4 dark:text-white">Business Overview</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-md flex flex-col items-center justify-center">
-            <p className="text-sm text-blue-500 mb-2">Total Appointments</p>
+          {/* Total Appointments Card - Blue */}
+          <div className="bg-blue-500 p-6 rounded-lg flex flex-col items-center justify-center text-white">
+            <p className="text-sm text-blue-100 mb-2">Total Appointments</p>
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-blue-200 rounded"></div>
+              <div className="animate-pulse h-8 w-16 bg-blue-400 rounded"></div>
             ) : (
               <p className="text-3xl font-bold">{totalAppointments}</p>
             )}
           </div>
-          <div className="bg-green-50 dark:bg-green-900 p-6 rounded-md flex flex-col items-center justify-center">
-            <p className="text-sm text-green-500 mb-2">Today's Appointments</p>
+          
+          {/* Today's Appointments Card - Green */}
+          <div className="bg-green-500 p-6 rounded-lg flex flex-col items-center justify-center text-white">
+            <p className="text-sm text-green-100 mb-2">Today's Appointments</p>
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-green-200 dark:bg-green-700 rounded"></div>
+              <div className="animate-pulse h-8 w-16 bg-green-400 rounded"></div>
             ) : (
-              <p className="text-3xl font-bold dark:text-white">{todayAppointments}</p>
+              <p className="text-3xl font-bold">{todayAppointments}</p>
             )}
           </div>
-          <div className="bg-purple-50 dark:bg-purple-900 p-6 rounded-md flex flex-col items-center justify-center">
-            <p className="text-sm text-purple-500 mb-2">Total Revenue</p>
+          
+          {/* Total Revenue Card - Purple */}
+          <div className="bg-purple-500 p-6 rounded-lg flex flex-col items-center justify-center text-white">
+            <p className="text-sm text-purple-100 mb-2">Total Revenue</p>
             {isLoading ? (
-              <div className="animate-pulse h-8 w-24 bg-purple-200 dark:bg-purple-700 rounded"></div>
+              <div className="animate-pulse h-8 w-24 bg-purple-400 rounded"></div>
             ) : (
-              <p className="text-3xl font-bold dark:text-white">₹{totalRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-bold">₹{totalRevenue.toLocaleString()}</p>
             )}
           </div>
         </div>

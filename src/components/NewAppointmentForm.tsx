@@ -21,6 +21,8 @@ interface NewAppointmentFormProps {
 
 const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSuccess, onRefresh }) => {
   const { tenant, user } = useAuth();
+  const tenantId = tenant?.id || user?.tenantId;
+
   const [formData, setFormData] = useState<FormValues>({
     name: '',
     email: '',
@@ -57,7 +59,7 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
         throw new Error('Tenant information is missing');
       }
 
-      const tenant_id = tenant.id;
+      const tenant_id = tenant?.id || user?.tenantId;
       const dateStr = formData.date;
       const timeStr = formData.time;
 

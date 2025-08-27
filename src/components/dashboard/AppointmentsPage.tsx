@@ -775,7 +775,12 @@ const AppointmentsPage: React.FC = () => {
     );
   }
 
-  console.log(filteredAppointments.length, "filteredAppointments"); // ADD DEBUGGING
+  //console.log(filteredAppointments.length, "filteredAppointments"); // ADD DEBUGGING
+
+  // Add this right before the return statement in AppointmentsPage
+console.log('Debug - tenant:', tenant);
+console.log('Debug - user:', user);
+console.log('Debug - user.tenantId:', user?.tenantId);
 
   return (
     <div className="container mx-auto px-4 py-8">

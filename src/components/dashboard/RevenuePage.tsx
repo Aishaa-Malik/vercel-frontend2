@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// Adjust these paths based on your actual project structure
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../services/supabaseService';
 
@@ -43,138 +42,161 @@ const RevenuePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRevenueData();
-  }, [selectedFilter, customDateRange]);
-
-  const getDateRange = () => {
+  // Helper function to convert IST date to UTC boundaries
+  const getISTDateRange = () => {
+    // Get current IST time (UTC + 5:30)
     const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+    const nowIST = new Date(now.getTime() + istOffset);
     
     switch (selectedFilter) {
-      case 'daily':
-        // Today from 00:00:00 to 23:59:59
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      case 'daily': {
+        // Today in IST: 00:00:00 to 23:59:59
+        const startIST = new Date(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate(), 0, 0, 0, 0);
+        const endIST = new Date(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate(), 23, 59, 59, 999);
+        
+        // Convert back to UTC for database query
+        const startUTC = new Date(startIST.getTime() - istOffset);
+        const endUTC = new Date(endIST.getTime() - istOffset);
+        
         return {
-          startDate: todayStart,
-          endDate: todayEnd,
+          startDate: startUTC,
+          endDate: endUTC,
           label: 'Today',
-          dateRange: `${todayStart.toLocaleDateString('en-IN')}`
+          dateRange: `${nowIST.toLocaleDateString('en-IN', { 
+            day: 'numeric', 
+            month: 'short', 
+            year: 'numeric' 
+          })}`
         };
+      }
+      
+      case 'weekly': {
+        // Last 7 days including today in IST
+        const endIST = new Date(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate(), 23, 59, 59, 999);
+        const startIST = new Date(endIST.getTime() - (6 * 24 * 60 * 60 * 1000)); // 6 days ago + today
+        startIST.setHours(0, 0, 0, 0);
         
-      case 'weekly':
-        // Last 7 days including today
-        const weekStart = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000); // 6 days ago + today = 7 days
-        weekStart.setHours(0, 0, 0, 0);
-        const weekEnd = new Date(now);
-        weekEnd.setHours(23, 59, 59, 999);
+        const startUTC = new Date(startIST.getTime() - istOffset);
+        const endUTC = new Date(endIST.getTime() - istOffset);
+        
         return {
-          startDate: weekStart,
-          endDate: weekEnd,
+          startDate: startUTC,
+          endDate: endUTC,
           label: 'Last 7 Days',
-          dateRange: `${weekStart.toLocaleDateString('en-IN')} - ${weekEnd.toLocaleDateString('en-IN')}`
+          dateRange: `${new Date(startIST.getTime() - istOffset).toLocaleDateString('en-IN')} - ${new Date(endIST.getTime() - istOffset).toLocaleDateString('en-IN')}`
         };
+      }
+      
+      case 'monthly': {
+        // Last 30 days including today in IST
+        const endIST = new Date(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate(), 23, 59, 59, 999);
+        const startIST = new Date(endIST.getTime() - (29 * 24 * 60 * 60 * 1000)); // 29 days ago + today
+        startIST.setHours(0, 0, 0, 0);
         
-      case 'monthly':
-        // Last 30 days including today
-        const monthStart = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000); // 29 days ago + today = 30 days
-        monthStart.setHours(0, 0, 0, 0);
-        const monthEnd = new Date(now);
-        monthEnd.setHours(23, 59, 59, 999);
+        const startUTC = new Date(startIST.getTime() - istOffset);
+        const endUTC = new Date(endIST.getTime() - istOffset);
+        
         return {
-          startDate: monthStart,
-          endDate: monthEnd,
+          startDate: startUTC,
+          endDate: endUTC,
           label: 'Last 30 Days',
-          dateRange: `${monthStart.toLocaleDateString('en-IN')} - ${monthEnd.toLocaleDateString('en-IN')}`
+          dateRange: `${new Date(startIST.getTime() - istOffset).toLocaleDateString('en-IN')} - ${new Date(endIST.getTime() - istOffset).toLocaleDateString('en-IN')}`
         };
-        
-      case 'custom':
+      }
+      
+      case 'custom': {
         if (customDateRange.startDate && customDateRange.endDate) {
-          const start = new Date(customDateRange.startDate);
-          start.setHours(0, 0, 0, 0);
-          const end = new Date(customDateRange.endDate);
-          end.setHours(23, 59, 59, 999);
+          // Parse custom dates as IST dates
+          const startIST = new Date(customDateRange.startDate + 'T00:00:00');
+          const endIST = new Date(customDateRange.endDate + 'T23:59:59.999');
+          
+          // Convert to UTC
+          const startUTC = new Date(startIST.getTime() - istOffset);
+          const endUTC = new Date(endIST.getTime() - istOffset);
+          
           return {
-            startDate: start,
-            endDate: end,
+            startDate: startUTC,
+            endDate: endUTC,
             label: 'Custom Range',
             dateRange: `${customDateRange.startDate} - ${customDateRange.endDate}`
           };
         }
         // Fallback to today
-        const fallbackStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-        const fallbackEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        const fallbackStartIST = new Date(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate(), 0, 0, 0, 0);
+        const fallbackEndIST = new Date(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate(), 23, 59, 59, 999);
+        const fallbackStartUTC = new Date(fallbackStartIST.getTime() - istOffset);
+        const fallbackEndUTC = new Date(fallbackEndIST.getTime() - istOffset);
+        
         return {
-          startDate: fallbackStart,
-          endDate: fallbackEnd,
+          startDate: fallbackStartUTC,
+          endDate: fallbackEndUTC,
           label: 'Custom Range (Select Dates)',
           dateRange: 'Please select dates'
         };
+      }
+      
+      default: {
+        const defaultStartIST = new Date(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate(), 0, 0, 0, 0);
+        const defaultEndIST = new Date(nowIST.getFullYear(), nowIST.getMonth(), nowIST.getDate(), 23, 59, 59, 999);
+        const defaultStartUTC = new Date(defaultStartIST.getTime() - istOffset);
+        const defaultEndUTC = new Date(defaultEndIST.getTime() - istOffset);
         
-      default:
-        const defaultStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-        const defaultEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
         return {
-          startDate: defaultStart,
-          endDate: defaultEnd,
+          startDate: defaultStartUTC,
+          endDate: defaultEndUTC,
           label: 'Today',
-          dateRange: `${defaultStart.toLocaleDateString('en-IN')}`
+          dateRange: `${nowIST.toLocaleDateString('en-IN')}`
         };
+      }
     }
   };
 
+  useEffect(() => {
+    fetchRevenueData();
+  }, [selectedFilter, customDateRange, user?.tenantId]);
+
   const fetchRevenueData = async () => {
+    if (!user?.tenantId) {
+      console.error('No tenant ID available for fetching revenue data');
+      setError('No tenant ID available');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
-      const dateRange = getDateRange();
+      const dateRange = getISTDateRange();
       
-      // Debug logging (remove in production)
       console.log('Revenue Query Debug:', {
         filter: selectedFilter,
         startDate: dateRange.startDate.toISOString(),
         endDate: dateRange.endDate.toISOString(),
-        label: dateRange.label
+        label: dateRange.label,
+        tenantId: user.tenantId
       });
       
       const { data: periodTransactions, error: transactionError } = await supabase
-  .from('appointments')
-  .select(`
-    id,
-    patient_name,
-    patient_contact,
-    appointment_date,
-    payment_method,
-    amount,
-    currency,
-    status,
-    created_at,
-    booking_reference
-  `).gte('appointment_date', dateRange.startDate.toISOString()) // Filter by appointment_date instead of created_at
-    .lte('appointment_date', dateRange.endDate.toISOString())
-    .not('amount', 'is', null)
-    .order('appointment_date', { ascending: false }); // Remove date and status filters temporarily
-
-      // Fetch all transactions for the selected period
-      // const { data: periodTransactions, error: transactionError } = await supabase
-      //   .from('appointments')
-      //   .select(`
-      //     id,
-      //     patient_name,
-      //     patient_contact,
-      //     appointment_date,
-      //     payment_method,
-      //     amount,
-      //     currency,
-      //     status,
-      //     created_at,
-      //     booking_reference
-      //   `)
-      //   .in('status', ['scheduled', 'completed', 'paid']) // Include all relevant statuses
-      //   .not('amount', 'is', null)
-      //   .gte('appointment_date', dateRange.startDate.toISOString()) // Filter by appointment_date instead of created_at
-      //   .lte('appointment_date', dateRange.endDate.toISOString())
-      //   .order('appointment_date', { ascending: false });
+        .from('appointments')
+        .select(`
+          id,
+          patient_name,
+          patient_contact,
+          appointment_date,
+          payment_method,
+          amount,
+          currency,
+          status,
+          created_at,
+          booking_reference
+        `)
+        .eq('tenant_id', user.tenantId)
+        .gte('appointment_date', dateRange.startDate.toISOString())
+        .lte('appointment_date', dateRange.endDate.toISOString())
+        .not('amount', 'is', null)
+        .in('status', ['Scheduled', 'Completed', 'paid'])
+        .order('appointment_date', { ascending: false });
 
       console.log('periodTransactions:', periodTransactions);
 
@@ -189,7 +211,7 @@ const RevenuePage: React.FC = () => {
         query: {
           startDate: dateRange.startDate.toISOString(),
           endDate: dateRange.endDate.toISOString(),
-          statuses: ['Scheduled', 'Completed', 'Paid']
+          statuses: ['Scheduled', 'Completed', 'paid']
         }
       });
 
@@ -208,19 +230,15 @@ const RevenuePage: React.FC = () => {
         const { data: anyAppointments } = await supabase
           .from('appointments')
           .select('id, appointment_date, amount, status')
+          .eq('tenant_id', user.tenantId)
           .not('amount', 'is', null)
           .limit(5);
           
         console.log('Sample of available appointments:', anyAppointments);
       }
 
-
       // Set all transactions for the period
       setAllTransactions(periodTransactions || []);
-
-      console.log('allTransactions:', allTransactions);
-      
-      // Set recent transactions (all transactions for the period, not limited to 5)
       setTransactions(periodTransactions || []);
 
       // Calculate metrics for the selected period
@@ -254,7 +272,12 @@ const RevenuePage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+    // Convert UTC date to IST for display
+    const date = new Date(dateString);
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istDate = new Date(date.getTime() + istOffset);
+    
+    return istDate.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -264,7 +287,12 @@ const RevenuePage: React.FC = () => {
   };
 
   const formatDateOnly = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+    // Convert UTC date to IST for display
+    const date = new Date(dateString);
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istDate = new Date(date.getTime() + istOffset);
+    
+    return istDate.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'

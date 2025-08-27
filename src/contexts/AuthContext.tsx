@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-// Define user roles
+// User role definitions
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   BUSINESS_OWNER = 'BUSINESS_OWNER',
@@ -9,21 +9,20 @@ export enum UserRole {
   EMPLOYEE = 'EMPLOYEE'
 }
 
-// Define tenant (hospital/clinic) interface
+// Tenant interface
 export interface Tenant {
   id: string;
   name: string;
-  // Add other tenant-specific properties as needed
 }
 
-// Define user interface
+// User interface
 export interface User {
   id: string;
   email: string;
   name: string;
   role: UserRole;
   tenantId?: string; // Optional for super admin who isn't tied to a specific tenant
-  businessType?: 'doctor' | 'turf'; // Type of business the user belongs to
+  businessType?: 'doctor' | 'turf';
 }
 
 interface AuthContextType {
@@ -43,49 +42,123 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// ==================== Invitation/Onboarding Logic ====================
+const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
+  try {
+    if (!userEmail) {
+      console.log('No email provided, skipping invitation setup');
+      return;
+    }
+
+    const { supabase, getCurrentSession } = await import('../services/supabaseService');
+    const session = await getCurrentSession();
+
+    // Check if user is pre-approved and not yet activated
+    const { data: approvedUser, error: approvalError } = await supabase
+      .from('approved_users')
+      .select('tenant_id, role')
+      .eq('email', userEmail)
+      .is('activated_at', null)
+      .single();
+
+    // Acceptable: No row found ("PGRST116")
+    if (approvalError && approvalError.code !== 'PGRST116') {
+      throw approvalError;
+    }
+
+    if (approvedUser) {
+      // --- user_profiles ---
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      if (!existingProfile) {
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: userId,
+            email: userEmail,
+            full_name: session?.user?.user_metadata?.full_name || userEmail.split('@')[0]
+          });
+        if (profileError) throw profileError;
+      }
+
+      // --- user_tenants ---
+      const { data: existingTenant } = await supabase
+        .from('user_tenants')
+        .select('user_id')
+        .eq('user_id', userId)
+        .eq('tenant_id', approvedUser.tenant_id)
+        .single();
+
+      if (!existingTenant) {
+        const { error: tenantError } = await supabase
+          .from('user_tenants')
+          .insert({
+            user_id: userId,
+            tenant_id: approvedUser.tenant_id
+          });
+        if (tenantError) throw tenantError;
+      }
+
+      // --- user_roles ---
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('user_id', userId)
+        .single();
+
+      if (!existingRole) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: userId,
+            role: approvedUser.role
+          });
+        if (roleError) throw roleError;
+      }
+
+      // --- Mark invitation as activated ---
+      const { error: activationError } = await supabase
+        .from('approved_users')
+        .update({ activated_at: new Date().toISOString() })
+        .eq('email', userEmail)
+        .is('activated_at', null);
+
+      if (activationError) throw activationError;
+    }
+  } catch (error) {
+    // DO NOT FAIL the login flow if onboarding fails; log for debugging.
+    console.error('Error handling user invitation setup:', error);
+  }
+};
+// ======================================================================
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Authentication method
+  // --- Login by email/password ---
   const login = async (email: string, password: string) => {
-    console.log('Login attempt for:', email);
     setIsLoading(true);
     try {
       const { signIn, getCurrentSession, getUserRole, getUserTenant } = await import('../services/supabaseService');
-
-      // Authenticate via Supabase
-      console.log('Calling signIn method');
       const { session } = await signIn(email, password);
-      console.log('Sign in result - session exists:', !!session);
+      if (!session) throw new Error('Invalid email or password');
 
-      if (!session) {
-        throw new Error('Invalid email or password');
-      }
-
-      // Fetch additional info
       const userId = session.user.id;
-      console.log('User ID:', userId);
-      
-      console.log('Fetching user role');
+      // Invitation/Onboarding for newly-invited users
+      await handleUserInvitationSetup(userId, session.user.email || '');
+
       const role = await getUserRole(userId);
-      console.log('User role:', role);
-      
-      if (!role) {
-        console.warn('No role found for user, defaulting to EMPLOYEE');
-      }
-    
-      console.log('Fetching user tenant');
       const tenantId = await getUserTenant(userId);
-      console.log('User tenant ID:', tenantId);
-      
-      // Get the business type
-      console.log('Fetching business type');
+
       const { getUserBusinessType } = await import('../services/supabaseService');
       const businessType = await getUserBusinessType(userId);
-      console.log('User business type:', businessType);
 
       const userData: User = {
         id: userId,
@@ -96,32 +169,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         businessType: businessType as 'doctor' | 'turf'
       };
 
-      console.log('User data constructed:', userData);
-
-      // If user belongs to a tenant, fetch tenant details
       if (tenantId) {
         try {
           const { getTenantDetails } = await import('../services/supabaseService');
           const tenantData = await getTenantDetails(tenantId);
-          console.log('Tenant data:', tenantData);
           setTenant(tenantData);
         } catch (tenantError) {
+          // Tenant fetch failure is not fatal
           console.error('Error fetching tenant details:', tenantError);
-          // Continue login even if tenant fetch fails
         }
       }
 
-      // Store the token in localStorage
-      console.log('Storing auth token');
       localStorage.setItem('authToken', session.access_token);
-
-      // Important: Set authenticated state
       setUser(userData);
       setIsAuthenticated(true);
-      console.log('Login successful, auth state updated');
     } catch (error) {
-      console.error('Login error:', error);
-      // Clear any partial state in case of error
       localStorage.removeItem('authToken');
       setUser(null);
       setTenant(null);
@@ -132,64 +194,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const loginFromSession = async (token: string, user: any) => {
+  // --- Login from session (OAuth/cookies) ---
+  const loginFromSession = async (token: string, userObj: any) => {
     setIsLoading(true);
     try {
       const { getUserTenant, getUserBusinessType, getUserRole } = await import('../services/supabaseService');
+      const userId = userObj.id;
+      await handleUserInvitationSetup(userId, userObj.email || '');
 
-      // Get user ID from user object
-      const userId = user.id;
-      
-      // Get tenant ID for the user
       const tenantId = await getUserTenant(userId);
-      
-      // Get user role
       const role = await getUserRole(userId);
-      
-      // Get business type
       const businessType = await getUserBusinessType(userId);
-      console.log('User business type from session:', businessType);
 
-      // Create user object
       const userData: User = {
         id: userId,
-        email: user.email ?? '',
-        name: user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'User',
+        email: userObj.email ?? '',
+        name: userObj.user_metadata?.full_name ?? userObj.email?.split('@')[0] ?? 'User',
         role: role ?? UserRole.EMPLOYEE,
         tenantId: tenantId ?? undefined,
         businessType: businessType as 'doctor' | 'turf'
       };
 
-      // Store token (already done in OAuthCallback)
-      // localStorage.setItem('authToken', token);
-
       setUser(userData);
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Login from session error:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
+  // --- Logout ---
   const logout = async () => {
     try {
-      console.log('Logging out user');
-      // Call Supabase signOut to clear the session
       const { signOut } = await import('../services/supabaseService');
       await signOut();
-      console.log('Supabase session cleared');
-
-      // Clear local state
       localStorage.removeItem('authToken');
       setUser(null);
       setTenant(null);
       setIsAuthenticated(false);
-      console.log('Local auth state cleared');
     } catch (error) {
-      console.error('Error during logout:', error);
-      // Even if there's an error, clear local state
+      // Clear state even if network logout fails
       localStorage.removeItem('authToken');
       setUser(null);
       setTenant(null);
@@ -197,84 +242,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // --- Role check helper ---
   const hasPermission = (requiredRoles: UserRole[]): boolean => {
     if (!user) return false;
     return requiredRoles.includes(user.role);
   };
 
+  // --- On page load, check session and do onboarding if needed ---
   useEffect(() => {
     const checkAuthStatus = async () => {
       setIsLoading(true);
       try {
         const token = localStorage.getItem('authToken');
-        console.log('Checking auth status, token exists:', !!token);
-        
         if (token) {
-          // Validate token with Supabase
           const { getCurrentSession, getUserRole, getUserTenant } = await import('../services/supabaseService');
-          
           const session = await getCurrentSession();
-          console.log('Session check result:', !!session);
-          
           if (session?.user) {
-            console.log('User ID from session:', session.user.id);
             const userId = session.user.id;
-            
-            try {
-              const role = await getUserRole(userId);
-              console.log('User role from DB:', role);
-              
-              const tenantId = await getUserTenant(userId);
-              console.log('User tenant from DB:', tenantId);
-              
-              // Get the business type
-              const { getUserBusinessType } = await import('../services/supabaseService');
-              const businessType = await getUserBusinessType(userId);
-              console.log('User business type:', businessType);
-              
-              const userData: User = {
-                id: userId,  // Real UUID from Supabase
-                email: session.user.email ?? '',
-                name: session.user.user_metadata?.full_name ?? session.user.email?.split('@')[0] ?? 'User',
-                role: role ?? UserRole.EMPLOYEE,
-                tenantId: tenantId, // Real UUID from database
-                businessType: businessType as 'doctor' | 'turf'
-              };
-              
-              console.log('User data constructed:', userData);
-              
-              // Fetch tenant data if tenantId exists
-              if (tenantId) {
-                try {
-                  // Use getTenantDetails instead of getTenantById
-                  const { getTenantDetails } = await import('../services/supabaseService');
-                  const tenantData = await getTenantDetails(tenantId);
-                  console.log('Tenant data fetched:', tenantData);
-                  setTenant(tenantData);
-                } catch (tenantError) {
-                  console.error('Error fetching tenant details:', tenantError);
-                  // Continue even if tenant details fail
-                }
+            await handleUserInvitationSetup(userId, session.user.email || '');
+
+            const role = await getUserRole(userId);
+            const tenantId = await getUserTenant(userId);
+
+            const { getUserBusinessType } = await import('../services/supabaseService');
+            const businessType = await getUserBusinessType(userId);
+
+            const userData: User = {
+              id: userId,
+              email: session.user.email ?? '',
+              name: session.user.user_metadata?.full_name ?? session.user.email?.split('@')[0] ?? 'User',
+              role: role ?? UserRole.EMPLOYEE,
+              tenantId: tenantId ?? undefined,
+              businessType: businessType as 'doctor' | 'turf'
+            };
+
+            if (tenantId) {
+              try {
+                const { getTenantDetails } = await import('../services/supabaseService');
+                const tenantData = await getTenantDetails(tenantId);
+                setTenant(tenantData);
+              } catch (tenantError) {
+                // Continue even if tenant details fail
+                console.error('Error fetching tenant details:', tenantError);
               }
-              
-              // Set user data and mark as authenticated even if tenant fetch fails
-              setUser(userData);
-              setIsAuthenticated(true);
-              console.log('Auth status set to authenticated');
-            } catch (userDataError) {
-              console.error('Error fetching user data:', userDataError);
-              throw userDataError;
             }
+
+            setUser(userData);
+            setIsAuthenticated(true);
           } else {
-            // Invalid session
-            console.error('Session exists but no user found');
             throw new Error('Invalid session - no user found');
           }
-        } else {
-          console.log('No auth token found');
         }
       } catch (error) {
-        console.error('Authentication error:', error);
         localStorage.removeItem('authToken');
         setUser(null);
         setTenant(null);
@@ -283,11 +302,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
       }
     };
-  
     checkAuthStatus();
+    // Empty dependency: runs once on mount
   }, []);
 
-  
   return (
     <AuthContext.Provider
       value={{

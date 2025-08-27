@@ -54,8 +54,6 @@ interface ModalProps {
   children: React.ReactNode;
 }
 
-
-
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
 
@@ -115,42 +113,42 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="sm:flex sm:items-start">
         <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
             Booking Details
           </h3>
           
-          <div className="overflow-hidden bg-white dark:bg-gray-800 shadow rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          <div className="overflow-hidden bg-white shadow rounded-lg">
+            <table className="min-w-full divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-200">
                 <tr>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-gray-700 w-1/3">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50 w-1/3">
                     Booking Reference
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {booking.booking_reference || 'N/A'}
                   </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-gray-700">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Customer Name
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {booking.customer_name}
                   </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-gray-700">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Customer Email
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-300">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {booking.customer_email || 'N/A'}
                   </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-200 bg-gray-50 dark:bg-gray-700">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Customer Contact
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {booking.customer_contact || 'N/A'}
                   </td>
                 </tr>
@@ -158,7 +156,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Date & Time
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {formatDate(booking.appointment_date)} at {formatTime(booking.appointment_time)}
                   </td>
                 </tr>
@@ -166,7 +164,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Status
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       booking.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
                       booking.status === 'Completed' ? 'bg-green-100 text-green-800' :
@@ -182,7 +180,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Payment Amount
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {booking.amount ? `${booking.currency || 'INR'} ${booking.amount}` : 'N/A'}
                   </td>
                 </tr>
@@ -190,7 +188,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Payment Method
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {booking.payment_method ? booking.payment_method.toUpperCase() : 'N/A'}
                   </td>
                 </tr>
@@ -198,7 +196,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Payment ID
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {booking.payment_id || 'N/A'}
                   </td>
                 </tr>
@@ -206,7 +204,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Created At
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {booking.created_at ? new Date(booking.created_at).toLocaleString() : 'N/A'}
                   </td>
                 </tr>
@@ -214,7 +212,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
                   <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
                     Last Updated
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
+                  <td className="px-4 py-3 text-sm text-gray-900 bg-white">
                     {booking.updated_at ? new Date(booking.updated_at).toLocaleString() : 'N/A'}
                   </td>
                 </tr>
@@ -448,7 +446,6 @@ useEffect(() => {
   };
 }, [user?.tenantId, refreshTrigger]);
 
-
   useEffect(() => {
     if (user?.tenantId) {
       checkAppointmentLimit(user.tenantId).then(setAppointmentLimits);
@@ -645,8 +642,6 @@ const formatTime = (timeString: string) => {
     return 'N/A';
   }
 };
-
-
 
   // Handle view booking function
   const handleViewBooking = (appointment: Appointment) => {

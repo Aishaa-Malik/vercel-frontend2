@@ -35,6 +35,9 @@ import TurfEmployeeDashboardLayout from './components/turf/TurfEmployeeDashboard
 import TurfSettingsPage from './components/turf/TurfSettingsPage';
 import TurfSchedulePage from './components/turf/TurfSchedulePage';
 
+import PrivacyPolicy from './components/PrivacyPolicy';
+
+
 // Check if user needs onboarding
 const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
@@ -101,6 +104,8 @@ function App() {
             <Route path="/payment-callback" element={<PaymentCallback />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
             
             {/* Onboarding Route */}
             <Route 

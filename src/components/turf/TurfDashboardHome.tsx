@@ -22,22 +22,21 @@ const TurfDashboardHome: React.FC = () => {
       case UserRole.EMPLOYEE:
         return <EmployeeDashboard />;
       default:
-        return <DefaultDashboard />;
+        return <TenantDashboard />;
     }
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Welcome back, {user?.name}
-        </h2>
-        {/* <p className="text-gray-600">
-          {tenant ? `${tenant.name} Dashboard` : 'Dashboard'}
-        </p> */}
-      </div>
+    <div className="h-full w-full p-6 flex items-center justify-center">
+      <div className="w-full h-full max-w-7xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-6 overflow-hidden">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-white">
+            Welcome back, <span className="text-white">{user?.name}</span>
+          </h2>
+        </div>
 
-      {renderDashboardContent()}
+        {renderDashboardContent()}
+      </div>
     </div>
   );
 };
@@ -188,34 +187,106 @@ const BusinessOwnerDashboard: React.FC = () => {
   }, [user?.tenantId]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Business Stats - Full Width */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 md:col-span-3">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">Business Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-md flex flex-col items-center justify-center">
-            <p className="text-sm text-blue-500 mb-2">Total Appointments</p>
+    <div className="grid grid-cols-12 gap-6">
+      {/* Top Row Stats */}
+      <div className="col-span-3">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="text-xs text-gray-300 mb-1">Total Appointments</div>
+          <div className="text-4xl font-bold text-white mb-1">
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-blue-200 rounded"></div>
+              <div className="animate-pulse h-8 w-16 bg-gray-700 rounded"></div>
             ) : (
-              <p className="text-3xl font-bold">{totalAppointments}</p>
+              totalAppointments
             )}
           </div>
-          <div className="bg-green-50 dark:bg-green-900 p-6 rounded-md flex flex-col items-center justify-center">
-            <p className="text-sm text-green-500 mb-2">Today's Appointments</p>
+          <div className="text-xs text-gray-300">All time</div>
+        </div>
+      </div>
+      
+      <div className="col-span-3">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="text-xs text-gray-300 mb-1">Today's Appointments</div>
+          <div className="text-4xl font-bold text-white mb-1">
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-green-200 dark:bg-green-700 rounded"></div>
+              <div className="animate-pulse h-8 w-16 bg-gray-700 rounded"></div>
             ) : (
-              <p className="text-3xl font-bold dark:text-white">{todayAppointments}</p>
+              todayAppointments
             )}
           </div>
-          <div className="bg-purple-50 dark:bg-purple-900 p-6 rounded-md flex flex-col items-center justify-center">
-            <p className="text-sm text-purple-500 mb-2">Total Revenue</p>
+          <div className="text-xs text-gray-300">Today</div>
+        </div>
+      </div>
+      
+      <div className="col-span-3">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="text-xs text-gray-300 mb-1">Revenue</div>
+          <div className="text-4xl font-bold text-white mb-1">
             {isLoading ? (
-              <div className="animate-pulse h-8 w-24 bg-purple-200 dark:bg-purple-700 rounded"></div>
+              <div className="animate-pulse h-8 w-24 bg-gray-700 rounded"></div>
             ) : (
-              <p className="text-3xl font-bold dark:text-white">₹{totalRevenue.toLocaleString()}</p>
+              `₹${totalRevenue.toLocaleString()}`
             )}
+          </div>
+          <div className="text-xs text-gray-300">Total earnings</div>
+        </div>
+      </div>
+      
+      <div className="col-span-3">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full flex items-center justify-center">
+          <div className="text-5xl text-white">+</div>
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="col-span-6">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-sm font-medium text-white">Recent Transactions</div>
+            <div className="text-xs text-gray-400">View All</div>
+          </div>
+          <div className="space-y-3">
+            {isLoading ? (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full bg-gray-700 mr-3"></div>
+                    <div>
+                      <div className="h-4 w-24 bg-gray-700 rounded mb-2"></div>
+                      <div className="h-3 w-16 bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="h-4 w-16 bg-gray-700 rounded"></div>
+                </div>
+              ))
+            ) : (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs mr-3">
+                      {String.fromCharCode(65 + i)}
+                    </div>
+                    <div>
+                      <div className="text-sm text-white">Patient {i+1}</div>
+                      <div className="text-xs text-gray-400">{new Date().toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-white">₹{500 * (i+1)}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Appointments */}
+      <div className="col-span-6">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-sm font-medium text-white">Upcoming Appointments</div>
+            <div className="text-xs text-gray-400">View All</div>
+          </div>
+          <div className="h-[calc(100%-2rem)] flex items-center justify-center">
+            <div className="text-gray-500 text-sm">No appointments scheduled</div>
           </div>
         </div>
       </div>
@@ -272,12 +343,79 @@ const EmployeeDashboard: React.FC = () => {
   );
 };
 
-// Default Dashboard (fallback)
-const DefaultDashboard: React.FC = () => {
+// Tenant Dashboard
+const TenantDashboard: React.FC = () => {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-4">Welcome to the Dashboard</h3>
-      <p>Please contact your administrator to set up your dashboard access.</p>
+    <div className="grid grid-cols-12 gap-6">
+      {/* Top Row Stats */}
+      <div className="col-span-3">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="text-xs text-gray-300 mb-1">Earnings</div>
+          <div className="text-4xl font-bold text-white mb-1">2.5k</div>
+          <div className="text-xs text-gray-300">This month</div>
+        </div>
+      </div>
+      
+      <div className="col-span-3">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="text-xs text-gray-300 mb-1">Bookings</div>
+          <div className="text-4xl font-bold text-white mb-1">17</div>
+          <div className="text-xs text-gray-300">Total</div>
+        </div>
+      </div>
+      
+      <div className="col-span-3">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="text-xs text-gray-300 mb-1">Staff</div>
+          <div className="text-4xl font-bold text-white mb-1">2</div>
+          <div className="text-xs text-gray-300">Active</div>
+        </div>
+      </div>
+      
+      <div className="col-span-3">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full flex items-center justify-center">
+          <div className="text-5xl text-white">+</div>
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="col-span-6">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-sm font-medium text-white">Recent Transactions</div>
+            <div className="text-xs text-gray-400">View All</div>
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((transaction) => (
+              <div key={transaction} className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs mr-3">
+                    {String.fromCharCode(64 + transaction)}
+                  </div>
+                  <div>
+                    <div className="text-sm text-white">Customer {transaction}</div>
+                    <div className="text-xs text-gray-400">{new Date().toLocaleDateString()}</div>
+                  </div>
+                </div>
+                <div className="text-sm text-white">₹{500 * transaction}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Appointments */}
+      <div className="col-span-6">
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-sm font-medium text-white">Appointments</div>
+            <div className="text-xs text-gray-400">View All</div>
+          </div>
+          <div className="h-[calc(100%-2rem)] flex items-center justify-center">
+            <div className="text-gray-500 text-sm">No appointments scheduled</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

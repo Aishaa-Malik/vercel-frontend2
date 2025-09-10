@@ -74,7 +74,7 @@ const TurfDashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen relative ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
+    <div className={`min-h-screen relative flex items-center justify-center ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center z-0" 
@@ -84,17 +84,20 @@ const TurfDashboardLayout: React.FC = () => {
           pointerEvents: 'none' // Prevent blocking clicks
         }}
       ></div>
+      {/* Floating Container */}
+      <div className="relative z-10 w-[95%] h-[90vh] bg-gray-800 bg-opacity-40 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden flex">
+        {/* Container Content */}
       {/* Mobile menu */}
       <div className="lg:hidden relative z-20">
-        <div className="fixed inset-0 flex z-40">
+        <div className="absolute inset-0 flex z-40">
           <div
-            className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity ease-linear duration-300 ${
+            className={`absolute inset-0 bg-gray-600 bg-opacity-75 transition-opacity ease-linear duration-300 ${
               mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
             onClick={() => setMobileMenuOpen(false)}
           ></div>
           <div
-            className={`relative flex-1 flex flex-col max-w-xs w-full bg-white transition ease-in-out duration-300 transform ${
+            className={`relative flex-1 flex flex-col max-w-xs w-full bg-black bg-opacity-70 backdrop-blur-md transition ease-in-out duration-300 transform ${
               mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
@@ -112,7 +115,7 @@ const TurfDashboardLayout: React.FC = () => {
             </div>
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-4">
-                <span className="text-xl font-bold text-blue-600">Turf Dashboard</span>
+                <span className="text-xl font-bold text-white">Turf Dashboard</span>
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 {navigation.map((item) => (
@@ -122,7 +125,7 @@ const TurfDashboardLayout: React.FC = () => {
                       key={item.name}
                       className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-400 cursor-not-allowed"
                     >
-                      <div className="mr-4 text-gray-300">
+                      <div className="mr-4 text-gray-500">
                         {renderIcon(item.icon)}
                       </div>
                       {item.name}
@@ -133,14 +136,14 @@ const TurfDashboardLayout: React.FC = () => {
                       to={item.href}
                       className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
                         isActive(item.href)
-                          ? 'bg-blue-100 text-blue-900'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-white bg-opacity-20 text-white'
+                          : 'text-gray-300 hover:bg-white hover:bg-opacity-10 hover:text-white'
                       }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div
                         className={`mr-4 ${
-                          isActive(item.href) ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
+                          isActive(item.href) ? 'text-white' : 'text-gray-400 group-hover:text-white'
                         }`}
                       >
                         {renderIcon(item.icon)}
@@ -153,10 +156,10 @@ const TurfDashboardLayout: React.FC = () => {
             </div>
             
             {/* Mobile User Profile Section - Updated */}
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+            <div className="flex-shrink-0 flex border-t border-gray-700 p-4">
               <div className="flex items-center">
-                {/* User Avatar Circle - Blue background like employee dashboard */}
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                {/* User Avatar Circle */}
+                <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-semibold text-lg">
                     {user?.name?.charAt(0).toUpperCase() || 'A'}
                   </span>
@@ -164,15 +167,15 @@ const TurfDashboardLayout: React.FC = () => {
                 
                 {/* User Info */}
                 <div className="ml-3 min-w-0 flex-1">
-                  <p className="text-base font-medium text-gray-800 truncate">
+                  <p className="text-base font-medium text-white truncate">
                     {user?.name || 'Turf Owner'}
                   </p>
-                  <p className="text-sm text-gray-600 truncate">
+                  <p className="text-sm text-gray-300 truncate">
                     {user?.email || 'owner@business.com'}
                   </p>
                   <button
                     onClick={() => logout()}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-700"
+                    className="text-sm font-medium text-gray-400 hover:text-white"
                   >
                     Sign out
                   </button>
@@ -184,20 +187,20 @@ const TurfDashboardLayout: React.FC = () => {
       </div>
 
       {/* Static sidebar for desktop */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-50">
-        <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:relative lg:h-full z-50">
+        <div className="flex-1 flex flex-col min-h-0 border-r border-gray-700 bg-black bg-opacity-70 backdrop-blur-md rounded-l-xl text-white">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">
-              <span className="text-xl font-bold text-blue-600">Turf Dashboard</span>
+              <span className="text-xl font-bold text-white">Turf Dashboard</span>
             </div>
-            <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
+            <nav className="mt-5 flex-1 px-2 space-y-1">
               {navigation.map((item) => (
                 item.disabled ? (
                   <div
                     key={item.name}
                     className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 cursor-not-allowed"
                   >
-                    <div className="mr-3 text-gray-300">
+                    <div className="mr-3 text-gray-500">
                       {renderIcon(item.icon)}
                     </div>
                     {item.name}
@@ -208,14 +211,14 @@ const TurfDashboardLayout: React.FC = () => {
                     to={item.href}
                     className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                       isActive(item.href)
-                        ? 'bg-blue-100 text-blue-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-white bg-opacity-20 text-white'
+                        : 'text-gray-300 hover:bg-white hover:bg-opacity-10 hover:text-white'
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <div
                       className={`mr-3 ${
-                        isActive(item.href) ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
+                        isActive(item.href) ? 'text-white' : 'text-gray-400 group-hover:text-white'
                       }`}
                     >
                       {renderIcon(item.icon)}
@@ -228,10 +231,10 @@ const TurfDashboardLayout: React.FC = () => {
           </div>
           
           {/* Desktop User Profile Section - Updated */}
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+          <div className="flex-shrink-0 flex border-t border-gray-700 p-4">
             <div className="flex items-center w-full">
-              {/* User Avatar Circle - Blue background like employee dashboard */}
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+              {/* User Avatar Circle */}
+              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-semibold text-lg">
                   {user?.name?.charAt(0).toUpperCase() || 'A'}
                 </span>
@@ -239,15 +242,15 @@ const TurfDashboardLayout: React.FC = () => {
               
               {/* User Info */}
               <div className="ml-3 min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-800 truncate">
+                <p className="text-sm font-medium text-white truncate">
                   {user?.name || 'Turf Owner'}
                 </p>
-                <p className="text-xs text-gray-600 truncate">
+                <p className="text-xs text-gray-300 truncate">
                   {user?.email || 'owner@business.com'}
                 </p>
                 <button
                   onClick={() => logout()}
-                  className="text-xs font-medium text-gray-500 hover:text-gray-700"
+                  className="text-xs font-medium text-gray-400 hover:text-white"
                 >
                   Sign out
                 </button>
@@ -258,25 +261,31 @@ const TurfDashboardLayout: React.FC = () => {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64 flex flex-col flex-1 relative z-10">
-        <div className={`sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-          <button
-            type="button"
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <span className="sr-only">Open sidebar</span>
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+      <div className="flex flex-col flex-1 relative z-10 overflow-hidden">
+        <div className="flex justify-between items-center p-4">
+          <div className="lg:hidden">
+            <button
+              type="button"
+              className="h-10 w-10 inline-flex items-center justify-center rounded-md text-white"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <span className="sr-only">Open sidebar</span>
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* Date selector */}
+          <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
+            <span>Select date</span>
+          </div>
         </div>
-        {/* <div className="flex items-center justify-end p-4">
-          <DarkModeToggle />
-        </div> */}
-        <main className="flex-1">
+        
+        <main className="flex-1 p-6 overflow-hidden">
           <Outlet />
         </main>
+      </div>
       </div>
     </div>
   );

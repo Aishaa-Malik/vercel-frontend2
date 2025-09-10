@@ -85,7 +85,7 @@ const TurfDashboardLayout: React.FC = () => {
         }}
       ></div>
       {/* Floating Container */}
-      <div className="relative z-10 w-[95%] h-[90vh] bg-gray-800 bg-opacity-40 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden flex">
+      <div className="relative z-10 w-[85%] h-[90vh] bg-gray-800 bg-opacity-40 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden flex">
         {/* Container Content */}
       {/* Mobile menu */}
       <div className="lg:hidden relative z-20">

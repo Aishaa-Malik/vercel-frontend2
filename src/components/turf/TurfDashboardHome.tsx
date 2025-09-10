@@ -27,8 +27,8 @@ const TurfDashboardHome: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full p-6 flex flex-col items-center justify-center">
-      <div className="w-full max-w-4xl mx-auto flex justify-between items-center mb-6 px-4">
+    <div className="h-full w-full p-4 flex flex-col items-center justify-center">
+      <div className="w-full max-w-4xl mx-auto flex justify-between items-center mb-3 px-4">
         <div className="flex flex-col">
           <div className="text-sm text-gray-300 opacity-70">Welcome back</div>
           <div className="flex items-center">
@@ -43,16 +43,11 @@ const TurfDashboardHome: React.FC = () => {
           <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm">
             Page 1
           </div>
-          <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm flex items-center">
-            Select date
-            <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </div>
+          {/* Removed 'Select date' button as requested */}
         </div>
       </div>
       
-      <div className="w-full max-w-4xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-6 overflow-hidden">
+      <div className="w-full max-w-4xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-4 overflow-hidden">
         {renderDashboardContent()}
       </div>
     </div>
@@ -205,17 +200,17 @@ const BusinessOwnerDashboard: React.FC = () => {
   }, [user?.tenantId])
 
   return (
-    <div className="grid grid-cols-12 gap-6">
+    <div className="grid grid-cols-12 gap-3">
       {/* Stats cards */}
       <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <div className="text-lg font-medium text-white">Total Appointments</div>
           <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">All time</div>
         </div>
-        <div className="mt-auto mb-2">
-          <div className="text-4xl font-bold text-white">
+        <div className="mt-auto mb-2 self-start">
+          <div className="text-6xl font-bold text-white">
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-gray-700 rounded"></div>
+              <div className="animate-pulse h-12 w-24 bg-gray-700 rounded"></div>
             ) : (
               totalAppointments
             )}
@@ -228,10 +223,10 @@ const BusinessOwnerDashboard: React.FC = () => {
           <div className="text-lg font-medium text-white">Today's Appointments</div>
           <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Today</div>
         </div>
-        <div className="mt-auto mb-2">
-          <div className="text-4xl font-bold text-white">
+        <div className="mt-auto mb-2 self-start">
+          <div className="text-6xl font-bold text-white">
             {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-gray-700 rounded"></div>
+              <div className="animate-pulse h-12 w-24 bg-gray-700 rounded"></div>
             ) : (
               todayAppointments
             )}
@@ -244,10 +239,10 @@ const BusinessOwnerDashboard: React.FC = () => {
           <div className="text-lg font-medium text-white">Revenue</div>
           <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Total earnings</div>
         </div>
-        <div className="mt-auto mb-2">
-          <div className="text-4xl font-bold text-white">
+        <div className="mt-auto mb-2 self-start">
+          <div className="text-6xl font-bold text-white">
             {isLoading ? (
-              <div className="animate-pulse h-8 w-24 bg-gray-700 rounded"></div>
+              <div className="animate-pulse h-12 w-32 bg-gray-700 rounded"></div>
             ) : (
               `₹${totalRevenue.toLocaleString()}`
             )}
@@ -261,10 +256,10 @@ const BusinessOwnerDashboard: React.FC = () => {
 
       {/* Recent Transactions */}
       <div className="col-span-6">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-sm font-medium text-white">Recent Transactions</div>
-            <div className="text-xs text-gray-400">View All</div>
+        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-3 h-full">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-lg font-medium text-white">Recent Transactions</div>
+            <div className="text-sm text-gray-400">View All</div>
           </div>
           <div className="space-y-3">
             {isLoading ? (
@@ -288,11 +283,11 @@ const BusinessOwnerDashboard: React.FC = () => {
                       {String.fromCharCode(65 + i)}
                     </div>
                     <div>
-                      <div className="text-sm text-white">Patient {i+1}</div>
-                      <div className="text-xs text-gray-400">{new Date().toLocaleDateString()}</div>
+                      <div className="text-xl text-white">Patient {i+1}</div>
+                      <div className="text-sm text-gray-400">{new Date().toLocaleDateString()}</div>
                     </div>
                   </div>
-                  <div className="text-sm text-white">₹{500 * (i+1)}</div>
+                  <div className="text-xl text-white">₹{500 * (i+1)}</div>
                 </div>
               ))
             )}
@@ -304,11 +299,11 @@ const BusinessOwnerDashboard: React.FC = () => {
       <div className="col-span-6">
         <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
           <div className="flex justify-between items-center mb-4">
-            <div className="text-sm font-medium text-white">Upcoming Appointments</div>
-            <div className="text-xs text-gray-400">View All</div>
+            <div className="text-lg font-medium text-white">Upcoming Appointments</div>
+            <div className="text-sm text-gray-400">View All</div>
           </div>
           <div className="h-[calc(100%-2rem)] flex items-center justify-center">
-            <div className="text-gray-500 text-sm">No appointments scheduled</div>
+            <div className="text-gray-500 text-xl">No appointments scheduled</div>
           </div>
         </div>
       </div>
@@ -375,8 +370,8 @@ const TenantDashboard: React.FC = () => {
           <div className="text-lg font-medium text-white">Earnings</div>
           <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">27 aug 23</div>
         </div>
-        <div className="mt-auto mb-2">
-          <div className="text-5xl font-bold text-white">2.5k</div>
+        <div className="mt-auto">
+          <div className="text-7xl font-bold text-white">2.5k</div>
         </div>
       </div>
       <div className="col-span-12 sm:col-span-6 md:col-span-3 h-48 bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 flex flex-col">
@@ -384,8 +379,8 @@ const TenantDashboard: React.FC = () => {
           <div className="text-lg font-medium text-white">Bookings</div>
           <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">27 aug 23</div>
         </div>
-        <div className="mt-auto mb-2">
-          <div className="text-5xl font-bold text-white">17</div>
+        <div className="mt-auto">
+          <div className="text-7xl font-bold text-white">17</div>
         </div>
       </div>
       <div className="col-span-12 sm:col-span-6 md:col-span-3 h-48 bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 flex flex-col">
@@ -393,8 +388,8 @@ const TenantDashboard: React.FC = () => {
           <div className="text-lg font-medium text-white">Staff</div>
           <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">27 aug 23</div>
         </div>
-        <div className="mt-auto mb-2">
-          <div className="text-5xl font-bold text-white">2</div>
+        <div className="mt-auto">
+          <div className="text-7xl font-bold text-white">2</div>
         </div>
       </div>
       <div className="col-span-12 sm:col-span-6 md:col-span-3 h-48 bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">

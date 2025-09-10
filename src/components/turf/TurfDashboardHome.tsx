@@ -28,17 +28,31 @@ const TurfDashboardHome: React.FC = () => {
 
   return (
     <div className="h-full w-full p-6 flex flex-col items-center justify-center">
-      <div className="w-full mb-6 px-4">
-        <div className="text-sm text-gray-300 opacity-70">Welcome back</div>
-        <div className="flex items-center">
-          <h2 className="text-4xl font-bold text-white mr-2">
-            {user?.name || "Johnson"}
-          </h2>
-          <span className="text-3xl">👋</span>
+      <div className="w-full max-w-4xl mx-auto flex justify-between items-center mb-6 px-4">
+        <div className="flex flex-col">
+          <div className="text-sm text-gray-300 opacity-70">Welcome back</div>
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold text-white">{user?.name || 'Johnson'}</h1>
+            <span className="text-2xl ml-2">👋</span>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm">
+            Home
+          </div>
+          <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm">
+            Page 1
+          </div>
+          <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm flex items-center">
+            Select date
+            <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </div>
         </div>
       </div>
       
-      <div className="w-full max-w-6xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-6 overflow-hidden">
+      <div className="w-full max-w-4xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-6 overflow-hidden">
         {renderDashboardContent()}
       </div>
     </div>
@@ -356,35 +370,35 @@ const TenantDashboard: React.FC = () => {
   return (
     <div className="grid grid-cols-12 gap-6">
       {/* Stats cards */}
-      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-48 bg-gray-300 bg-opacity-20 backdrop-blur-md rounded-xl p-4 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <div className="text-lg font-medium text-white">Earnings</div>
-          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Today</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">27 aug 23</div>
         </div>
         <div className="mt-auto mb-2">
-          <div className="text-4xl font-bold text-white">$2.5k</div>
+          <div className="text-5xl font-bold text-white">2.5k</div>
         </div>
       </div>
-      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-48 bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <div className="text-lg font-medium text-white">Bookings</div>
-          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Today</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">27 aug 23</div>
         </div>
         <div className="mt-auto mb-2">
-          <div className="text-4xl font-bold text-white">17</div>
+          <div className="text-5xl font-bold text-white">17</div>
         </div>
       </div>
-      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-48 bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <div className="text-lg font-medium text-white">Staff</div>
-          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Today</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">27 aug 23</div>
         </div>
         <div className="mt-auto mb-2">
-          <div className="text-4xl font-bold text-white">2</div>
+          <div className="text-5xl font-bold text-white">2</div>
         </div>
       </div>
-      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
-        <div className="text-7xl font-bold text-white">+</div>
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-48 bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
+        <div className="text-8xl font-thin text-white">+</div>
       </div>
 
       {/* Recent Transactions */}

@@ -48,10 +48,9 @@ const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
     const checkOnboardingStatus = async () => {
       if (!user?.id) return;
       
-      // Use local backend for development and production URL for production
-      const BACKEND_API_URL = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:5001/api' 
-        : 'https://vercel-backend2-qj8e.vercel.app/api';
+      // Use environment utility to get the appropriate API URL
+      const { getApiUrl } = await import('./utils/environmentUtils');
+      const BACKEND_API_URL = getApiUrl();
       
       try {
         console.log("Fetching onboarding status for user:", user.id);

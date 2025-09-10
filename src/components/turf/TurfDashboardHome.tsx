@@ -1,16 +1,20 @@
 import React from 'react';
 import { useAuth, UserRole } from '../../contexts/AuthContext';
 
+
 // Business Owner Dashboard
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseService';
 
+
 const TurfDashboardHome: React.FC = () => {
   const { user, tenant } = useAuth();
+
 
   // Render different dashboard content based on user role
   const renderDashboardContent = () => {
     if (!user) return null;
+
 
     switch (user.role) {
       case UserRole.SUPER_ADMIN:
@@ -26,14 +30,15 @@ const TurfDashboardHome: React.FC = () => {
     }
   };
 
+
   return (
-    <div className="h-full w-full p-4 pt-2 flex flex-col items-center justify-start overflow-auto">
-      <div className="w-full max-w-4xl mx-auto flex justify-between items-center mb-2 px-4">
-        <div className="flex flex-col">
-          <div className="text-sm text-gray-300 opacity-70">Welcome back</div>
+    <div className="h-full w-full p-0 pt-0 flex flex-col items-center justify-start overflow-auto">
+      <div className="w-full max-w-5xl mx-auto flex justify-between items-center mb-2 px-0 pt-2">
+        <div className="flex flex-col items-start">
+          <div className="text-1xl text-gray-300 opacity-70 pl-0 text-left">Welcome back</div>
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-white">{user?.name || 'Johnson'}</h1>
-            <span className="text-2xl ml-2">👋</span>
+            <h1 className="text-6xl font-bold text-white">{user?.name || 'Johnson'}</h1>
+            <span className="text-5xl ml-2">👋🏻</span>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -43,16 +48,17 @@ const TurfDashboardHome: React.FC = () => {
           <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm">
             Page 1
           </div>
-          {/* Removed 'Select date' button as requested */}
+          {/* Removed 'Select date' button afs requested */}
         </div>
       </div>
       
-      <div className="w-full max-w-4xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-4 pt-3 overflow-auto">
+<div className="w-full max-w-4xl mx-auto rounded-2xl p-4 pt-3 overflow-auto">
         {renderDashboardContent()}
       </div>
     </div>
   );
 };
+
 
 // Super Admin Dashboard
 const SuperAdminDashboard: React.FC = () => {
@@ -81,6 +87,7 @@ const SuperAdminDashboard: React.FC = () => {
         </div>
       </div>
 
+
       {/* Recent Tenants */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">Recent Tenants</h3>
@@ -100,6 +107,7 @@ const SuperAdminDashboard: React.FC = () => {
           ))}
         </ul>
       </div>
+
 
       {/* System Health */}
       <div className="bg-white rounded-lg shadow p-6">
@@ -139,12 +147,14 @@ const SuperAdminDashboard: React.FC = () => {
 };
 
 
+
 const BusinessOwnerDashboard: React.FC = () => {
   const { user, tenant } = useAuth();
   const [totalAppointments, setTotalAppointments] = useState<number>(0);
   const [todayAppointments, setTodayAppointments] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -199,12 +209,38 @@ const BusinessOwnerDashboard: React.FC = () => {
     fetchDashboardData();
   }, [user?.tenantId])
 
+
   return (
-    <div className="grid grid-cols-12 gap-3">
+    <div className="grid grid-cols-12 gap-3 max-w-6xl mx-auto w-full">
       {/* Stats cards */}
-      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+     
+      
+      
+      
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-60 backdrop-blur-md rounded-xl p-4 flex flex-col">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-lg font-medium text-white">Total Appointments</div>
+          <div className="text-lg font-medium text-black">Revenue</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Total earnings</div>
+        </div>
+        <div className="mt-auto mb-2 self-start">
+          <div className="text-6xl font-bold text-black">
+            {isLoading ? (
+              <div className="animate-pulse h-12 w-32 bg-gray-700 rounded"></div>
+            ) : (
+              `₹${totalRevenue.toLocaleString()}`
+            )}
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+
+       <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-white">Bookings</div>
           <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">All time</div>
         </div>
         <div className="mt-auto mb-2 self-start">
@@ -218,9 +254,11 @@ const BusinessOwnerDashboard: React.FC = () => {
         </div>
       </div>
       
-      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+
+
+<div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-4 flex flex-col">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-lg font-medium text-white">Today's Appointments</div>
+          <div className="text-lg font-medium text-white">Staff</div>
           <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Today</div>
         </div>
         <div className="mt-auto mb-2 self-start">
@@ -233,30 +271,24 @@ const BusinessOwnerDashboard: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-lg font-medium text-white">Revenue</div>
-          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Total earnings</div>
-        </div>
-        <div className="mt-auto mb-2 self-start">
-          <div className="text-6xl font-bold text-white">
-            {isLoading ? (
-              <div className="animate-pulse h-12 w-32 bg-gray-700 rounded"></div>
-            ) : (
-              `₹${totalRevenue.toLocaleString()}`
-            )}
-          </div>
-        </div>
-      </div>
-      
-      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
-        <div className="text-7xl font-bold text-white">+</div>
-      </div>
+
+
+
+
+
+     <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
+  <div className="relative w-20 h-20">
+    <div className="absolute top-1/2 left-0 w-full h-3 bg-white transform -translate-y-1/2"></div>
+    <div className="absolute left-1/2 top-0 w-3 h-full bg-white transform -translate-x-1/2"></div>
+  </div>
+</div>
+
+
+
 
       {/* Recent Transactions */}
       <div className="col-span-6">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-3 h-full">
+        <div className="bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-3 h-full">
           <div className="flex justify-between items-center mb-2">
             <div className="text-lg font-medium text-white">Recent Transactions</div>
             <div className="text-sm text-gray-400">View All</div>
@@ -295,11 +327,12 @@ const BusinessOwnerDashboard: React.FC = () => {
         </div>
       </div>
 
+
       {/* Appointments */}
       <div className="col-span-6">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
+        <div className="bg-white bg-opacity-60 backdrop-blur-md rounded-xl p-4 h-full">
           <div className="flex justify-between items-center mb-4">
-            <div className="text-lg font-medium text-white">Upcoming Appointments</div>
+            <div className="text-lg font-medium text-black">Upcoming Appointments</div>
             <div className="text-sm text-gray-400">View All</div>
           </div>
           <div className="h-[calc(100%-2rem)] flex items-center justify-center">
@@ -310,6 +343,7 @@ const BusinessOwnerDashboard: React.FC = () => {
     </div>
   );
 };
+
 
 // Employee Dashboard
 const EmployeeDashboard: React.FC = () => {
@@ -341,6 +375,7 @@ const EmployeeDashboard: React.FC = () => {
         </ul>
       </div>
 
+
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
@@ -359,6 +394,7 @@ const EmployeeDashboard: React.FC = () => {
     </div>
   );
 };
+
 
 // Tenant Dashboard
 const TenantDashboard: React.FC = () => {
@@ -396,6 +432,7 @@ const TenantDashboard: React.FC = () => {
         <div className="text-8xl font-thin text-white">+</div>
       </div>
 
+
       {/* Recent Transactions */}
       <div className="col-span-6">
         <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
@@ -422,6 +459,7 @@ const TenantDashboard: React.FC = () => {
         </div>
       </div>
 
+
       {/* Appointments */}
       <div className="col-span-6">
         <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
@@ -437,5 +475,6 @@ const TenantDashboard: React.FC = () => {
     </div>
   );
 };
+
 
 export default TurfDashboardHome;

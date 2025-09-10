@@ -42,9 +42,9 @@ const DashboardHome: React.FC = () => {
 // Super Admin Dashboard
 const SuperAdminDashboard: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
       {/* Platform Stats */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-6 max-w-6xl mx-auto w-full">
         <h3 className="text-lg font-semibold mb-4">Platform Overview</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-blue-50 p-4 rounded-md">
@@ -67,7 +67,7 @@ const SuperAdminDashboard: React.FC = () => {
       </div>
 
       {/* Recent Tenants */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-6 max-w-6xl mx-auto w-full">
         <h3 className="text-lg font-semibold mb-4">Recent Tenants</h3>
         <ul className="divide-y">
           {[1, 2, 3].map((i) => (
@@ -87,7 +87,7 @@ const SuperAdminDashboard: React.FC = () => {
       </div>
 
       {/* System Health */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-6 max-w-6xl mx-auto w-full">
         <h3 className="text-lg font-semibold mb-4">System Health</h3>
         <div className="space-y-4">
           <div>
@@ -348,7 +348,7 @@ const DoctorDashboard: React.FC = () => {
   }, [user?.tenantId, user?.id]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
       {/* Business Stats - Full Width */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 md:col-span-3">
         <h3 className="text-lg font-semibold mb-4 dark:text-white">Business Overview</h3>
@@ -391,7 +391,7 @@ const DoctorDashboard: React.FC = () => {
 // Employee Dashboard
 const EmployeeDashboard: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto w-full">
       {/* Appointment Queue */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">Appointment Queue</h3>

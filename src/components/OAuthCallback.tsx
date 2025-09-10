@@ -25,8 +25,9 @@ const OAuthCallback: React.FC = () => {
           setStatus('error');
           setMessage('Authentication failed.');
           setTimeout(() => {
-            const redirectPath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
-            navigate(`${redirectPath}?error=oauth_failed`, { replace: true });
+            // Determine dashboard path based on URL
+            const basePath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
+            navigate(`${basePath}?error=oauth_failed`, { replace: true });
           }, 2000);
           return;
         }
@@ -90,8 +91,9 @@ const OAuthCallback: React.FC = () => {
             
             // Redirect after success with delay
             setTimeout(() => {
-              const redirectPath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
-              navigate(`${redirectPath}?connected=google_calendar`, { replace: true });
+              // Determine dashboard path based on URL
+              const basePath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
+              navigate(`${basePath}?connected=google_calendar`, { replace: true });
             }, 1500);
             
           } catch (integrationError) {

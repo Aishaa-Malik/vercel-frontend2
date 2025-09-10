@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseService';
+import { getRedirectUrl } from '../utils/environmentUtils';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -130,8 +131,8 @@ const LoginPage: React.FC = () => {
     //     console.log("User is in approved list, continuing with Google login");
     //   }
     
-      // Use window.location.origin to get the current domain & port
-      const redirectUrl = `${window.location.origin}/oauth/callback`;
+      // Use utility function to get the appropriate redirect URL
+      const redirectUrl = getRedirectUrl('/oauth/callback');
       console.log(`Redirect URL: ${redirectUrl}`);
       
       // Continue with OAuth flow

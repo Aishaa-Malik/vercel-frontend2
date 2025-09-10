@@ -27,8 +27,8 @@ const TurfDashboardHome: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full p-4 flex flex-col items-center justify-center">
-      <div className="w-full max-w-4xl mx-auto flex justify-between items-center mb-3 px-4">
+    <div className="h-full w-full p-4 pt-2 flex flex-col items-center justify-start overflow-auto">
+      <div className="w-full max-w-4xl mx-auto flex justify-between items-center mb-2 px-4">
         <div className="flex flex-col">
           <div className="text-sm text-gray-300 opacity-70">Welcome back</div>
           <div className="flex items-center">
@@ -47,7 +47,7 @@ const TurfDashboardHome: React.FC = () => {
         </div>
       </div>
       
-      <div className="w-full max-w-4xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-4 overflow-hidden">
+      <div className="w-full max-w-4xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-4 pt-3 overflow-auto">
         {renderDashboardContent()}
       </div>
     </div>

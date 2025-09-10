@@ -184,7 +184,7 @@ const LandingPage3: React.FC = () => {
             </div>
             <div className="mt-8 md:mt-0 md:order-1">
               <p className="text-center text-base text-gray-400">
-                &copy; 2023 Toriate, Inc. All rights reserved.
+                &copy; 2025 Toriate, Inc. All rights reserved.
               </p>
             </div>
           </div>

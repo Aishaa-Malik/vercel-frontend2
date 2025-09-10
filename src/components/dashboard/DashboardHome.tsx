@@ -201,38 +201,46 @@ const BusinessOwnerDashboard: React.FC = () => {
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">Business Overview</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blue-50 p-4 rounded-md">
-            <p className="text-sm text-blue-500">Total Appointments</p>
-            {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-blue-200 rounded"></div>
-            ) : (
-              <p className="text-2xl font-bold">{totalAppointments}</p>
-            )}
-          </div>
-          <div className="bg-green-50 p-4 rounded-md">
-            <p className="text-sm text-green-500">Today's Appointments</p>
-            {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-green-200 rounded"></div>
-            ) : (
-              <p className="text-2xl font-bold">{todayAppointments}</p>
-            )}
-          </div>
-          <div className="bg-purple-50 p-4 rounded-md">
-            <p className="text-sm text-purple-500">Total Revenue</p>
+
+            <div className="bg-purple-50 p-4 rounded-md">
+            <p className="text-sm text-purple-500">Revenue</p>
             {isLoading ? (
               <div className="animate-pulse h-8 w-24 bg-purple-200 rounded"></div>
             ) : (
               <p className="text-2xl font-bold">₹{totalRevenue.toLocaleString()}</p>
             )}
           </div>
+
+
+          <div className="bg-blue-50 p-4 rounded-md">
+            <p className="text-sm text-blue-500">Bookings</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-16 bg-blue-200 rounded"></div>
+            ) : (
+              <p className="text-2xl font-bold">{totalAppointments}</p>
+            )}
+          </div>
+
           <div className="bg-yellow-50 p-4 rounded-md">
-            <p className="text-sm text-yellow-500">Active Staff</p>
+            <p className="text-sm text-yellow-500">Staff</p>
             {isLoading ? (
               <div className="animate-pulse h-8 w-16 bg-yellow-200 rounded"></div>
             ) : (
               <p className="text-2xl font-bold">{activeStaff}</p>
             )}
           </div>
+
+
+          <div className="bg-green-50 p-4 rounded-md">
+            <p className="text-sm text-green-500">Bookings</p>
+            {isLoading ? (
+              <div className="animate-pulse h-8 w-16 bg-green-200 rounded"></div>
+            ) : (
+              <p className="text-2xl font-bold">{todayAppointments}</p>
+            )}
+          </div>
+        
+          
         </div>
       </div>
 

@@ -277,9 +277,9 @@ const TurfDashboardLayout: React.FC = () => {
           </div>
           
           {/* Date selector */}
-          <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
+          {/* <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
             <span>Select date</span>
-          </div>
+          </div> */}
         </div>
         
         <main className="flex-1 p-6 overflow-hidden">

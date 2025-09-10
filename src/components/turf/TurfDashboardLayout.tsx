@@ -79,13 +79,13 @@ const TurfDashboardLayout: React.FC = () => {
       <div 
         className="absolute inset-0 bg-cover bg-center z-0" 
         style={{
-          backgroundImage: 'url(/turf.jpg)',
+          backgroundImage: 'url(/toriateBack.png)',
           opacity: 0.4, 
-          pointerEvents: 'none' // Add this line to prevent blocking clicks
+          pointerEvents: 'none' // Prevent blocking clicks
         }}
       ></div>
       {/* Mobile menu */}
-      <div className="lg:hidden relative z-10">
+      <div className="lg:hidden relative z-20">
         <div className="fixed inset-0 flex z-40">
           <div
             className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity ease-linear duration-300 ${

@@ -77,12 +77,21 @@ const TurfEmployeeDashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 relative">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center z-0" 
+        style={{
+          backgroundImage: 'url(/toriateBack.png)',
+          opacity: 0.4, 
+          pointerEvents: 'none' // Prevent blocking clicks
+        }}
+      ></div>
       {/* Sidebar */}
       <div
         className={`${
           isSidebarOpen ? 'w-64' : 'w-20'
-        } bg-white shadow-md transition-all duration-300 ease-in-out`}
+        } bg-white shadow-md transition-all duration-300 ease-in-out relative z-20`}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
@@ -183,7 +192,7 @@ const TurfEmployeeDashboardLayout: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto relative z-10">
         {/* Top Header */}
         <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
           <div>

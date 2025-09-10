@@ -135,13 +135,14 @@ const DashboardLayout: React.FC = () => {
       <div 
         className="absolute inset-0 bg-cover bg-center z-0" 
         style={{
-          backgroundImage: 'url(/doctor.jpg)',
-          opacity: 0.4
+          backgroundImage: 'url(/toriateBack.png)',
+          opacity: 0.4,
+          pointerEvents: 'none' // Prevent blocking clicks
         }}
       ></div>
       
       {/* Mobile menu */}
-      <div className="lg:hidden relative z-10">
+      <div className="lg:hidden relative z-20">
         <div className="fixed inset-0 flex z-40">
           <div
             className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity ease-linear duration-300 ${
@@ -239,7 +240,7 @@ const DashboardLayout: React.FC = () => {
       </div>
 
       {/* Static sidebar for desktop */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-50">
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-20">
         <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">

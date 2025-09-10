@@ -97,7 +97,7 @@ const TurfDashboardLayout: React.FC = () => {
             onClick={() => setMobileMenuOpen(false)}
           ></div>
           <div
-            className={`relative flex-1 flex flex-col max-w-xs w-full bg-black bg-opacity-70 backdrop-blur-md transition ease-in-out duration-300 transform ${
+            className={`relative flex-1 flex flex-col max-w-xs w-full bg-black bg-opacity-70 backdrop-blur-md rounded-2xl border border-gray-700 p-4 m-4 transition ease-in-out duration-300 transform ${
               mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
@@ -187,8 +187,8 @@ const TurfDashboardLayout: React.FC = () => {
       </div>
 
       {/* Static sidebar for desktop */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:relative lg:h-full z-50">
-        <div className="flex-1 flex flex-col min-h-0 border-r border-gray-700 bg-black bg-opacity-70 backdrop-blur-md rounded-l-xl text-white">
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:relative lg:h-full z-50 p-4">
+        <div className="flex-1 flex flex-col min-h-0 border border-gray-700 bg-black bg-opacity-70 backdrop-blur-md rounded-2xl text-white">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">
               <span className="text-xl font-bold text-white">Turf Dashboard</span>

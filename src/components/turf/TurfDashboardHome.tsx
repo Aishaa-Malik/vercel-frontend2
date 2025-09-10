@@ -27,14 +27,18 @@ const TurfDashboardHome: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full p-6 flex items-center justify-center">
-      <div className="w-full h-full max-w-7xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-6 overflow-hidden">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white">
-            Welcome back, <span className="text-white">{user?.name}</span>
+    <div className="h-full w-full p-6 flex flex-col items-center justify-center">
+      <div className="w-full mb-6 px-4">
+        <div className="text-sm text-gray-300 opacity-70">Welcome back</div>
+        <div className="flex items-center">
+          <h2 className="text-4xl font-bold text-white mr-2">
+            {user?.name || "Johnson"}
           </h2>
+          <span className="text-3xl">👋</span>
         </div>
-
+      </div>
+      
+      <div className="w-full max-w-6xl mx-auto bg-black bg-opacity-30 backdrop-blur-md rounded-2xl p-6 overflow-hidden">
         {renderDashboardContent()}
       </div>
     </div>
@@ -184,57 +188,61 @@ const BusinessOwnerDashboard: React.FC = () => {
     };
     
     fetchDashboardData();
-  }, [user?.tenantId]);
+  }, [user?.tenantId])
 
   return (
     <div className="grid grid-cols-12 gap-6">
-      {/* Top Row Stats */}
-      <div className="col-span-3">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
-          <div className="text-xs text-gray-300 mb-1">Total Appointments</div>
-          <div className="text-4xl font-bold text-white mb-1">
+      {/* Stats cards */}
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-white">Total Appointments</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">All time</div>
+        </div>
+        <div className="mt-auto mb-2">
+          <div className="text-4xl font-bold text-white">
             {isLoading ? (
               <div className="animate-pulse h-8 w-16 bg-gray-700 rounded"></div>
             ) : (
               totalAppointments
             )}
           </div>
-          <div className="text-xs text-gray-300">All time</div>
         </div>
       </div>
       
-      <div className="col-span-3">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
-          <div className="text-xs text-gray-300 mb-1">Today's Appointments</div>
-          <div className="text-4xl font-bold text-white mb-1">
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-white">Today's Appointments</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Today</div>
+        </div>
+        <div className="mt-auto mb-2">
+          <div className="text-4xl font-bold text-white">
             {isLoading ? (
               <div className="animate-pulse h-8 w-16 bg-gray-700 rounded"></div>
             ) : (
               todayAppointments
             )}
           </div>
-          <div className="text-xs text-gray-300">Today</div>
         </div>
       </div>
       
-      <div className="col-span-3">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
-          <div className="text-xs text-gray-300 mb-1">Revenue</div>
-          <div className="text-4xl font-bold text-white mb-1">
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-white">Revenue</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Total earnings</div>
+        </div>
+        <div className="mt-auto mb-2">
+          <div className="text-4xl font-bold text-white">
             {isLoading ? (
               <div className="animate-pulse h-8 w-24 bg-gray-700 rounded"></div>
             ) : (
               `₹${totalRevenue.toLocaleString()}`
             )}
           </div>
-          <div className="text-xs text-gray-300">Total earnings</div>
         </div>
       </div>
       
-      <div className="col-span-3">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full flex items-center justify-center">
-          <div className="text-5xl text-white">+</div>
-        </div>
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
+        <div className="text-7xl font-bold text-white">+</div>
       </div>
 
       {/* Recent Transactions */}
@@ -347,35 +355,36 @@ const EmployeeDashboard: React.FC = () => {
 const TenantDashboard: React.FC = () => {
   return (
     <div className="grid grid-cols-12 gap-6">
-      {/* Top Row Stats */}
-      <div className="col-span-3">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
-          <div className="text-xs text-gray-300 mb-1">Earnings</div>
-          <div className="text-4xl font-bold text-white mb-1">2.5k</div>
-          <div className="text-xs text-gray-300">This month</div>
+      {/* Stats cards */}
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-white">Earnings</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Today</div>
+        </div>
+        <div className="mt-auto mb-2">
+          <div className="text-4xl font-bold text-white">$2.5k</div>
         </div>
       </div>
-      
-      <div className="col-span-3">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
-          <div className="text-xs text-gray-300 mb-1">Bookings</div>
-          <div className="text-4xl font-bold text-white mb-1">17</div>
-          <div className="text-xs text-gray-300">Total</div>
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-white">Bookings</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Today</div>
+        </div>
+        <div className="mt-auto mb-2">
+          <div className="text-4xl font-bold text-white">17</div>
         </div>
       </div>
-      
-      <div className="col-span-3">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full">
-          <div className="text-xs text-gray-300 mb-1">Staff</div>
-          <div className="text-4xl font-bold text-white mb-1">2</div>
-          <div className="text-xs text-gray-300">Active</div>
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-white">Staff</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Today</div>
+        </div>
+        <div className="mt-auto mb-2">
+          <div className="text-4xl font-bold text-white">2</div>
         </div>
       </div>
-      
-      <div className="col-span-3">
-        <div className="bg-black bg-opacity-40 backdrop-blur-md rounded-xl p-4 h-full flex items-center justify-center">
-          <div className="text-5xl text-white">+</div>
-        </div>
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
+        <div className="text-7xl font-bold text-white">+</div>
       </div>
 
       {/* Recent Transactions */}

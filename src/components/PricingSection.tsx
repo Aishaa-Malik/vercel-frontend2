@@ -19,7 +19,7 @@ const plans: PricingPlan[] = [
   {
     id: 'basic',
     name: 'Basic',
-    price: 1,
+    price: 9,
     features: [
       'WhatsApp appointment booking',
       'Basic dashboard',
@@ -30,7 +30,7 @@ const plans: PricingPlan[] = [
   {
     id: 'pro',
     name: 'Professional',
-    price: 1,
+    price: 13,
     features: [
       'All Basic features',
       'Advanced analytics',
@@ -43,7 +43,7 @@ const plans: PricingPlan[] = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: 1,
+    price: 19,
     features: [
       'All Professional features',
       'Unlimited appointments',
@@ -158,7 +158,7 @@ const PricingSection: React.FC = () => {
         ) : showEmailForm && selectedPlan ? (
           <div className="mt-12 max-w-md mx-auto bg-white shadow-lg rounded-lg p-6">
             <h3 className="text-xl font-medium text-gray-900">Complete your purchase</h3>
-            <p className="mt-2 text-gray-600">You're purchasing the {selectedPlan.name} plan at ₹{selectedPlan.price}</p>
+            <p className="mt-2 text-gray-600">You're purchasing the {selectedPlan.name} plan at ${selectedPlan.price}</p>
             
             <form onSubmit={handleEmailSubmit} className="mt-4">
               <div>
@@ -221,7 +221,7 @@ const PricingSection: React.FC = () => {
                   <h3 className="text-xl font-semibold text-gray-900">{plan.name}</h3>
                   
                   <p className="mt-4 flex items-baseline text-gray-900">
-                    <span className="text-5xl font-extrabold tracking-tight">₹{plan.price}</span>
+                    <span className="text-5xl font-extrabold tracking-tight">${plan.price}</span>
                     <span className="ml-1 text-xl font-semibold">/month</span>
                   </p>
                   

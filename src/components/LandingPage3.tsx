@@ -24,7 +24,7 @@ const LandingPage3: React.FC = () => {
             <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
               <div className="sm:text-center lg:text-left">
                 <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
-                  <span className="block xl:inline">HealthConnect</span>{' '}
+                  <span className="block xl:inline">Toriate</span>{' '}
                   <span className="block text-blue-300 xl:inline">WhatsApp Appointment Booking</span>
                 </h1>
                 <p className="mt-3 text-base text-blue-100 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
@@ -144,7 +144,7 @@ const LandingPage3: React.FC = () => {
         <div className="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
             <span className="block">Ready to streamline your appointments?</span>
-            <span className="block">Start using HealthConnect today.</span>
+            <span className="block">Start using Toriate today.</span>
           </h2>
           <p className="mt-4 text-lg leading-6 text-blue-200">
             Join hundreds of healthcare providers who are improving patient experience and reducing administrative work.
@@ -184,7 +184,7 @@ const LandingPage3: React.FC = () => {
             </div>
             <div className="mt-8 md:mt-0 md:order-1">
               <p className="text-center text-base text-gray-400">
-                &copy; 2023 HealthConnect, Inc. All rights reserved.
+                &copy; 2023 Toriate, Inc. All rights reserved.
               </p>
             </div>
           </div>

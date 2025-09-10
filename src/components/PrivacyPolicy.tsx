@@ -23,8 +23,8 @@ const PrivacyPolicy: React.FC = () => {
                 1. Introduction
               </h2>
               <p className="text-gray-600 leading-relaxed mb-4">
-                Welcome to Crackiit ("we," "our," or "us"). We provide appointment 
-                booking and management services through our web application. This 
+                We provide appointment 
+                booking and management services through our whatsapp ai booking agent. This 
                 Privacy Policy explains how we collect, use, disclose, and safeguard 
                 your information when you use our service.
               </p>

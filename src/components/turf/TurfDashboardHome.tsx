@@ -52,7 +52,7 @@ const TurfDashboardHome: React.FC = () => {
         </div>
       </div>
       
-<div className="w-full max-w-4xl mx-auto rounded-2xl p-4 pt-3 overflow-auto">
+<div className="w-full max-w-6xl mx-auto rounded-2xl p-0 pt-3 overflow-auto">
         {renderDashboardContent()}
       </div>
     </div>
@@ -289,7 +289,7 @@ const BusinessOwnerDashboard: React.FC = () => {
 
       {/* Recent Transactions */}
       <div className="col-span-6">
-        <div className="bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-3 h-full">
+        <div className="bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-5 h-full">
           <div className="flex justify-between items-center mb-2">
             <div className="text-lg font-medium text-white">Recent Transactions</div>
             <div className="text-sm text-gray-400">View All</div>

@@ -276,12 +276,13 @@ const BusinessOwnerDashboard: React.FC = () => {
 
 
 
-     <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
+   <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
   <div className="relative w-20 h-20">
-    <div className="absolute top-1/2 left-0 w-full h-3 bg-white transform -translate-y-1/2"></div>
-    <div className="absolute left-1/2 top-0 w-3 h-full bg-white transform -translate-x-1/2"></div>
+    <div className="absolute top-1/2 left-0 w-full h-2 bg-white transform -translate-y-1/2"></div>
+    <div className="absolute left-1/2 top-0 w-2 h-full bg-white transform -translate-x-1/2"></div>
   </div>
 </div>
+
 
 
 

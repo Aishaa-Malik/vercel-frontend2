@@ -15,6 +15,12 @@ export const isDevelopment = (): boolean => {
  * @returns The base URL for the current environment
  */
 export const getBaseUrl = (): string => {
+  // Check if running on Vercel
+  if (window.location.hostname.includes('vercel.app')) {
+    return `https://${window.location.hostname}`;
+  }
+  
+  // Development vs Production
   return isDevelopment() ? 'http://localhost:3000' : 'https://toriate.com';
 };
 

@@ -467,7 +467,7 @@ useEffect(() => {
       setAppointments(prev => prev.filter(apt => apt.id !== appointment.id));
 
       try {
-        const n8nWebhookUrl = 'https://aisha1503.app.n8n.cloud/webhook/appointment-cancel';
+        const n8nWebhookUrl = 'https://aishaa1503.app.n8n.cloud/webhook/appointment-cancel';
         await fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

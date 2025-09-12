@@ -130,13 +130,13 @@ const DashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen relative ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
+    <div className={`min-h-screen relative flex items-center justify-center ${darkMode ? 'dark bg-gray-900' : 'bg-gray-100'}`}>
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center z-0" 
         style={{
           backgroundImage: 'url(/toriateBack.png)',
-          opacity: 0.4,
+          opacity: 1,
           pointerEvents: 'none' // Prevent blocking clicks
         }}
       ></div>
@@ -151,7 +151,7 @@ const DashboardLayout: React.FC = () => {
             onClick={() => setMobileMenuOpen(false)}
           ></div>
           <div
-            className={`relative flex-1 flex flex-col max-w-xs w-full bg-white transition ease-in-out duration-300 transform ${
+            className={`relative flex-1 flex flex-col max-w-xs w-full bg-black bg-opacity-70 backdrop-blur-md rounded-3xl border border-gray-700 p-3 m-3 transition ease-in-out duration-300 transform ${
               mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
@@ -209,26 +209,26 @@ const DashboardLayout: React.FC = () => {
             </div>
             
             {/* Mobile User Profile Section */}
-            <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+            <div className="flex-shrink-0 flex border-t border-gray-700 p-3">
               <div className="flex items-center">
                 {/* User Avatar Circle */}
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold text-lg">
+                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-semibold text-sm">
                     {user?.name?.charAt(0).toUpperCase() || 'D'}
                   </span>
                 </div>
                 
                 {/* User Info */}
-                <div className="ml-3 min-w-0 flex-1">
-                  <p className="text-base font-medium text-gray-800 truncate">
+                <div className="ml-2 min-w-0 flex-1">
+                  <p className="text-sm font-medium text-white truncate">
                     {user?.name || 'Doctor'}
                   </p>
-                  <p className="text-sm text-gray-600 truncate">
+                  <p className="text-xs text-gray-300 truncate">
                     {user?.email || 'doctor@example.com'}
                   </p>
                   <button
                     onClick={() => logout()}
-                    className="text-sm font-medium text-gray-500 hover:text-gray-700"
+                    className="text-xs font-medium text-gray-400 hover:text-white"
                   >
                     Sign out
                   </button>
@@ -239,86 +239,87 @@ const DashboardLayout: React.FC = () => {
         </div>
       </div>
 
-      {/* Static sidebar for desktop */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-20">
-        <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
-          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex items-center flex-shrink-0 px-4">
-              <span className="text-xl font-bold text-blue-600">Doctor Dashboard</span>
-            </div>
-            <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
-              {navItems.map((item) => (
-                item.disabled ? (
-                  <div
-                    key={item.name}
-                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 cursor-not-allowed"
-                  >
-                    <div className="mr-3 text-gray-300">
-                      {renderIcon(item.icon)}
-                    </div>
-                    {item.name}
-                  </div>
-                ) : (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                      isActive(item.href)
-                        ? 'bg-blue-100 text-blue-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <div
-                      className={`mr-3 ${
-                        isActive(item.href) ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
-                      }`}
-                    >
-                      {renderIcon(item.icon)}
-                    </div>
-                    {item.name}
-                  </Link>
-                )
-              ))}
-            </nav>
-          </div>
-          
-          {/* Desktop User Profile Section */}
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-            <div className="flex items-center w-full">
-              {/* User Avatar Circle */}
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-semibold text-lg">
-                  {user?.name?.charAt(0).toUpperCase() || 'D'}
-                </span>
+      {/* Floating Container */}
+      <div className="relative z-10 w-[85%] h-[90vh] bg-gray-800 bg-opacity-40 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden flex">
+        {/* Static sidebar for desktop - Now inside floating container */}
+        <div className="hidden lg:flex lg:w-68 lg:flex-col lg:relative lg:h-full z-50 p-3">
+          <div className="flex-1 flex flex-col min-h-0 bg-black bg-opacity-70 backdrop-blur-md rounded-3xl text-white">
+            <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+              <div className="flex items-center flex-shrink-0 px-3">
+                <span className="text-lg font-bold text-white">Doctor Dashboard</span>
               </div>
-              
-              {/* User Info */}
-              <div className="ml-3 min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-800 truncate">
-                  {user?.name || 'Doctor'}
-                </p>
-                <p className="text-xs text-gray-600 truncate">
-                  {user?.email || 'doctor@example.com'}
-                </p>
-                <button
-                  onClick={() => logout()}
-                  className="text-xs font-medium text-gray-500 hover:text-gray-700"
-                >
-                  Sign out
-                </button>
+              <nav className="mt-4 flex-1 px-2 space-y-1">
+                {navItems.map((item) => (
+                  item.disabled ? (
+                    <div
+                      key={item.name}
+                      className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-400 cursor-not-allowed"
+                    >
+                      <div className="mr-3 text-gray-300">
+                        {renderIcon(item.icon)}
+                      </div>
+                      {item.name}
+                    </div>
+                  ) : (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`group flex items-center px-2 py-2 text-xs font-medium rounded-md ${
+                        isActive(item.href)
+                          ? 'bg-white bg-opacity-20 text-white'
+                          : 'text-gray-300 hover:bg-white hover:bg-opacity-10 hover:text-white'
+                      }`}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <div
+                        className={`mr-2 ${
+                          isActive(item.href) ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                        }`}
+                      >
+                        {renderIcon(item.icon)}
+                      </div>
+                      {item.name}
+                    </Link>
+                  )
+                ))}
+              </nav>
+            </div>
+            
+            {/* Desktop User Profile Section - Updated */}
+            <div className="flex-shrink-0 flex border-t border-gray-700 p-3">
+              <div className="flex items-center w-full">
+                {/* User Avatar Circle */}
+                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-semibold text-sm">
+                    {user?.name?.charAt(0).toUpperCase() || 'D'}
+                  </span>
+                </div>
+                
+                {/* User Info */}
+                <div className="ml-2 min-w-0 flex-1">
+                  <p className="text-xs font-medium text-white truncate">
+                    {user?.name || 'Doctor'}
+                  </p>
+                  <p className="text-xs text-gray-300 truncate">
+                    {user?.email || 'doctor@example.com'}
+                  </p>
+                  <button
+                    onClick={() => logout()}
+                    className="text-xs font-medium text-gray-400 hover:text-white"
+                  >
+                    Sign out
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Main content */}
-      <div className="lg:pl-64 flex flex-col flex-1 relative z-10">
-        <div className={`sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        
+        {/* Mobile menu button - Repositioned */}
+        <div className="lg:hidden absolute top-0 left-0 z-20 pl-1 pt-1 sm:pl-3 sm:pt-3">
           <button
             type="button"
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900"
+            className="h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-300 hover:text-white"
             onClick={() => setMobileMenuOpen(true)}
           >
             <span className="sr-only">Open sidebar</span>
@@ -327,12 +328,35 @@ const DashboardLayout: React.FC = () => {
             </svg>
           </button>
         </div>
-        {/* <div className="flex items-center justify-end p-4">
-          <DarkModeToggle />
-        </div> */}
-        <main className="flex-1">
-          <Outlet />
-        </main>
+        
+        {/* Main content */}
+        <div className="flex-1 flex overflow-hidden">
+          <main className="flex-1 overflow-auto w-full h-full">
+            <div className="h-full w-full p-0 pt-0 flex flex-col items-center justify-start overflow-auto">
+              <div className="w-full max-w-5xl mx-auto flex justify-between items-center mb-2 px-0 pt-2">
+                {/* <div className="flex flex-col items-start">
+                  <div className="text-1xl text-gray-300 opacity-70 pl-0 text-left">Welcome back</div>
+                  <div className="flex items-center">
+                    <h1 className="text-6xl font-bold text-white">{user?.name || 'Doctor'}</h1>
+                    <span className="text-5xl ml-2">👋🏻</span>
+                  </div>
+                </div> */}
+                <div className="flex items-center space-x-2">
+                  <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm">
+                    Home
+                  </div>
+                  <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm">
+                    Page 1
+                  </div>
+                </div>
+              </div>
+              
+              <div className="w-full max-w-6xl mx-auto rounded-2xl p-0 pt-3 overflow-auto">
+                <Outlet />
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

@@ -15,8 +15,12 @@ export const isDevelopment = (): boolean => {
  * @returns The base URL for the current environment
  */
 export const getBaseUrl = (): string => {
-  // Check if running on Vercel
-  if (window.location.hostname.includes('vercel.app')) {
+  // Check if running on specific Vercel deployments
+  if (window.location.hostname.includes('vercel-frontend2-git-main-aishafaang-gmailcoms-projects.vercel.app')) {
+    return 'https://vercel-frontend2-git-main-aishafaang-gmailcoms-projects.vercel.app';
+  }
+  // Check if running on other Vercel deployments
+  else if (window.location.hostname.includes('vercel.app')) {
     return `https://${window.location.hostname}`;
   }
   

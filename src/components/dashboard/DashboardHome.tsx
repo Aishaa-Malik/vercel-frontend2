@@ -1,450 +1,218 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, UserRole } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../services/supabaseService';
 
-const DashboardHome: React.FC = () => {
-  const { user, tenant } = useAuth();
+// Data Interfaces
+interface Transaction {
+  patient: string;
+  timestamp: string;
+  amount: number;
+}
+interface Appointment {
+  patient: string;
+  time: string;
+  status: string;
+}
 
-  // Render different dashboard content based on user role
-  const renderDashboardContent = () => {
-    if (!user) return null;
-
-    switch (user.role) {
-      case UserRole.SUPER_ADMIN:
-        return <SuperAdminDashboard />;
-      case UserRole.BUSINESS_OWNER:
-        return <BusinessOwnerDashboard />;
-      case UserRole.DOCTOR:
-        return <DoctorDashboard />;
-      case UserRole.EMPLOYEE:
-        return <EmployeeDashboard />;
-      default:
-        return <DefaultDashboard />;
-    }
-  };
-
-  return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Welcome back, {user?.name}
-        </h2>
-        {/* <p className="text-gray-600">
-          {tenant ? `${tenant.name} Dashboard` : 'Dashboard'}
-        </p> */}
-      </div>
-
-      {renderDashboardContent()}
-    </div>
-  );
-};
-
-// Super Admin Dashboard
-const SuperAdminDashboard: React.FC = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
-      {/* Platform Stats */}
-      <div className="bg-white rounded-lg shadow p-6 max-w-6xl mx-auto w-full">
-        <h3 className="text-lg font-semibold mb-4">Platform Overview</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blue-50 p-4 rounded-md">
-            <p className="text-sm text-blue-500">Total Tenants</p>
-            <p className="text-2xl font-bold">24</p>
-          </div>
-          <div className="bg-green-50 p-4 rounded-md">
-            <p className="text-sm text-green-500">Active Users</p>
-            <p className="text-2xl font-bold">142</p>
-          </div>
-          <div className="bg-purple-50 p-4 rounded-md">
-            <p className="text-sm text-purple-500">Total Revenue</p>
-            <p className="text-2xl font-bold">₹89,450</p>
-          </div>
-          <div className="bg-yellow-50 p-4 rounded-md">
-            <p className="text-sm text-yellow-500">New Signups</p>
-            <p className="text-2xl font-bold">7</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Tenants */}
-      <div className="bg-white rounded-lg shadow p-6 max-w-6xl mx-auto w-full">
-        <h3 className="text-lg font-semibold mb-4">Recent Tenants</h3>
-        <ul className="divide-y">
-          {[1, 2, 3].map((i) => (
-            <li key={i} className="py-3">
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-medium">Hospital {i}</p>
-                  <p className="text-sm text-gray-500">Added 2 days ago</p>
-                </div>
-                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
-                  Active
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* System Health */}
-      <div className="bg-white rounded-lg shadow p-6 max-w-6xl mx-auto w-full">
-        <h3 className="text-lg font-semibold mb-4">System Health</h3>
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">Server Load</span>
-              <span className="text-sm text-gray-500">24%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: '24%' }}></div>
-            </div>
-          </div>
-          <div>
-            <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">Database</span>
-              <span className="text-sm text-gray-500">62%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '62%' }}></div>
-            </div>
-          </div>
-          <div>
-            <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">API Health</span>
-              <span className="text-sm text-gray-500">98%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: '98%' }}></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Business Owner Dashboard
-const BusinessOwnerDashboard: React.FC = () => {
-  const { user, tenant } = useAuth();
-  const [totalAppointments, setTotalAppointments] = useState<number>(0);
-  const [todayAppointments, setTodayAppointments] = useState<number>(0);
-  const [totalRevenue, setTotalRevenue] = useState<number>(0);
-  const [activeStaff, setActiveStaff] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (!user?.tenantId) return;
-      
-      try {
-        setIsLoading(true);
-        
-        // Get today's date in YYYY-MM-DD format
-        const today = new Date().toISOString().split('T')[0];
-        
-        // Fetch total appointments
-        const { count: totalCount, error: totalError } = await supabase
-          .from('Appointments')
-          .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', user.tenantId);
-        
-        if (totalError) throw totalError;
-        
-        // Fetch today's appointments
-        const { count: todayCount, error: todayError } = await supabase
-          .from('Appointments')
-          .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', user.tenantId)
-          .eq('appointment_date', today);
-        
-        if (todayError) throw todayError;
-        
-        // Fetch total revenue
-        const { data: revenueData, error: revenueError } = await supabase
-          .from('Appointments')
-          .select('amount')
-          .eq('tenant_id', user.tenantId);
-        
-        if (revenueError) throw revenueError;
-        
-        // Calculate total revenue
-        const revenue = revenueData.reduce((sum, appointment) => {
-          return sum + (appointment.amount || 0);
-        }, 0);
-        
-        // Fetch active staff count
-        const { count: staffCount, error: staffError } = await supabase
-          .from('Users')
-          .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', user.tenantId)
-          .neq('role', 'BUSINESS_OWNER');
-        
-        if (staffError) throw staffError;
-        
-        setTotalAppointments(totalCount || 0);
-        setTodayAppointments(todayCount || 0);
-        setTotalRevenue(revenue);
-        setActiveStaff(staffCount || 0);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchDashboardData();
-  }, [user?.tenantId]);
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* Business Stats */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Business Overview</h3>
-        <div className="grid grid-cols-2 gap-4">
-
-            <div className="bg-purple-50 p-4 rounded-md">
-            <p className="text-sm text-purple-500">Revenue</p>
-            {isLoading ? (
-              <div className="animate-pulse h-8 w-24 bg-purple-200 rounded"></div>
-            ) : (
-              <p className="text-2xl font-bold">₹{totalRevenue.toLocaleString()}</p>
-            )}
-          </div>
-
-
-          <div className="bg-blue-50 p-4 rounded-md">
-            <p className="text-sm text-blue-500">Bookings</p>
-            {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-blue-200 rounded"></div>
-            ) : (
-              <p className="text-2xl font-bold">{totalAppointments}</p>
-            )}
-          </div>
-
-          <div className="bg-yellow-50 p-4 rounded-md">
-            <p className="text-sm text-yellow-500">Staff</p>
-            {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-yellow-200 rounded"></div>
-            ) : (
-              <p className="text-2xl font-bold">{activeStaff}</p>
-            )}
-          </div>
-
-
-          <div className="bg-green-50 p-4 rounded-md">
-            <p className="text-sm text-green-500">Bookings</p>
-            {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-green-200 rounded"></div>
-            ) : (
-              <p className="text-2xl font-bold">{todayAppointments}</p>
-            )}
-          </div>
-        
-          
-        </div>
-      </div>
-
-      {/* Recent Appointments */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Appointments</h3>
-        <ul className="divide-y">
-          {[1, 2, 3].map((i) => (
-            <li key={i} className="py-3">
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-medium">Patient {i}</p>
-                  <p className="text-sm text-gray-500">Today, 2:00 PM</p>
-                </div>
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center">
-                  Confirmed
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-        <div className="space-y-3">
-          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-300">
-            View Appointments
-          </button>
-          <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition-colors duration-300">
-            View Revenue
-          </button>
-          <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded transition-colors duration-300">
-            Manage Staff
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Doctor Dashboard - Updated with dynamic data and matching turf design
 const DoctorDashboard: React.FC = () => {
-  const { user, tenant } = useAuth();
-  const [totalAppointments, setTotalAppointments] = useState<number>(0);
-  const [todayAppointments, setTodayAppointments] = useState<number>(0);
-  const [totalRevenue, setTotalRevenue] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { user } = useAuth();
+
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalAppointments, setTotalAppointments] = useState(0);
+  const [staffCount, setStaffCount] = useState(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!user?.tenantId || !user?.id) return;
-      
       try {
         setIsLoading(true);
-        
-        // Get today's date in YYYY-MM-DD format
+        // Today's YYYY-MM-DD
         const today = new Date().toISOString().split('T')[0];
-        
-        // Fetch total appointments for this doctor
+
+        // Fetch total appointments for doctor
         const { count: totalCount, error: totalError } = await supabase
           .from('Appointments')
           .select('*', { count: 'exact', head: true })
           .eq('tenant_id', user.tenantId)
           .eq('doctor_id', user.id);
-        
         if (totalError) throw totalError;
-        
-        // Fetch today's appointments for this doctor
-        const { count: todayCount, error: todayError } = await supabase
-          .from('Appointments')
-          .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', user.tenantId)
-          .eq('doctor_id', user.id)
-          .eq('appointment_date', today);
-        
-        if (todayError) throw todayError;
-        
-        // Fetch total revenue for this doctor
+        setTotalAppointments(totalCount || 0);
+
+        // Fetch total revenue for doctor
         const { data: revenueData, error: revenueError } = await supabase
           .from('Appointments')
           .select('amount')
           .eq('tenant_id', user.tenantId)
           .eq('doctor_id', user.id);
-        
         if (revenueError) throw revenueError;
-        
-        // Calculate total revenue
-        const revenue = revenueData?.reduce((sum, appointment) => {
-          return sum + (appointment.amount || 0);
-        }, 0) || 0;
-        
-        setTotalAppointments(totalCount || 0);
-        setTodayAppointments(todayCount || 0);
+        const revenue = revenueData?.reduce((sum, a) => sum + (a.amount || 0), 0) || 0;
         setTotalRevenue(revenue);
+
+        // Fetch staff count for tenant (doctors + employees)
+        const { count: staffCountResult, error: staffError } = await supabase
+          .from('Users')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', user.tenantId)
+          .in('role', ['DOCTOR', 'EMPLOYEE']);
+        if (staffError) throw staffError;
+        setStaffCount(staffCountResult || 0);
+
+        // Dummy transactions and appointments
+        const sampleTransactions = [
+          { patient: 'Patient 1', timestamp: '12/09/2025', amount: 500 },
+          { patient: 'Patient 2', timestamp: '12/09/2025', amount: 1000 },
+          { patient: 'Patient 3', timestamp: '12/09/2025', amount: 1500 }
+        ];
+        setTransactions(sampleTransactions);
+
+        const sampleAppointments = [
+          { patient: 'Patient 1', time: 'Today, 2:00 PM', status: 'Confirmed' },
+          { patient: 'Patient 2', time: 'Today, 2:00 PM', status: 'Confirmed' },
+          { patient: 'Patient 3', time: 'Today, 2:00 PM', status: 'Confirmed' }
+        ];
+        setAppointments(sampleAppointments);
+
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
         setIsLoading(false);
       }
     };
-    
     fetchDashboardData();
   }, [user?.tenantId, user?.id]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
-      {/* Business Stats - Full Width */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 md:col-span-3">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">Business Overview</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Total Appointments Card - Blue */}
-          <div className="bg-blue-500 p-6 rounded-lg flex flex-col items-center justify-center text-white">
-            <p className="text-sm text-blue-100 mb-2">Total Appointments</p>
-            {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-blue-400 rounded"></div>
-            ) : (
-              <p className="text-3xl font-bold">{totalAppointments}</p>
-            )}
-          </div>
-          
-          {/* Today's Appointments Card - Green */}
-          <div className="bg-green-500 p-6 rounded-lg flex flex-col items-center justify-center text-white">
-            <p className="text-sm text-green-100 mb-2">Today's Appointments</p>
-            {isLoading ? (
-              <div className="animate-pulse h-8 w-16 bg-green-400 rounded"></div>
-            ) : (
-              <p className="text-3xl font-bold">{todayAppointments}</p>
-            )}
-          </div>
-          
-          {/* Total Revenue Card - Purple */}
-          <div className="bg-purple-500 p-6 rounded-lg flex flex-col items-center justify-center text-white">
-            <p className="text-sm text-purple-100 mb-2">Total Revenue</p>
-            {isLoading ? (
-              <div className="animate-pulse h-8 w-24 bg-purple-400 rounded"></div>
-            ) : (
-              <p className="text-3xl font-bold">₹{totalRevenue.toLocaleString()}</p>
-            )}
+    <div className="grid grid-cols-12 gap-3 max-w-6xl mx-auto w-full">
+      {/* STATS CARDS */}
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-60 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-black">Revenue</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Total earnings</div>
+        </div>
+        <div className="mt-auto mb-2 self-start">
+          <div className="text-6xl font-bold text-black">
+            {isLoading ? <div className="animate-pulse h-12 w-32 bg-gray-700 rounded"></div> : `₹${totalRevenue.toLocaleString()}`}
           </div>
         </div>
       </div>
-    </div>
-  );
-};
 
-// Employee Dashboard
-const EmployeeDashboard: React.FC = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto w-full">
-      {/* Appointment Queue */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Appointment Queue</h3>
-        <ul className="divide-y">
-          {[1, 2, 3, 4].map((i) => (
-            <li key={i} className="py-3">
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-medium">Patient {i}</p>
-                  <p className="text-sm text-gray-500">Dr. Smith • {`${i + 8}:00 AM`}</p>
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-white">Bookings</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">All time</div>
+        </div>
+        <div className="mt-auto mb-2 self-start">
+          <div className="text-6xl font-bold text-white">
+            {isLoading ? <div className="animate-pulse h-12 w-24 bg-gray-700 rounded"></div> : totalAppointments}
+          </div>
+        </div>
+      </div>
+
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-4 flex flex-col">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-lg font-medium text-white">Staff</div>
+          <div className="bg-white bg-opacity-10 px-2 py-1 rounded-full text-xs text-gray-300">Total</div>
+        </div>
+        <div className="mt-auto mb-2 self-start">
+          <div className="text-6xl font-bold text-white">
+            {isLoading ? <div className="animate-pulse h-12 w-24 bg-gray-700 rounded"></div> : staffCount}
+          </div>
+        </div>
+      </div>
+
+      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
+        <div className="relative w-20 h-20">
+          <div className="absolute top-1/2 left-0 w-full h-2 bg-white transform -translate-y-1/2"></div>
+          <div className="absolute left-1/2 top-0 w-2 h-full bg-white transform -translate-x-1/2"></div>
+        </div>
+      </div>
+
+      {/* RECENT TRANSACTIONS */}
+      <div className="col-span-6">
+        <div className="bg-black bg-opacity-60 backdrop-blur-md rounded-xl p-5 h-full">
+          <div className="flex justify-between items-center mb-2">
+            <div className="text-lg font-medium text-white">Recent Transactions</div>
+            <div className="text-sm text-gray-400">View All</div>
+          </div>
+          <div className="space-y-3">
+            {isLoading ? (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full bg-gray-700 mr-3"></div>
+                    <div>
+                      <div className="h-4 w-24 bg-gray-700 rounded mb-2"></div>
+                      <div className="h-3 w-16 bg-gray-700 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="h-4 w-16 bg-gray-700 rounded"></div>
                 </div>
-                {i === 1 ? (
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
-                    Checked In
-                  </span>
-                ) : (
-                  <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center">
-                    Waiting
-                  </span>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+              ))
+            ) : transactions.length > 0 ? (
+              transactions.map((transaction, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs mr-3">
+                      {String.fromCharCode(65 + index)}
+                    </div>
+                    <div>
+                      <div className="text-xl text-white">{transaction.patient}</div>
+                      <div className="text-sm text-gray-400">{transaction.timestamp}</div>
+                    </div>
+                  </div>
+                  <div className="text-xl text-white">₹{transaction.amount}</div>
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-400">No transactions found</div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-        <div className="space-y-3">
-          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-300">
-            Check-in Patient
-          </button>
-          <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition-colors duration-300">
-            Schedule Appointment
-          </button>
-          <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded transition-colors duration-300">
-            Patient Records
-          </button>
+      {/* UPCOMING APPOINTMENTS */}
+      <div className="col-span-6">
+        <div className="bg-white bg-opacity-60 backdrop-blur-md rounded-xl p-4 h-full">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-lg font-medium text-black">Upcoming Appointments</div>
+            <div className="text-sm text-gray-400">View All</div>
+          </div>
+          {isLoading ? (
+            <div className="animate-pulse space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex justify-between">
+                  <div className="space-y-2">
+                    <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                    <div className="h-3 w-32 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="h-4 w-16 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : appointments.length > 0 ? (
+            appointments.map((appointment, index) => (
+              <div key={index} className="flex items-center justify-between mb-3">
+                <div>
+                  <div className="text-xl text-black">{appointment.patient}</div>
+                  <div className="text-sm text-gray-500">{appointment.time}</div>
+                </div>
+                <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                  {appointment.status}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="h-[calc(100%-2rem)] flex items-center justify-center">
+              <div className="text-gray-500 text-xl">No appointments scheduled</div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-// Default Dashboard (fallback)
-const DefaultDashboard: React.FC = () => {
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-4">Welcome to the Dashboard</h3>
-      <p>Please contact your administrator to set up your dashboard access.</p>
-    </div>
-  );
-};
-
-export default DashboardHome;
+export default DoctorDashboard;

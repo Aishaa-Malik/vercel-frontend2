@@ -84,9 +84,15 @@ const PricingSection: React.FC = () => {
       const baseUrl = 'https://rzp.io/rzp/WYPXJsZt';          // your Payment-Page link
       
       // Use appropriate callback URL based on environment
-      const callbackUrl = process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3000/payment-callback'
-        : 'https://vercel-frontend2-taupe.vercel.app/payment-callback';
+      let callbackUrl = 'https://vercel-frontend2-taupe.vercel.app/payment-callback';
+      
+      if (process.env.NODE_ENV === 'development') {
+        callbackUrl = 'http://localhost:3000/payment-callback';
+      } else if (window.location.hostname.includes('toriate.com')) {
+        callbackUrl = 'https://toriate.com/payment-callback';
+      } else if (window.location.hostname.includes('vercel-frontend2-git-main-aishafaang-gmailcoms-projects.vercel.app')) {
+        callbackUrl = 'https://vercel-frontend2-git-main-aishafaang-gmailcoms-projects.vercel.app/payment-callback';
+      }
         
       const callback = encodeURIComponent(callbackUrl);
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../services/supabaseService';
+import NewAppointmentForm from '../NewAppointmentForm';
 
 // Data Interfaces
 interface Transaction {
@@ -15,14 +16,18 @@ interface Appointment {
 }
 
 const DoctorDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, tenant } = useAuth();
 
   const [totalRevenue, setTotalRevenue] = useState(0);
-  const [totalAppointments, setTotalAppointments] = useState(0);
+  const [totalappointments, setTotalappointments] = useState(0);
   const [staffCount, setStaffCount] = useState(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointments, setappointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showNewAppointmentForm, setShowNewAppointmentForm] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -32,24 +37,46 @@ const DoctorDashboard: React.FC = () => {
         // Today's YYYY-MM-DD
         const today = new Date().toISOString().split('T')[0];
 
-        // Fetch total appointments for doctor
-        const { count: totalCount, error: totalError } = await supabase
-          .from('Appointments')
+        // Fetch total appointments for entire tenant from both tables
+        // First, get count from appointments table
+        const { count: doctorappointmentsCount, error: doctorappointmentsError } = await supabase
+          .from('appointments')
           .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', user.tenantId)
-          .eq('doctor_id', user.id);
-        if (totalError) throw totalError;
-        setTotalAppointments(totalCount || 0);
+          .eq('tenant_id', user.tenantId);
+        if (doctorappointmentsError) throw doctorappointmentsError;
+        
+        // Then, get count from Turfappointments table
+        const { count: turfappointmentsCount, error: turfappointmentsError } = await supabase
+          .from('Turfappointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', user.tenantId);
+        if (turfappointmentsError) throw turfappointmentsError;
+        
+        // Calculate total appointments from both sources
+        const totalTenantappointments = (doctorappointmentsCount || 0);
+        setTotalappointments(totalTenantappointments);
 
-        // Fetch total revenue for doctor
-        const { data: revenueData, error: revenueError } = await supabase
-          .from('Appointments')
+        // Fetch total revenue for entire tenant from both appointments and Turfappointments tables
+        // First, get revenue from appointments table
+        const { data: doctorRevenueData, error: doctorRevenueError } = await supabase
+          .from('appointments')
           .select('amount')
-          .eq('tenant_id', user.tenantId)
-          .eq('doctor_id', user.id);
-        if (revenueError) throw revenueError;
-        const revenue = revenueData?.reduce((sum, a) => sum + (a.amount || 0), 0) || 0;
-        setTotalRevenue(revenue);
+          .eq('tenant_id', user.tenantId);
+        if (doctorRevenueError) throw doctorRevenueError;
+        
+        // Then, get revenue from Turfappointments table
+        // const { data: turfRevenueData, error: turfRevenueError } = await supabase
+        //   .from('Turfappointments')
+        //   .select('amount')
+        //   .eq('tenant_id', user.tenantId);
+        // if (turfRevenueError) throw turfRevenueError;
+        
+        // Calculate total revenue from both sources
+        const doctorRevenue = doctorRevenueData?.reduce((sum, a) => sum + (a.amount || 0), 0) || 0;
+        // const turfRevenue = turfRevenueData?.reduce((sum, a) => sum + (a.amount || 0), 0) || 0;
+        const totalTenantRevenue = doctorRevenue ;
+        
+        setTotalRevenue(totalTenantRevenue);
 
         // Fetch staff count for tenant (doctors + employees)
         const { count: staffCountResult, error: staffError } = await supabase
@@ -60,21 +87,6 @@ const DoctorDashboard: React.FC = () => {
         if (staffError) throw staffError;
         setStaffCount(staffCountResult || 0);
 
-        // Dummy transactions and appointments
-        const sampleTransactions = [
-          { patient: 'Patient 1', timestamp: '12/09/2025', amount: 500 },
-          { patient: 'Patient 2', timestamp: '12/09/2025', amount: 1000 },
-          { patient: 'Patient 3', timestamp: '12/09/2025', amount: 1500 }
-        ];
-        setTransactions(sampleTransactions);
-
-        const sampleAppointments = [
-          { patient: 'Patient 1', time: 'Today, 2:00 PM', status: 'Confirmed' },
-          { patient: 'Patient 2', time: 'Today, 2:00 PM', status: 'Confirmed' },
-          { patient: 'Patient 3', time: 'Today, 2:00 PM', status: 'Confirmed' }
-        ];
-        setAppointments(sampleAppointments);
-
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -83,9 +95,128 @@ const DoctorDashboard: React.FC = () => {
     };
     fetchDashboardData();
   }, [user?.tenantId, user?.id]);
+  
+  // Fetch recent transactions
+  useEffect(() => {
+    const fetchRecentTransactions = async () => {
+      if (!user?.tenantId) return;
+      
+      try {
+        setTransactionsLoading(true);
+        
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('id, patient_name, appointment_date, amount, status')
+          .eq('tenant_id', user.tenantId)
+          .not('amount', 'is', null)
+          .order('appointment_date', { ascending: false })
+          .limit(3);
+        
+        if (error) throw error;
+        
+        // Format the data for display
+        const formattedTransactions = data?.map(item => {
+          // Convert UTC date to IST for display
+          const date = new Date(item.appointment_date);
+          const istOffset = 5.5 * 60 * 60 * 1000;
+          const istDate = new Date(date.getTime() + istOffset);
+          
+          const formattedDate = istDate.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+          
+          return {
+            patient: item.patient_name,
+            timestamp: formattedDate,
+            amount: item.amount || 0
+          };
+        }) || [];
+        
+        setTransactions(formattedTransactions);
+      } catch (err: any) {
+        console.error('Error fetching recent transactions:', err);
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+    
+    fetchRecentTransactions();
+  }, [user?.tenantId]);
+  
+  // Fetch upcoming appointments
+  useEffect(() => {
+    const fetchUpcomingAppointments = async () => {
+      if (!user?.tenantId) return;
+      
+      try {
+        setAppointmentsLoading(true);
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('id, patient_name, appointment_date, appointment_time, status')
+          .eq('tenant_id', user.tenantId)
+          .gte('appointment_date', today.toISOString().split('T')[0])
+          .eq('status', 'Scheduled')
+          .order('appointment_date', { ascending: true })
+          .order('appointment_time', { ascending: true })
+          .limit(3);
+        
+        if (error) throw error;
+        
+        // Format the data for display
+        const formattedAppointments = data?.map(item => {
+          // Check if the appointment is today
+          const appointmentDate = new Date(item.appointment_date);
+          const isToday = appointmentDate.toDateString() === today.toDateString();
+          
+          // Format the time (assuming appointment_time is in HH:MM format)
+          const timeParts = item.appointment_time.split(':');
+          const hours = parseInt(timeParts[0]);
+          const minutes = timeParts[1];
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          const formattedHours = hours % 12 || 12;
+          const formattedTime = `${formattedHours}:${minutes} ${ampm}`;
+          
+          // Format the date display
+          const dateDisplay = isToday ? 'Today' : appointmentDate.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+          
+          return {
+            patient: item.patient_name,
+            time: `${dateDisplay}, ${formattedTime}`,
+            status: 'Confirmed'
+          };
+        }) || [];
+        
+        setappointments(formattedAppointments);
+      } catch (err: any) {
+        console.error('Error fetching upcoming appointments:', err);
+      } finally {
+        setAppointmentsLoading(false);
+      }
+    };
+    
+    fetchUpcomingAppointments();
+  }, [user?.tenantId]);
 
   return (
     <div className="grid grid-cols-12 gap-3 max-w-6xl mx-auto w-full">
+      {/* Welcome Message */}
+      <div className="col-span-12 mb-4">
+        <div className="flex items-center">
+          <h1 className="text-3xl font-bold text-white">Welcome back,</h1>
+          <h1 className="text-3xl font-bold text-white ml-2">{user?.name || 'Aisha'}</h1>
+          <span className="text-3xl ml-2">👋🏻</span>
+        </div>
+      </div>
       {/* STATS CARDS */}
       <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-60 backdrop-blur-md rounded-xl p-4 flex flex-col">
         <div className="flex items-center justify-between mb-2">
@@ -106,7 +237,7 @@ const DoctorDashboard: React.FC = () => {
         </div>
         <div className="mt-auto mb-2 self-start">
           <div className="text-6xl font-bold text-white">
-            {isLoading ? <div className="animate-pulse h-12 w-24 bg-gray-700 rounded"></div> : totalAppointments}
+            {isLoading ? <div className="animate-pulse h-12 w-24 bg-gray-700 rounded"></div> : totalappointments}
           </div>
         </div>
       </div>
@@ -118,17 +249,88 @@ const DoctorDashboard: React.FC = () => {
         </div>
         <div className="mt-auto mb-2 self-start">
           <div className="text-6xl font-bold text-white">
-            {isLoading ? <div className="animate-pulse h-12 w-24 bg-gray-700 rounded"></div> : staffCount}
+            {isLoading ? <div className="animate-pulse h-12 w-24 bg-gray-700 rounded"></div> : 3}
           </div>
         </div>
       </div>
 
-      <div className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all">
+      <div 
+        className="col-span-12 sm:col-span-6 md:col-span-3 h-40 bg-white bg-opacity-10 backdrop-blur-md rounded-xl p-4 flex items-center justify-center cursor-pointer hover:bg-white hover:bg-opacity-20 transition-all"
+        onClick={() => setShowNewAppointmentForm(true)}
+      >
         <div className="relative w-20 h-20">
           <div className="absolute top-1/2 left-0 w-full h-2 bg-white transform -translate-y-1/2"></div>
           <div className="absolute left-1/2 top-0 w-2 h-full bg-white transform -translate-x-1/2"></div>
         </div>
       </div>
+      
+      {showNewAppointmentForm && (
+        <NewAppointmentForm
+          onClose={() => setShowNewAppointmentForm(false)}
+          onSuccess={() => {
+            setShowNewAppointmentForm(false);
+            // Refresh appointments after adding a new one
+            const fetchUpcomingAppointments = async () => {
+              if (!user?.tenantId) return;
+              
+              try {
+                setAppointmentsLoading(true);
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const { data, error } = await supabase
+                  .from('appointments')
+                  .select('id, patient_name, appointment_date, appointment_time, status')
+                  .eq('tenant_id', user.tenantId)
+                  .gte('appointment_date', today.toISOString().split('T')[0])
+                  .eq('status', 'Scheduled')
+                  .order('appointment_date', { ascending: true })
+                  .order('appointment_time', { ascending: true })
+                  .limit(3);
+                
+                if (error) throw error;
+                
+                // Format the data for display
+                const formattedAppointments = data?.map(item => {
+                  // Check if the appointment is today
+                  const appointmentDate = new Date(item.appointment_date);
+                  const isToday = appointmentDate.toDateString() === today.toDateString();
+                  
+                  // Format the time (assuming appointment_time is in HH:MM format)
+                  const timeParts = item.appointment_time.split(':');
+                  const hours = parseInt(timeParts[0]);
+                  const minutes = timeParts[1];
+                  const ampm = hours >= 12 ? 'PM' : 'AM';
+                  const formattedHours = hours % 12 || 12;
+                  const formattedTime = `${formattedHours}:${minutes} ${ampm}`;
+                  
+                  // Format the date display
+                  const dateDisplay = isToday ? 'Today' : appointmentDate.toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  });
+                  
+                  return {
+                    patient: item.patient_name,
+                    time: `${dateDisplay}, ${formattedTime}`,
+                    status: 'Confirmed'
+                  };
+                }) || [];
+                
+                setappointments(formattedAppointments);
+              } catch (err: any) {
+                console.error('Error fetching upcoming appointments:', err);
+              } finally {
+                setAppointmentsLoading(false);
+              }
+            };
+            
+            fetchUpcomingAppointments();
+          }}
+        />
+      )}
 
       {/* RECENT TRANSACTIONS */}
       <div className="col-span-6">
@@ -138,7 +340,7 @@ const DoctorDashboard: React.FC = () => {
             <div className="text-sm text-gray-400">View All</div>
           </div>
           <div className="space-y-3">
-            {isLoading ? (
+            {transactionsLoading ? (
               [...Array(3)].map((_, i) => (
                 <div key={i} className="animate-pulse flex items-center justify-between">
                   <div className="flex items-center">
@@ -173,14 +375,14 @@ const DoctorDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* UPCOMING APPOINTMENTS */}
+      {/* UPCOMING appointments */}
       <div className="col-span-6">
         <div className="bg-white bg-opacity-60 backdrop-blur-md rounded-xl p-4 h-full">
           <div className="flex justify-between items-center mb-4">
             <div className="text-lg font-medium text-black">Upcoming Appointments</div>
             <div className="text-sm text-gray-400">View All</div>
           </div>
-          {isLoading ? (
+          {appointmentsLoading ? (
             <div className="animate-pulse space-y-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex justify-between">

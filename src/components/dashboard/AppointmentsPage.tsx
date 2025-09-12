@@ -110,7 +110,7 @@ const BookingDetailModal: React.FC<{
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Appointment Details</h3>
+          <h3 className="text-lg font-medium text-white">Appointment Details</h3>
           <button
             type="button"
             className="text-gray-400 hover:text-gray-500"
@@ -867,7 +867,7 @@ console.log('Debug - user.tenantId:', user?.tenantId);
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Appointments</h1>
+          <h1 className="text-2xl font-bold text-white">Appointments</h1>
           <p className="text-gray-600">Manage patient appointments for {tenant?.name || 'your organization'}</p>
         </div>
         <div className="mt-4 md:mt-0">

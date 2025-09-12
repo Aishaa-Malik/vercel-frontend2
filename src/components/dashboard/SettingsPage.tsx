@@ -213,7 +213,7 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 dark:text-white">Settings</h1>
+      <h1 className="text-2xl font-bold mb-6 dark:text-white text-left">Settings</h1>
       
       <div className="bg-black bg-opacity-80 rounded-lg shadow p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4 dark:text-white">Subscription Details</h2>

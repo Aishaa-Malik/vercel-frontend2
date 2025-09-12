@@ -341,14 +341,14 @@ const DashboardLayout: React.FC = () => {
                     <span className="text-5xl ml-2">👋🏻</span>
                   </div>
                 </div> */}
-                <div className="flex items-center space-x-2">
+                {/* <div className="flex items-center space-x-2">
                   <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm">
                     Home
                   </div>
                   <div className="bg-black bg-opacity-70 backdrop-blur-md rounded-full px-4 py-2 text-white text-sm">
                     Page 1
                   </div>
-                </div>
+                </div> */}
               </div>
               
               <div className="w-full max-w-6xl mx-auto rounded-2xl p-0 pt-3 overflow-auto">

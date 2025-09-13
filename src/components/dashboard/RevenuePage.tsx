@@ -350,7 +350,7 @@ const RevenuePage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Revenue Dashboard</h1>
-          <p className="text-gray-600">Track revenue and financial metrics for {tenant?.name || 'your organization'}</p>
+          {/* <p className="text-gray-600">Track revenue and financial metrics for {tenant?.name || 'your organization'}</p> */}
         </div>
         <div className="mt-4 md:mt-0">
           <button 

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../services/supabaseService';
 import { useAuth } from '../contexts/AuthContext';
 
 const OAuthCallback: React.FC = () => {
+  const hasRun = useRef(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { loginFromSession } = useAuth();
@@ -11,13 +12,21 @@ const OAuthCallback: React.FC = () => {
   const [message, setMessage] = useState('Processing your request...');
 
   useEffect(() => {
+    // Prevent double execution in React Strict Mode
+    if (hasRun.current) return;
+    hasRun.current = true;
+    
     const handleCallback = async () => {
       try {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const error = searchParams.get('error');
         
-        console.log('OAuth callback params:', { code: code?.substring(0, 20), state, error });
+        console.log('OAuth callback params:', { 
+          code: code?.substring(0, 20) + '...', 
+          state: state?.substring(0, 50) + '...', 
+          error 
+        });
 
         // Handle OAuth errors
         if (error) {
@@ -25,7 +34,6 @@ const OAuthCallback: React.FC = () => {
           setStatus('error');
           setMessage('Authentication failed.');
           setTimeout(() => {
-            // Determine dashboard path based on URL
             const basePath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
             navigate(`${basePath}?error=oauth_failed`, { replace: true });
           }, 2000);
@@ -39,6 +47,8 @@ const OAuthCallback: React.FC = () => {
           localStorage.setItem('authToken', session.access_token);
           await loginFromSession(session.access_token, session.user);
           
+          setStatus('success');
+          setMessage('Login successful! Redirecting...');
           setTimeout(() => {
             navigate('/dashboard', { replace: true });
           }, 1000);
@@ -54,7 +64,10 @@ const OAuthCallback: React.FC = () => {
             let stateData;
             try {
               stateData = JSON.parse(state);
-              console.log('Parsed state data:', stateData);
+              console.log('Parsed state data:', {
+                user_id: stateData.user_id?.substring(0, 8) + '...',
+                tenant_id: stateData.tenant_id?.substring(0, 8) + '...'
+              });
             } catch (parseError) {
               console.error('Failed to parse state JSON:', parseError);
               throw new Error('Invalid state parameter from Google');
@@ -66,7 +79,7 @@ const OAuthCallback: React.FC = () => {
             
             setMessage('Connecting your Google Calendar...');
             
-            // Call edge function for token exchange
+            // Call edge function for token exchange (only once)
             console.log('Invoking handle-google-oauth edge function...');
             const { data, error: edgeError } = await supabase.functions.invoke('handle-google-oauth', {
               body: {
@@ -91,20 +104,27 @@ const OAuthCallback: React.FC = () => {
             
             // Redirect after success with delay
             setTimeout(() => {
-              // Determine dashboard path based on URL
               const basePath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
               navigate(`${basePath}?connected=google_calendar`, { replace: true });
             }, 1500);
             
-          } catch (integrationError) {
+          } catch (integrationError: any) {
             console.error('Calendar integration error:', integrationError);
             setStatus('error');
-            setMessage('Failed to connect Google Calendar. Please try again.');
+            
+            // Provide more specific error messages
+            if (integrationError.message?.includes('invalid_grant')) {
+              setMessage('Authorization expired. Please try connecting again.');
+            } else if (integrationError.message?.includes('400')) {
+              setMessage('Failed to connect Google Calendar. Authorization code may have expired.');
+            } else {
+              setMessage('Failed to connect Google Calendar. Please try again.');
+            }
             
             setTimeout(() => {
               const redirectPath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
               navigate(`${redirectPath}?error=calendar_integration_failed`, { replace: true });
-            }, 2000);
+            }, 3000);
           }
         } else if (!session) {
           // No code, no session - invalid callback
@@ -116,7 +136,7 @@ const OAuthCallback: React.FC = () => {
             navigate('/login?error=invalid_callback', { replace: true });
           }, 2000);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('OAuth callback handler error:', error);
         setStatus('error');
         setMessage('An unexpected error occurred during authentication.');
@@ -129,16 +149,46 @@ const OAuthCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, [searchParams, navigate, loginFromSession]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Show status UI
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
+      <div className="text-center max-w-md px-4">
         {status === 'processing' && (
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
         )}
-        <p className="text-gray-600">{message}</p>
+        {status === 'success' && (
+          <div className="mb-4">
+            <svg 
+              className="h-12 w-12 text-green-500 mx-auto" 
+              fill="none" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth="2" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="mb-4">
+            <svg 
+              className="h-12 w-12 text-red-500 mx-auto" 
+              fill="none" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth="2" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </div>
+        )}
+        <p className="text-gray-700 text-lg font-medium">{message}</p>
         {status === 'error' && (
           <p className="text-sm text-gray-500 mt-2">You will be redirected shortly...</p>
         )}

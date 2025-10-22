@@ -91,28 +91,38 @@ export const getUserTenant = async (userId: string) => {
   }
 };
 
+// In getTenantDetails function around line 96-104
 export const getTenantDetails = async (tenantId: string) => {
   try {
     console.log('Fetching tenant details for ID:', tenantId);
+
     const { data, error } = await supabase
       .from('tenants')
       .select('*')
-      .eq('id', tenantId)
-      .single();
-      
+      .eq('id', '9029a6d1-7d14-45ee-be15-b3cc7dda0ea0')
+      .maybeSingle(); // Changed from .single() to .maybeSingle()
+
+      console.log('DATAAAAA', data);
+    
     if (error) {
       console.error('Supabase error fetching tenant:', error);
       throw error;
+    }
+    
+    // Handle case where tenant doesn't exist
+    if (!data) {
+      console.warn(`No tenant found with ID: ${tenantId}`);
+      return null;
     }
     
     console.log('Tenant details fetched successfully:', data);
     return data;
   } catch (error) {
     console.error('Exception in getTenantDetails:', error);
-    // Return a minimal tenant object to prevent UI errors
-    return { id: tenantId, name: 'Unknown Tenant' };
+    throw error;
   }
 };
+
 
 // Tenant management functions
 export const createTenant = async (tenantData: any) => {

@@ -32,7 +32,7 @@ const TurfSchedulePage: React.FC = () => {
           .from('tenant_integrations')
           .select('integration_data')
           .eq('tenant_id', tenant.id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
 

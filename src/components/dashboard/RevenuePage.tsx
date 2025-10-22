@@ -6,6 +6,7 @@ interface Transaction {
   id: string;
   patient_name: string;
   appointment_date: string;
+  appointment_time: string; // ADD THIS - it was missing!
   payment_method: string;
   amount: number;
   currency: string;
@@ -156,6 +157,34 @@ const RevenuePage: React.FC = () => {
     fetchRevenueData();
   }, [selectedFilter, customDateRange, user?.tenantId]);
 
+  // CORRECTED formatTime function
+  const formatTime = (timeString: string, dateString: string) => {
+    try {
+      if (!timeString || typeof timeString !== 'string') return 'N/A';
+      
+      // Create a proper date object with both date and time
+      const time = timeString.length === 5 ? timeString + ':00' : timeString;
+      
+      // Parse the time components
+      const [hours, minutes] = time.split(':').map(Number);
+      
+      // Create a UTC date object
+      const dateObj = new Date(dateString + 'T00:00:00Z');
+      dateObj.setUTCHours(hours, minutes);
+      
+      // Format the time directly to IST using timeZone option
+      return dateObj.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata'
+      }) + ' IST';
+    } catch (error) {
+      console.error('Error formatting time:', timeString, error);
+      return 'N/A';
+    }
+  };
+
   const fetchRevenueData = async () => {
     if (!user?.tenantId) {
       console.error('No tenant ID available for fetching revenue data');
@@ -177,6 +206,7 @@ const RevenuePage: React.FC = () => {
         tenantId: user.tenantId
       });
       
+      // CORRECTED: Add appointment_time to the select query
       const { data: periodTransactions, error: transactionError } = await supabase
         .from('appointments')
         .select(`
@@ -184,6 +214,7 @@ const RevenuePage: React.FC = () => {
           patient_name,
           patient_contact,
           appointment_date,
+          appointment_time,
           payment_method,
           amount,
           currency,
@@ -220,6 +251,7 @@ const RevenuePage: React.FC = () => {
         console.log('First transaction:', {
           id: periodTransactions[0].id,
           date: periodTransactions[0].appointment_date,
+          time: periodTransactions[0].appointment_time,
           amount: periodTransactions[0].amount,
           status: periodTransactions[0].status
         });
@@ -229,7 +261,7 @@ const RevenuePage: React.FC = () => {
         // Try a broader query to see if there are any appointments at all
         const { data: anyAppointments } = await supabase
           .from('appointments')
-          .select('id, appointment_date, amount, status')
+          .select('id, appointment_date, appointment_time, amount, status')
           .eq('tenant_id', user.tenantId)
           .not('amount', 'is', null)
           .limit(5);
@@ -271,31 +303,15 @@ const RevenuePage: React.FC = () => {
     return `${currency} ${amount.toLocaleString()}`;
   };
 
-  const formatDate = (dateString: string) => {
-    // Convert UTC date to IST for display
-    const date = new Date(dateString);
-    const istOffset = 5.5 * 60 * 60 * 1000;
-    const istDate = new Date(date.getTime() + istOffset);
-    
-    return istDate.toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const formatDateOnly = (dateString: string) => {
     // Convert UTC date to IST for display
     const date = new Date(dateString);
-    const istOffset = 5.5 * 60 * 60 * 1000;
-    const istDate = new Date(date.getTime() + istOffset);
     
-    return istDate.toLocaleDateString('en-IN', {
+    return date.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'Asia/Kolkata'
     });
   };
 
@@ -350,7 +366,6 @@ const RevenuePage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Revenue Dashboard</h1>
-          {/* <p className="text-gray-600">Track revenue and financial metrics for {tenant?.name || 'your organization'}</p> */}
         </div>
         <div className="mt-4 md:mt-0">
           <button 
@@ -551,12 +566,11 @@ const RevenuePage: React.FC = () => {
                       <div className="font-medium">
                         {formatDateOnly(transaction.appointment_date)}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {new Date(transaction.appointment_date).toLocaleTimeString('en-IN', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </div>
+               <div className="text-xs text-gray-500">
+                  {formatTime(transaction.appointment_time, transaction.appointment_date)}
+                </div>
+
+
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">

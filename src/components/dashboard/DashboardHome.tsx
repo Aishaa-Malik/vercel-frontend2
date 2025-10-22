@@ -45,18 +45,18 @@ const DoctorDashboard: React.FC = () => {
           .eq('tenant_id', user.tenantId);
         if (doctorappointmentsError) throw doctorappointmentsError;
         
-        // Then, get count from Turfappointments table
-        const { count: turfappointmentsCount, error: turfappointmentsError } = await supabase
-          .from('Turfappointments')
+        // Then, get count from TurfAppointments table
+        const { count: TurfAppointmentsCount, error: TurfAppointmentsError } = await supabase
+          .from('TurfAppointments')
           .select('*', { count: 'exact', head: true })
           .eq('tenant_id', user.tenantId);
-        if (turfappointmentsError) throw turfappointmentsError;
+        if (TurfAppointmentsError) throw TurfAppointmentsError;
         
         // Calculate total appointments from both sources
         const totalTenantappointments = (doctorappointmentsCount || 0);
         setTotalappointments(totalTenantappointments);
 
-        // Fetch total revenue for entire tenant from both appointments and Turfappointments tables
+        // Fetch total revenue for entire tenant from both appointments and TurfAppointments tables
         // First, get revenue from appointments table
         const { data: doctorRevenueData, error: doctorRevenueError } = await supabase
           .from('appointments')
@@ -64,9 +64,9 @@ const DoctorDashboard: React.FC = () => {
           .eq('tenant_id', user.tenantId);
         if (doctorRevenueError) throw doctorRevenueError;
         
-        // Then, get revenue from Turfappointments table
+        // Then, get revenue from TurfAppointments table
         // const { data: turfRevenueData, error: turfRevenueError } = await supabase
-        //   .from('Turfappointments')
+        //   .from('TurfAppointments')
         //   .select('amount')
         //   .eq('tenant_id', user.tenantId);
         // if (turfRevenueError) throw turfRevenueError;
@@ -80,7 +80,7 @@ const DoctorDashboard: React.FC = () => {
 
         // Fetch staff count for tenant (doctors + employees)
         const { count: staffCountResult, error: staffError } = await supabase
-          .from('Users')
+          .from('approved_users')
           .select('*', { count: 'exact', head: true })
           .eq('tenant_id', user.tenantId)
           .in('role', ['DOCTOR', 'EMPLOYEE']);

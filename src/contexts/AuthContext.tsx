@@ -59,7 +59,7 @@ const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
       .select('tenant_id, role')
       .eq('email', userEmail)
       .is('activated_at', null)
-      .single();
+      .maybeSingle();
 
     // Handle 406 Not Acceptable errors (they appear in the error.message)
     if (approvalError) {

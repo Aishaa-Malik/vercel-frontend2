@@ -34,15 +34,15 @@ const BookingDetailModal: React.FC<{
 }> = ({ booking, isOpen, onClose }) => {
   if (!booking) return null;
 
-  // Updated format date function for IST
+  // Fixed format date function for IST - removed double conversion
   const formatDate = (dateStr: string, timeStr: string = '00:00:00') => {
     try {
       const time = timeStr?.length === 5 ? `${timeStr}:00` : timeStr || '00:00:00';
+      // Create date object with Z suffix to indicate UTC
       const utcDateTime = new Date(`${dateStr}T${time}Z`);
-      const istOffset = 5.5 * 60 * 60 * 1000;
-      const istDateTime = new Date(utcDateTime.getTime() + istOffset);
       
-      return istDateTime.toLocaleDateString('en-IN', {
+      // Use timeZone in options to convert to IST directly
+      return utcDateTime.toLocaleDateString('en-IN', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -60,51 +60,82 @@ const BookingDetailModal: React.FC<{
     }
   };
 
-  // Updated format time function for IST
-  const formatTime = (dateStr: string, timeStr: string) => {
-    try {
-      if (!timeStr) return 'N/A';
-      
-      const time = timeStr?.length === 5 ? `${timeStr}:00` : timeStr || '00:00:00';
-      const utcDateTime = new Date(`${dateStr}T${time}Z`);
-      const istOffset = 5.5 * 60 * 60 * 1000;
-      const istDateTime = new Date(utcDateTime.getTime() + istOffset);
-      
-      return istDateTime.toLocaleTimeString('en-IN', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'Asia/Kolkata'
-      }) + ' IST';
-    } catch (error) {
-      console.error('Error formatting time:', error);
-      return timeStr;
+  // Fixed format time function for IST - properly handling UTC to IST conversion
+// Updated formatTime function for IST - FIXED
+const formatTime = (timeString: string, dateString: string) => {
+  try {
+    if (!timeString || typeof timeString !== 'string') {
+      return 'N/A';
     }
+    
+    // Create a proper date object with both date and time
+    const time = timeString.length === 5 ? `${timeString}:00` : timeString;
+    
+    // Parse the time components
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Create a UTC date object
+    const dateObj = new Date(`${dateString}T00:00:00Z`);
+    dateObj.setUTCHours(hours, minutes);
+    
+    // Format the time directly to IST using timeZone option
+    return dateObj.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
+    }) + ' IST';
+  } catch (error) {
+    console.error('Error formatting time:', timeString, error);
+    return 'N/A';
+  }
+};
+
+  // Add formatDetailTime function for consistent time display in modal
+  const formatDetailTime = (timeString: string, dateString: string) => {
+    if (!timeString) return 'N/A';
+    
+    // Create a proper date object with both date and time
+    const time = timeString.length === 5 ? `${timeString}:00` : timeString;
+    const dateTime = new Date(`${dateString}T${time}Z`); // Z indicates UTC
+    
+    // Format the time directly to IST using timeZone option
+    return dateTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
+    });
   };
 
-  // Updated format for created_at and updated_at timestamps
-  const formatTimestamp = (timestampStr: string) => {
-    try {
-      if (!timestampStr) return 'N/A';
-      
-      const utcDateTime = new Date(timestampStr);
-      const istOffset = 5.5 * 60 * 60 * 1000;
-      const istDateTime = new Date(utcDateTime.getTime() + istOffset);
-      
-      return istDateTime.toLocaleString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }) + ' IST';
-    } catch (error) {
-      console.error('Error formatting timestamp:', error);
-      return new Date(timestampStr).toLocaleString();
-    }
-  };
+
+
+
+  // Fixed format for created_at and updated_at timestamps - removed double conversion
+// Current formatTimestamp (around line 131-143)
+const formatTimestamp = (timestampStr: string) => {
+  try {
+    if (!timestampStr) return 'N/A';
+    
+    // Create date object from timestamp (already in UTC)
+    const utcDateTime = new Date(timestampStr);
+    
+    // Use timeZone in options to convert to IST directly
+    return utcDateTime.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }) + ' IST';
+  } catch (error) {
+    console.error('Error formatting timestamp:', error);
+    return new Date(timestampStr).toLocaleString();
+  }
+};
+
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -171,7 +202,7 @@ const BookingDetailModal: React.FC<{
                   Date
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-900">
-                  {formatDate(booking.appointment_date, booking.appointment_time)}
+                 {formatDate(booking.appointment_date)} at {formatDetailTime(booking.appointment_time, booking.appointment_date)}
                 </td>
               </tr>
               <tr>
@@ -179,7 +210,7 @@ const BookingDetailModal: React.FC<{
                   Time
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-900">
-                  {formatTime(booking.appointment_date, booking.appointment_time)}
+                  {formatTime(booking.appointment_time, booking.appointment_date)}
                 </td>
               </tr>
               <tr>
@@ -824,16 +855,25 @@ const AppointmentsPage: React.FC = () => {
     }
   };
 
-  // Updated formatTime function for IST
-  const formatTime = (dateString: string, timeString: string) => {
+  // Updated formatTime function for IST - FIXED to match TurfAppointmentsPage
+  const formatTime = (timeString: string, dateString: string) => {
     try {
       if (!timeString || typeof timeString !== 'string') {
         return 'N/A';
       }
       
-      const istDateTime = convertToIST(dateString, timeString);
+      // Create a proper date object with both date and time
+      const time = timeString.length === 5 ? `${timeString}:00` : timeString;
       
-      return istDateTime.toLocaleTimeString('en-IN', {
+      // Parse the time components
+      const [hours, minutes] = time.split(':').map(Number);
+      
+      // Create a UTC date object
+      const dateObj = new Date(`${dateString}T00:00:00Z`);
+      dateObj.setUTCHours(hours, minutes);
+      
+      // Format the time directly to IST using timeZone option
+      return dateObj.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
@@ -862,6 +902,22 @@ const AppointmentsPage: React.FC = () => {
 console.log('Debug - tenant:', tenant);
 console.log('Debug - user:', user);
 console.log('Debug - user.tenantId:', user?.tenantId);
+
+ const formatDetailTime = (timeString: string, dateString: string) => {
+    if (!timeString) return 'N/A';
+    
+    // Create a proper date object with both date and time
+    const time = timeString.length === 5 ? `${timeString}:00` : timeString;
+    const dateTime = new Date(`${dateString}T${time}Z`); // Z indicates UTC
+    
+    // Format the time directly to IST using timeZone option
+    return dateTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -959,7 +1015,7 @@ console.log('Debug - user.tenantId:', user?.tenantId);
       </div>
       
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[70vh] overflow-y-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -1013,7 +1069,7 @@ console.log('Debug - user.tenantId:', user?.tenantId);
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatDate(appointment.appointment_date, appointment.appointment_time)}</div>
-                      <div className="text-sm text-gray-500">{formatTime(appointment.appointment_date, appointment.appointment_time)}</div>
+                      <div className="text-sm text-gray-500">{formatTime(appointment.appointment_time, appointment.appointment_date)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(appointment.status)}`}>

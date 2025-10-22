@@ -95,18 +95,29 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
   if (!booking) return null;
 
   const formatDate = (dateString: string) => {
+    // Create date object directly from the date string (stored in UTC)
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'Asia/Kolkata' // Use IST timezone for correct conversion
     });
   };
 
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':');
-    const hour12 = parseInt(hours) % 12 || 12;
-    const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
-    return `${hour12}:${minutes} ${ampm}`;
+  const formatDetailTime = (timeString: string, dateString: string) => {
+    if (!timeString) return 'N/A';
+    
+    // Create a proper date object with both date and time
+    const time = timeString.length === 5 ? `${timeString}:00` : timeString;
+    const dateTime = new Date(`${dateString}T${time}Z`); // Z indicates UTC
+    
+    // Format the time directly to IST using timeZone option
+    return dateTime.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
+    });
   };
 
   return (
@@ -157,7 +168,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, isOpen
                     Date & Time
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900 bg-white">
-                    {formatDate(booking.appointment_date)} at {formatTime(booking.appointment_time)}
+                    {formatDate(booking.appointment_date)} at {formatDetailTime(booking.appointment_time, booking.appointment_date)}
                   </td>
                 </tr>
                 <tr>
@@ -467,7 +478,7 @@ useEffect(() => {
       setAppointments(prev => prev.filter(apt => apt.id !== appointment.id));
 
       try {
-        const n8nWebhookUrl = 'https://aishaa1503.app.n8n.cloud/webhook/appointment-cancel';
+        const n8nWebhookUrl = 'https://aishaaaa1503.app.n8n.cloud/webhook/appointment-cancel';
         await fetch(n8nWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -615,28 +626,29 @@ useEffect(() => {
     });
   };
 
-const formatTime = (timeString: string) => {
+const formatTime = (timeString: string, dateString: string) => {
   try {
     if (!timeString || typeof timeString !== 'string') {
       return 'N/A';
     }
     
-    const parts = timeString.split(':');
-    if (parts.length < 2) {
-      return timeString; // Return original if it can't be parsed
-    }
+    // Create a proper date object with both date and time
+    const time = timeString.length === 5 ? `${timeString}:00` : timeString;
     
-    const [hours, minutes] = parts;
-    const hourNum = parseInt(hours, 10);
-    const minuteStr = minutes || '00';
+    // Parse the time components
+    const [hours, minutes] = time.split(':').map(Number);
     
-    if (isNaN(hourNum)) {
-      return timeString; // Return original if hours is not a number
-    }
+    // Create a UTC date object
+    const dateObj = new Date(`${dateString}T00:00:00Z`);
+    dateObj.setUTCHours(hours, minutes);
     
-    const hour12 = hourNum % 12 || 12;
-    const ampm = hourNum >= 12 ? 'PM' : 'AM';
-    return `${hour12}:${minuteStr} ${ampm}`;
+    // Format the time directly to IST using timeZone option
+    return dateObj.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
+    }) + ' IST';
   } catch (error) {
     console.error('Error formatting time:', timeString, error);
     return 'N/A';
@@ -764,7 +776,7 @@ console.log(filteredAppointments.length, "filteredAppointments");
       </div>
       
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[70vh] overflow-y-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
@@ -809,7 +821,7 @@ console.log(filteredAppointments.length, "filteredAppointments");
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatDate(appointment.appointment_date)}</div>
-                      <div className="text-sm text-gray-500">{formatTime(appointment.appointment_time)}</div>
+                      <div className="text-sm text-gray-500">{formatTime(appointment.appointment_time, appointment.appointment_date)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(appointment.status)}`}>

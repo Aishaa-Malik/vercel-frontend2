@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../services/supabaseService';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../services/supabaseService';
 
 interface TenantIntegration {
   id: string;
@@ -13,11 +13,40 @@ interface TenantIntegration {
   };
 }
 
-const SchedulePage: React.FC = () => {
+interface UnifiedSchedulePageProps {
+  serviceType: 'doctor' | 'turf';
+}
+
+const UnifiedSchedulePage: React.FC<UnifiedSchedulePageProps> = ({ serviceType }) => {
   const { tenant, user } = useAuth();
   const [calendarId, setCalendarId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const getServiceConfig = () => {
+    switch (serviceType) {
+      case 'doctor':
+        return {
+          settingsPath: '/dashboard/settings',
+          title: 'Schedule',
+          description: 'View and manage your calendar'
+        };
+      case 'turf':
+        return {
+          settingsPath: '/turf-dashboard/settings',
+          title: 'Schedule',
+          description: 'View and manage your calendar'
+        };
+      default:
+        return {
+          settingsPath: '/dashboard/settings',
+          title: 'Schedule',
+          description: 'View and manage your calendar'
+        };
+    }
+  };
+
+  const config = getServiceConfig();
 
   useEffect(() => {
     const fetchCalendarId = async () => {
@@ -32,6 +61,8 @@ const SchedulePage: React.FC = () => {
           .from('tenant_integrations')
           .select('integration_data')
           .eq('tenant_id', tenant.id)
+          .eq('integration_type', 'google_calendar')
+          .eq('is_connected', 'true')
           .maybeSingle();
 
         if (error) throw error;
@@ -83,7 +114,7 @@ const SchedulePage: React.FC = () => {
         </div>
         <div className="mt-4">
           <button 
-            onClick={() => window.location.href = '/dashboard/settings'}
+            onClick={() => window.location.href = config.settingsPath}
             className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-300 flex items-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -103,8 +134,8 @@ const SchedulePage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Schedule</h1>
-          <p className="text-gray-600 dark:text-gray-400">View and manage your calendar</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{config.title}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{config.description}</p>
         </div>
       </div>
 
@@ -138,4 +169,4 @@ const SchedulePage: React.FC = () => {
   );
 };
 
-export default SchedulePage;
+export default UnifiedSchedulePage;

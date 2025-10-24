@@ -16,6 +16,7 @@ const OnboardingForm: React.FC = () => {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [userType, setUserType] = useState<'doctor' | 'turf' | null>(null);
+  const [bookingSystemType, setBookingSystemType] = useState<'1' | '2' | null>(null);
   const [turfName, setTurfName] = useState('');
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
     { id: 1, startTime: '', endTime: '', startAmPm: 'AM', endAmPm: 'AM' }
@@ -54,17 +55,22 @@ const OnboardingForm: React.FC = () => {
       return;
     }
     
-    if (step === 2 && userType === 'turf' && !turfName.trim()) {
+    if (step === 2 && !bookingSystemType) {
+      setError('Please select how your booking system should handle time slots');
+      return;
+    }
+    
+    if (step === 3 && userType === 'turf' && !turfName.trim()) {
       setError('Please enter your turf name');
       return;
     }
     
-    if (step === 3 && timeSlots.some(slot => !slot.startTime || !slot.endTime)) {
+    if (step === 4 && timeSlots.some(slot => !slot.startTime || !slot.endTime)) {
       setError('Please fill in all time slots or remove empty ones');
       return;
     }
     
-    if (step === 4 && selectedDays.length === 0) {
+    if (step === 5 && selectedDays.length === 0) {
       setError('Please select at least one day');
       return;
     }
@@ -96,6 +102,7 @@ const OnboardingForm: React.FC = () => {
           business_name: userType === 'turf' ? turfName : null,
           time_slots: formattedTimeSlots,
           operating_days: selectedDays,
+          multiorsinglebooking: bookingSystemType === '1' ? 'single' : 'multi',
           onboarding_completed: true
         }, { 
           onConflict: 'email'  // Specify which column to check for conflicts
@@ -151,6 +158,38 @@ const OnboardingForm: React.FC = () => {
         );
         
       case 2:
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-gray-800">How should your booking system handle time slot availability?</h2>
+            <div className="grid grid-cols-1 gap-4">
+              <button
+                className={`p-6 border rounded-lg text-left ${
+                  bookingSystemType === '1' 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onClick={() => setBookingSystemType('1')}
+              >
+                <div className="font-medium text-lg">1. Single Booking (Exclusive Time Slots)</div>
+                <p className="text-gray-600 mt-2">Only ONE person/customer can book each time slot</p>
+              </button>
+              
+              <button
+                className={`p-6 border rounded-lg text-left ${
+                  bookingSystemType === '2' 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onClick={() => setBookingSystemType('2')}
+              >
+                <div className="font-medium text-lg">2. Multiple Bookings (Shared Time Slots)</div>
+                <p className="text-gray-600 mt-2">MULTIPLE people/customers can book the SAME time slot</p>
+              </button>
+            </div>
+          </div>
+        );
+        
+      case 3:
         return userType === 'turf' ? (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold text-gray-800">What's your turf's name?</h2>
@@ -166,10 +205,10 @@ const OnboardingForm: React.FC = () => {
           </div>
         ) : (
           // Skip this step for doctors and move to the next
-          <>{setStep(3)}</>
+          <>{setStep(4)}</>
         );
         
-      case 3:
+      case 4:
         return (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold text-gray-800">What are your booking time slots?</h2>
@@ -230,7 +269,7 @@ const OnboardingForm: React.FC = () => {
           </div>
         );
         
-      case 4:
+      case 5:
         return (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold text-gray-800">
@@ -255,7 +294,7 @@ const OnboardingForm: React.FC = () => {
           </div>
         );
         
-      case 5:
+      case 6:
         return (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold text-gray-800">Review Your Information</h2>
@@ -264,6 +303,11 @@ const OnboardingForm: React.FC = () => {
               <div className="mb-4">
                 <div className="font-medium">Business Type:</div>
                 <div>{userType === 'doctor' ? 'Doctor / Hospital Owner' : 'Turf Owner'}</div>
+              </div>
+              
+              <div className="mb-4">
+                <div className="font-medium">Booking System Type:</div>
+                <div>{bookingSystemType === '1' ? 'Single Booking (Exclusive Time Slots)' : 'Multiple Bookings (Shared Time Slots)'}</div>
               </div>
               
               {userType === 'turf' && (
@@ -300,7 +344,7 @@ const OnboardingForm: React.FC = () => {
             </button>
           </div>
         );
-        
+
       default:
         return null;
     }
@@ -322,7 +366,7 @@ const OnboardingForm: React.FC = () => {
           {/* Progress indicator */}
           <div className="mb-8">
             <div className="flex justify-between mb-2">
-              {[1, 2, 3, 4, 5].map((stepNumber) => (
+              {[1, 2, 3, 4, 5, 6].map((stepNumber) => (
                 <div
                   key={stepNumber}
                   className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -340,7 +384,7 @@ const OnboardingForm: React.FC = () => {
             <div className="overflow-hidden h-2 rounded-full bg-gray-200">
               <div
                 className="h-full bg-blue-600 transition-all duration-300"
-                style={{ width: `${((step - 1) / 4) * 100}%` }}
+                style={{ width: `${((step - 1) / 5) * 100}%` }}
               ></div>
             </div>
           </div>
@@ -353,7 +397,7 @@ const OnboardingForm: React.FC = () => {
 
           {renderStep()}
 
-          {step < 5 && (
+          {step < 6 && (
             <div className="mt-6 flex justify-between">
               {step > 1 && (
                 <button

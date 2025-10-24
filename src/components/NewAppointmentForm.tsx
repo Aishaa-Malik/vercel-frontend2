@@ -71,7 +71,7 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
       const timeStr = formData.time;
 
       // Determine which table to use based on user type
-      const tableName = isTurfUser ? 'TurfAppointments' : 'appointments';
+      const tableName = isTurfUser ? 'appointments' : 'appointments';
       
       // Assemble the row based on user type
       let row: any;
@@ -82,8 +82,8 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
           customer_name: formData.name,
           customer_email: formData.email,
           customer_contact: formData.phone || null,
-          appointment_date: dateStr,
-          appointment_time: formatToPgTime(timeStr),
+          booking_date: dateStr,
+          start_time: formatToPgTime(timeStr),
           booking_reference: `booking_${Date.now()}`,
           payment_id: formData.paymentId || null,
           amount: formData.amount ? parseFloat(formData.amount) : null,
@@ -95,12 +95,12 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
         // Doctor appointment format
         row = {
           tenant_id,
-          patient_name: formData.name,
-          patient_email: formData.email,
-          patient_contact: formData.phone || null,
+          customer_name: formData.name,
+          customer_email: formData.email,
+          customer_contact: formData.phone || null,
           doctor: formData.doctor || 'Default Doctor',
-          appointment_date: dateStr,
-          appointment_time: formatToPgTime(timeStr),
+          booking_date: dateStr,
+          start_time: formatToPgTime(timeStr),
           booking_reference: `booking_${Date.now()}`,
           payment_id: formData.paymentId || null,
           amount: formData.amount ? parseFloat(formData.amount) : null,
@@ -130,7 +130,7 @@ const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSucc
           body: JSON.stringify({ 
             tenant_id, 
             startDateTime,
-            summary: isTurfUser ? row.customer_name : row.patient_name 
+            summary: isTurfUser ? row.customer_name : row.customer_name 
           })
         });
       } catch (webhookError) {

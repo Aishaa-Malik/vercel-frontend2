@@ -13,7 +13,7 @@ interface TenantIntegration {
   };
 }
 
-const TurfSchedulePage: React.FC = () => {
+const SchedulePage: React.FC = () => {
   const { tenant, user } = useAuth();
   const [calendarId, setCalendarId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,7 +84,7 @@ const TurfSchedulePage: React.FC = () => {
         </div>
         <div className="mt-4">
           <button 
-            onClick={() => window.location.href = '/turf-dashboard/settings'}
+            onClick={() => window.location.href = '/dashboard/settings'}
             className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-300 flex items-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -139,4 +139,4 @@ const TurfSchedulePage: React.FC = () => {
   );
 };
 
-export default TurfSchedulePage;
+export default SchedulePage;

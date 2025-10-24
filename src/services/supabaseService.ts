@@ -271,11 +271,11 @@ export const getAppointments = async (tenantId: string, filters: any = {}) => {
   }
   
   if (filters.startDate) {
-    query = query.gte('appointment_date', filters.startDate);
+    query = query.gte('booking_date', filters.startDate);
   }
   
   if (filters.endDate) {
-    query = query.lte('appointment_date', filters.endDate);
+    query = query.lte('booking_date', filters.endDate);
   }
   
   const { data, error } = await query;

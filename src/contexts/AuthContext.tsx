@@ -44,25 +44,40 @@ interface AuthProviderProps {
 
 // ==================== Invitation/Onboarding Logic ====================
 const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
+  console.log('inside handleUserInvitationSetup- userId= ', userId, ' userEmail= ', userEmail);
   try {
     if (!userEmail) {
       console.log('No email provided, skipping invitation setup');
       return;
     }
+console.log('Hiee');
 
     const { supabase, getCurrentSession } = await import('../services/supabaseService');
     const session = await getCurrentSession();
 
+    console.log('userEmail inside handleUserInvitationSetup- ', userEmail);
+
+    // const {data: approvedUser, error: approvalError } = await supabase
+    //   .from('approved_users')
+    //   .select('activated_at')
+    //   .eq('email', userEmail)
+    //   .is('activated_at', null)
+    //   .maybeSingle();
+
     // Check if user is pre-approved and not yet activated
     const { data: approvedUser, error: approvalError } = await supabase
       .from('approved_users')
-      .select('tenant_id, role')
+      .select('tenant_id, role, activated_at')
       .eq('email', userEmail)
       .is('activated_at', null)
       .maybeSingle();
 
+  console.log("approvedUser activated_at------>>>>>>" , approvedUser?.activated_at);
+      console.log("approvedUser------>>>>>>" , approvedUser);
     // Handle 406 Not Acceptable errors (they appear in the error.message)
     if (approvalError) {
+       console.log("approvalError- ", approvalError);
+
       console.log('Approval check error:', approvalError.message);
       if (approvalError.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine
         // Don't throw the error, just log it and continue
@@ -80,12 +95,17 @@ const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
         .eq('id', userId)
         .single();
 
+        console.log("existingProfile - ", existingProfile);
+
       if (profileCheckError && profileCheckError.code !== 'PGRST116') {
         console.error('Error checking user profile:', profileCheckError);
         // Continue despite error
       }
 
       if (!existingProfile) {
+
+        console.log("i m inserting into  user_profiles- ");
+
         const { error: profileError } = await supabase
           .from('user_profiles')
           .insert({
@@ -132,12 +152,16 @@ const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
         .eq('user_id', userId)
         .single();
 
+        console.log('existingRole= ', existingRole);
+
       if (roleCheckError && roleCheckError.code !== 'PGRST116') {
         console.error('Error checking user role:', roleCheckError);
         // Continue despite error
       }
 
       if (!existingRole) {
+        console.log('inside if--insertinf into user_rol table, approvedUser.role =   ', approvedUser.role);
+
         const { error: roleError } = await supabase
           .from('user_roles')
           .insert({
@@ -152,6 +176,8 @@ const handleUserInvitationSetup = async (userId: string, userEmail: string) => {
 
       // --- Mark invitation as activated ---
       try {
+        console.log('marking user activated_at in app user:');
+
         const { error: activationError } = await supabase
           .from('approved_users')
           .update({ activated_at: new Date().toISOString() })
@@ -236,6 +262,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // --- Login from session (OAuth/cookies) ---
   const loginFromSession = async (token: string, userObj: any) => {
+
+    console.log('inside loginFromSession- userObj=  ', userObj);
+
     setIsLoading(true);
     try {
       const { getUserTenant, getUserBusinessType, getUserRole } = await import('../services/supabaseService');

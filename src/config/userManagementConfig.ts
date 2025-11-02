@@ -11,7 +11,7 @@ export const userManagementConfigs: Record<ServiceType, UserManagementConfig> = 
   },
   turf: {
     serviceType: 'turf',
-    title: 'Turf User Management',
+    title: 'User Management',
     availableRoles: [UserRole.BUSINESS_OWNER, UserRole.EMPLOYEE],
     defaultRole: UserRole.EMPLOYEE,
     description: 'Manage user access for your turf facility'

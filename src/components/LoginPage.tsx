@@ -175,7 +175,15 @@ const LoginPage: React.FC = () => {
 
     try {
       await login(email, password);
-      navigate('/dashboard');
+      
+      // Check if user just completed payment and should go to onboarding
+      const paymentCompleted = localStorage.getItem('paymentCompleted');
+      if (paymentCompleted === 'true') {
+        localStorage.removeItem('paymentCompleted');
+        navigate('/onboarding');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError('Invalid email or password. Please try again.');
       console.error('Login error:', err);

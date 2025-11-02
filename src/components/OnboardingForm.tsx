@@ -3,11 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseService';
 
 interface TimeSlot {
-  id: number;
-  startTime: string;
-  endTime: string;
-  startAmPm: 'AM' | 'PM';
-  endAmPm: 'AM' | 'PM';
+  start_time: string;
+  end_time: string;
 }
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -15,37 +12,66 @@ const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Sat
 const OnboardingForm: React.FC = () => {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
-  const [userType, setUserType] = useState<'doctor' | 'turf' | null>(null);
+  const [userType, setUserType] = useState<'doctor' | 'turf' | 'workout' | 'spa' | null>(null);
   const [bookingSystemType, setBookingSystemType] = useState<'1' | '2' | null>(null);
   const [turfName, setTurfName] = useState('');
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
-    { id: 1, startTime: '', endTime: '', startAmPm: 'AM', endAmPm: 'AM' }
-  ]);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [slotPrice, setSlotPrice] = useState<number>(0);
+  
+  // New availability schedule state
+  const [availabilitySchedule, setAvailabilitySchedule] = useState<{
+    [key: string]: Array<{ start_time: string; end_time: string }>;
+  }>({
+    Monday: [],
+    Tuesday: [],
+    Wednesday: [],
+    Thursday: [],
+    Friday: [],
+    Saturday: [],
+    Sunday: []
+  });
+  const [selectedDay, setSelectedDay] = useState<string>('Monday');
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleUserTypeSelect = (type: 'doctor' | 'turf') => {
+  const handleUserTypeSelect = (type: 'doctor' | 'turf' | 'workout' | 'spa') => {
     setUserType(type);
   };
 
-  const addTimeSlot = () => {
-    const newId = timeSlots.length > 0 ? Math.max(...timeSlots.map(slot => slot.id)) + 1 : 1;
-    setTimeSlots([...timeSlots, { id: newId, startTime: '', endTime: '', startAmPm: 'AM', endAmPm: 'AM' }]);
+  // Add time slot to selected day
+  const addTimeSlot = (day: string) => {
+    setAvailabilitySchedule(prev => ({
+      ...prev,
+      [day]: [...prev[day], { start_time: '', end_time: '' }]
+    }));
   };
 
-  const updateTimeSlot = (id: number, field: keyof TimeSlot, value: string | 'AM' | 'PM') => {
-    setTimeSlots(timeSlots.map(slot => 
-      slot.id === id ? { ...slot, [field]: value } : slot
-    ));
+  // Update time slot
+  const updateTimeSlot = (
+    day: string, 
+    index: number, 
+    field: 'start_time' | 'end_time', 
+    value: string
+  ) => {
+    setAvailabilitySchedule(prev => ({
+      ...prev,
+      [day]: prev[day].map((slot, i) => 
+        i === index ? { ...slot, [field]: value } : slot
+      )
+    }));
   };
 
-  const toggleDay = (day: string) => {
-    setSelectedDays(prev => 
-      prev.includes(day) 
-        ? prev.filter(d => d !== day) 
-        : [...prev, day]
-    );
+  // Remove time slot
+  const removeTimeSlot = (day: string, index: number) => {
+    setAvailabilitySchedule(prev => ({
+      ...prev,
+      [day]: prev[day].filter((_, i) => i !== index)
+    }));
+  };
+
+  // Check if day has slots
+  const isDayActive = (day: string) => {
+    return availabilitySchedule[day]?.length > 0;
   };
 
   const handleNext = () => {
@@ -65,14 +91,27 @@ const OnboardingForm: React.FC = () => {
       return;
     }
     
-    if (step === 4 && timeSlots.some(slot => !slot.startTime || !slot.endTime)) {
-      setError('Please fill in all time slots or remove empty ones');
+    if (step === 4 && slotPrice <= 0) {
+      setError('Please enter a valid slot price');
       return;
     }
     
-    if (step === 5 && selectedDays.length === 0) {
-      setError('Please select at least one day');
-      return;
+    if (step === 5) {
+      // Check if at least one day has time slots
+      const hasAnySlots = Object.values(availabilitySchedule).some(slots => slots.length > 0);
+      if (!hasAnySlots) {
+        setError('Please add at least one time slot for any day');
+        return;
+      }
+      
+      // Check if all time slots are properly filled
+      const hasIncompleteSlots = Object.values(availabilitySchedule).some(slots => 
+        slots.some(slot => !slot.start_time || !slot.end_time)
+      );
+      if (hasIncompleteSlots) {
+        setError('Please fill in all time slots or remove empty ones');
+        return;
+      }
     }
     
     setError(null);
@@ -86,13 +125,42 @@ const OnboardingForm: React.FC = () => {
       setIsSubmitting(true);
       setError(null);
       
-      // Format time slots for storage
-      const formattedTimeSlots = timeSlots.map(slot => ({
-        start_time: `${slot.startTime} ${slot.startAmPm}`,
-        end_time: `${slot.endTime} ${slot.endAmPm}`
-      }));
+      // Format time slots as object with day keys (NEW FORMAT)
+      const timeSlotsObject: { [key: string]: TimeSlot[] } = {};
+      const operatingDays: string[] = [];
       
-      // Store data in Supabase
+      Object.entries(availabilitySchedule).forEach(([day, slots]) => {
+        if (slots.length > 0) {
+          operatingDays.push(day);
+          timeSlotsObject[day] = slots;
+        }
+      });
+      
+      // Call the backend API to save onboarding data
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/onboarding/save-onboarding`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          email: user.email,
+          tenantId: user.tenantId,
+          businessType: userType,
+          businessName: userType === 'turf' ? turfName : null,
+          timeSlots: timeSlotsObject,
+          operatingDays: operatingDays,
+          slotPrice: slotPrice,
+          bookingSystemType: bookingSystemType
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save onboarding data');
+      }
+      
+      // Also store data in Supabase directly as a fallback
       const { error: saveError } = await supabase
         .from('business_profiles')
         .upsert({
@@ -100,15 +168,40 @@ const OnboardingForm: React.FC = () => {
           tenant_id: user.tenantId,
           business_type: userType,
           business_name: userType === 'turf' ? turfName : null,
-          time_slots: formattedTimeSlots,
-          operating_days: selectedDays,
+          time_slots: timeSlotsObject, // Now stored as object instead of array
+          operating_days: operatingDays,
           multiorsinglebooking: bookingSystemType === '1' ? 'single' : 'multi',
+          slot_price: slotPrice,
           onboarding_completed: true
         }, { 
-          onConflict: 'email'  // Specify which column to check for conflicts
+          onConflict: 'email'
         });
       
       if (saveError) throw saveError;
+      
+      // Also save to availability_slots table if needed - COMMENTED OUT DUE TO CONSTRAINT VIOLATION
+      /*
+      const availabilitySlots = Object.entries(availabilitySchedule)
+        .filter(([_, slots]) => slots.length > 0)
+        .flatMap(([day, slots]) => 
+          slots.map(slot => ({
+            tenant_id: user.tenantId,
+            day_of_week: day.toLowerCase(),
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+            slot_price: slotPrice,
+            is_active: true
+          }))
+        );
+      
+      if (availabilitySlots.length > 0) {
+        const { error: slotsError } = await supabase
+          .from('availability_slots')
+          .insert(availabilitySlots);
+        
+        if (slotsError) throw slotsError;
+      }
+      */
       
       // Redirect based on user type
       window.location.href = userType === 'doctor' 
@@ -152,6 +245,30 @@ const OnboardingForm: React.FC = () => {
               >
                 <div className="font-medium text-lg">Turf Owner</div>
                 <p className="text-gray-600 mt-2">Manage sports bookings and facility schedules</p>
+              </button>
+
+              <button
+                className={`p-6 border rounded-lg text-left ${
+                  userType === 'workout' 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onClick={() => handleUserTypeSelect('workout')}
+              >
+                <div className="font-medium text-lg">Health Workout Session</div>
+                <p className="text-gray-600 mt-2">Manage fitness classes and workout schedules</p>
+              </button>
+
+              <button
+                className={`p-6 border rounded-lg text-left ${
+                  userType === 'spa' 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onClick={() => handleUserTypeSelect('spa')}
+              >
+                <div className="font-medium text-lg">Spa</div>
+                <p className="text-gray-600 mt-2">Manage spa treatments and wellness appointments</p>
               </button>
             </div>
           </div>
@@ -204,67 +321,29 @@ const OnboardingForm: React.FC = () => {
             </div>
           </div>
         ) : (
-          // Skip this step for doctors and move to the next
           <>{setStep(4)}</>
         );
         
       case 4:
         return (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-800">What are your booking time slots?</h2>
-            <div className="space-y-4">
-              {timeSlots.map((slot) => (
-                <div key={slot.id} className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center">
-                    <input
-                      type="text"
-                      value={slot.startTime}
-                      onChange={(e) => updateTimeSlot(slot.id, 'startTime', e.target.value)}
-                      placeholder="Start Time"
-                      className="w-24 p-2 border border-gray-300 rounded-md"
-                    />
-                    <select
-                      value={slot.startAmPm}
-                      onChange={(e) => updateTimeSlot(slot.id, 'startAmPm', e.target.value as 'AM' | 'PM')}
-                      className="ml-1 p-2 border border-gray-300 rounded-md"
-                    >
-                      <option value="AM">AM</option>
-                      <option value="PM">PM</option>
-                    </select>
-                  </div>
-                  
-                  <span className="mx-2">to</span>
-                  
-                  <div className="flex items-center">
-                    <input
-                      type="text"
-                      value={slot.endTime}
-                      onChange={(e) => updateTimeSlot(slot.id, 'endTime', e.target.value)}
-                      placeholder="End Time"
-                      className="w-24 p-2 border border-gray-300 rounded-md"
-                    />
-                    <select
-                      value={slot.endAmPm}
-                      onChange={(e) => updateTimeSlot(slot.id, 'endAmPm', e.target.value as 'AM' | 'PM')}
-                      className="ml-1 p-2 border border-gray-300 rounded-md"
-                    >
-                      <option value="AM">AM</option>
-                      <option value="PM">PM</option>
-                    </select>
-                  </div>
-                </div>
-              ))}
-              
-              <button
-                type="button"
-                onClick={addTimeSlot}
-                className="flex items-center text-blue-600 hover:text-blue-800"
-              >
-                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                </svg>
-                Add New Time Slot
-              </button>
+            <h2 className="text-xl font-semibold text-gray-800">Set Your Slot Price</h2>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Slot Price (₹)
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="50"
+                value={slotPrice}
+                onChange={(e) => setSlotPrice(Number(e.target.value))}
+                placeholder="Enter price per slot"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                This is the amount you'll charge for one booking slot
+              </p>
             </div>
           </div>
         );
@@ -272,24 +351,97 @@ const OnboardingForm: React.FC = () => {
       case 5:
         return (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-800">
-              How many days in a week do you want to let customers book appointments?
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {daysOfWeek.map((day) => (
+            <h3 className="text-lg font-semibold">Set Your Availability</h3>
+            
+            {/* Day selection */}
+            <div className="grid grid-cols-7 gap-2">
+              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
                 <button
                   key={day}
-                  type="button"
-                  onClick={() => toggleDay(day)}
-                  className={`p-3 border rounded-md ${
-                    selectedDays.includes(day)
-                      ? 'bg-blue-100 border-blue-500 text-blue-800'
-                      : 'border-gray-300 hover:bg-gray-50'
+                  onClick={() => setSelectedDay(day)}
+                  className={`p-3 rounded-lg border-2 transition-all ${
+                    selectedDay === day
+                      ? 'border-blue-500 bg-blue-50'
+                      : isDayActive(day)
+                      ? 'border-green-400 bg-green-50'
+                      : 'border-gray-300 hover:border-gray-400'
                   }`}
                 >
-                  {day}
+                  <div className="text-xs font-semibold">
+                    {day.substring(0, 3)}
+                  </div>
+                  {isDayActive(day) && (
+                    <div className="text-xs text-green-600 mt-1">
+                      {availabilitySchedule[day].length} slots
+                    </div>
+                  )}
                 </button>
               ))}
+            </div>
+
+            {/* Time slots for selected day */}
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-medium text-gray-900">
+                  {selectedDay} Time Slots
+                </h4>
+                <button
+                  onClick={() => addTimeSlot(selectedDay)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
+                >
+                  <span className="text-xl">+</span>
+                  Add Slot
+                </button>
+              </div>
+
+              {availabilitySchedule[selectedDay].length === 0 ? (
+                <p className="text-gray-500 text-center py-8">
+                  No time slots added for {selectedDay}. Click "Add Slot" to get started.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {availabilitySchedule[selectedDay].map((slot, index) => (
+                    <div key={index} className="flex gap-3 items-center">
+                      <input
+                        type="time"
+                        value={slot.start_time}
+                        onChange={(e) => updateTimeSlot(selectedDay, index, 'start_time', e.target.value)}
+                        className="flex-1 px-3 py-2 border rounded-lg"
+                      />
+                      <span className="text-gray-500">to</span>
+                      <input
+                        type="time"
+                        value={slot.end_time}
+                        onChange={(e) => updateTimeSlot(selectedDay, index, 'end_time', e.target.value)}
+                        className="flex-1 px-3 py-2 border rounded-lg"
+                      />
+                      <button
+                        onClick={() => removeTimeSlot(selectedDay, index)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Summary of all days */}
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <h5 className="font-medium text-blue-900 mb-2">Summary</h5>
+              <div className="text-sm text-blue-800">
+                {Object.entries(availabilitySchedule)
+                  .filter(([_, slots]) => slots.length > 0)
+                  .map(([day, slots]) => (
+                    <div key={day}>
+                      <strong>{day}:</strong> {slots.length} slot(s)
+                    </div>
+                  ))
+                }
+              </div>
             </div>
           </div>
         );
@@ -318,19 +470,29 @@ const OnboardingForm: React.FC = () => {
               )}
               
               <div className="mb-4">
-                <div className="font-medium">Time Slots:</div>
-                <ul className="list-disc list-inside">
-                  {timeSlots.map((slot, index) => (
-                    <li key={index}>
-                      {slot.startTime} {slot.startAmPm} - {slot.endTime} {slot.endAmPm}
-                    </li>
-                  ))}
-                </ul>
+                <div className="font-medium">Slot Price:</div>
+                <div>₹{slotPrice}</div>
               </div>
               
               <div className="mb-4">
-                <div className="font-medium">Operating Days:</div>
-                <div>{selectedDays.join(', ')}</div>
+                <div className="font-medium">Availability Schedule:</div>
+                <div className="text-sm">
+                  {Object.entries(availabilitySchedule)
+                    .filter(([_, slots]) => slots.length > 0)
+                    .map(([day, slots]) => (
+                      <div key={day} className="mb-2">
+                        <strong>{day}:</strong>
+                        <ul className="list-disc list-inside ml-4">
+                          {slots.map((slot, index) => (
+                            <li key={index}>
+                              {slot.start_time} - {slot.end_time}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))
+                  }
+                </div>
               </div>
             </div>
             

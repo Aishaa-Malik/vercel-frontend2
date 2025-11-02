@@ -32,7 +32,6 @@ const SchedulePage: React.FC = () => {
           .from('tenant_integrations')
           .select('integration_data')
           .eq('tenant_id', tenant.id)
-          .eq('integration_type', 'google_calendar')
           .maybeSingle();
 
         if (error) throw error;

@@ -99,7 +99,7 @@ export const getTenantDetails = async (tenantId: string) => {
     const { data, error } = await supabase
       .from('tenants')
       .select('*')
-      .eq('id', '9029a6d1-7d14-45ee-be15-b3cc7dda0ea0')
+      .eq('id', tenantId)
       .maybeSingle(); // Changed from .single() to .maybeSingle()
 
       console.log('DATAAAAA', data);

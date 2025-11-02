@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../services/supabaseService';
 
 // Use Vercel backend URL
 const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/api';
@@ -8,6 +10,7 @@ const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/api';
 const PaymentCallback: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [message, setMessage] = useState('Processing your payment...');
 
@@ -89,22 +92,25 @@ const PaymentCallback: React.FC = () => {
       }
     };
 
-    const handleSuccessfulPayment = (responseData: any) => {
+    const handleSuccessfulPayment = async (responseData: any) => {
       setStatus('success');
       const planName = responseData.plan ? responseData.plan.charAt(0).toUpperCase() + responseData.plan.slice(1) : 'Basic';
-      setMessage(`Payment successful! You are now registered as a Business Admin with the ${planName} plan.`);
+      setMessage(`Payment successful! You are now registered as a Business Admin with the ${planName} plan. Please log in to complete your setup.`);
       
       // Clear the email and plan from localStorage
       localStorage.removeItem('paymentEmail');
       localStorage.removeItem('selectedPlan');
       
-      // Redirect to dashboard after 3 seconds
+      // Store a flag to indicate successful payment for login redirect
+      localStorage.setItem('paymentCompleted', 'true');
+      
+      // Redirect to login page after 3 seconds
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/login');
       }, 3000);
       
       // Log success for debugging
-      console.log('Payment processed successfully, redirecting to dashboard soon');
+      console.log('Payment processed successfully, redirecting to login');
     };
 
     const handleFailedPayment = (errorMessage: string) => {

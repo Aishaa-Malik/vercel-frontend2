@@ -34,7 +34,7 @@ const OAuthCallback: React.FC = () => {
           setStatus('error');
           setMessage('Authentication failed.');
           setTimeout(() => {
-            const basePath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
+            const basePath = window.location.href.includes('turf') ? '/healthwellness-dashboard' : '/dashboard';
             navigate(`${basePath}?error=oauth_failed`, { replace: true });
           }, 2000);
           return;
@@ -48,10 +48,76 @@ const OAuthCallback: React.FC = () => {
           await loginFromSession(session.access_token, session.user);
           
           setStatus('success');
-          setMessage('Login successful! Redirecting...');
-          setTimeout(() => {
-            navigate('/dashboard', { replace: true });
-          }, 1000);
+          setMessage('Login successful! Checking your account status...');
+          
+          // Check onboarding status before navigation
+          try {
+            console.log('Checking onboarding status for Google OAuth user...');
+           // const REACT_APP_BACKEND_URL = 'http://localhost:5001'; // Hardcoded for testing
+
+            // Fix the URL to match the backend route structure
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/user/onboarding-status`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json',
+                // Add cache control to prevent caching issues
+                'Cache-Control': 'no-cache, no-store',
+                'Pragma': 'no-cache'
+              },
+            });
+
+            console.log('Onboarding response:', response);
+            console.log('Onboarding status response status:', response.status);
+            console.log('Onboarding status response headers:', response.headers);
+
+            if (response.ok) {
+              const responseText = await response.text();
+              console.log('Response was:', responseText);
+              
+              // Try to parse as JSON, if it fails, handle the error gracefully
+               let data;
+               try {
+                 data = JSON.parse(responseText);
+               } catch (jsonError) {
+                 console.error('Response is not valid JSON:', jsonError);
+                 setStatus('error');
+                 setMessage('Server returned invalid data. Please try again later.');
+                 return;
+               }
+              
+              console.log('Onboarding status response:', data);
+              
+              const needsOnboarding = data.needsOnboarding;
+              console.log(`User needs onboarding: ${needsOnboarding}`, needsOnboarding);
+              
+              setTimeout(() => {
+                if (needsOnboarding) {
+                  console.log('Redirecting to onboarding page');
+                  navigate('/onboarding', { replace: true });
+                } else {
+                  console.log('Redirecting to dashboard');
+                  navigate('/dashboard', { replace: true });
+                }
+              }, 1000);
+            } else {
+              console.error('Failed to check onboarding status:', response.status);
+              const errorText = await response.text();
+              console.error('Error response:', errorText);
+              // Default to onboarding if API call fails
+              setTimeout(() => {
+                console.log('Defaulting to onboarding due to API error');
+                navigate('/onboarding', { replace: true });
+              }, 1000);
+            }
+          } catch (error) {
+            console.error('Error checking onboarding status:', error);
+            // Default to onboarding if API call fails
+            setTimeout(() => {
+              console.log('Defaulting to onboarding due to network error');
+              navigate('/onboarding', { replace: true });
+            }, 1000);
+          }
           return;
         }
 
@@ -104,7 +170,7 @@ const OAuthCallback: React.FC = () => {
             
             // Redirect after success with delay
             setTimeout(() => {
-              const basePath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
+              const basePath = window.location.href.includes('turf') ? '/healthwellness-dashboard' : '/dashboard';
               navigate(`${basePath}?connected=google_calendar`, { replace: true });
             }, 1500);
             
@@ -122,7 +188,7 @@ const OAuthCallback: React.FC = () => {
             }
             
             setTimeout(() => {
-              const redirectPath = window.location.href.includes('turf') ? '/turf-dashboard' : '/dashboard';
+              const redirectPath = window.location.href.includes('turf') ? '/healthwellness-dashboard' : '/dashboard';
               navigate(`${redirectPath}?error=calendar_integration_failed`, { replace: true });
             }, 3000);
           }
@@ -142,7 +208,7 @@ const OAuthCallback: React.FC = () => {
         setMessage('An unexpected error occurred during authentication.');
         
         setTimeout(() => {
-          const redirectPath = window.location.href.includes('turf') ? '/turf-dashboard' : '/login';
+          const redirectPath = window.location.href.includes('turf') ? '/healthwellness-dashboard' : '/login';
           navigate(`${redirectPath}?error=callback_handler_failed`, { replace: true });
         }, 2000);
       }

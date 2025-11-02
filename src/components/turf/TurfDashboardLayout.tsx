@@ -23,12 +23,12 @@ const TurfDashboardLayout: React.FC = () => {
   }, [location.pathname]);
 
   const navigation: NavItem[] = [
-    { name: 'Dashboard', href: '/turf-dashboard', icon: 'home' },
-    { name: 'Bookings', href: '/turf-dashboard/bookings', icon: 'calendar' },
-    { name: 'Schedule', href: '/turf-dashboard/schedule', icon: 'clock' },
-    { name: 'User Management', href: '/turf-dashboard/users', icon: 'calendar' },
-    { name: 'Revenue', href: '/turf-dashboard/revenue', icon: 'chart-bar' },
-    { name: 'Settings', href: '/turf-dashboard/settings', icon: 'cog' },
+    { name: 'Dashboard', href: '/healthwellness-dashboard', icon: 'home' },
+    { name: 'Bookings', href: '/healthwellness-dashboard/bookings', icon: 'calendar' },
+    { name: 'Schedule', href: '/healthwellness-dashboard/schedule', icon: 'clock' },
+    { name: 'User Management', href: '/healthwellness-dashboard/users', icon: 'calendar' },
+    { name: 'Revenue', href: '/healthwellness-dashboard/revenue', icon: 'chart-bar' },
+    { name: 'Settings', href: '/healthwellness-dashboard/settings', icon: 'cog' },
   ];
 
   const isActive = (path: string) => {
@@ -115,7 +115,7 @@ const TurfDashboardLayout: React.FC = () => {
             </div>
             <div className="flex-1 h-0 pt-4 pb-3 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-3">
-                <span className="text-lg font-bold text-white">Turf Dashboard</span>
+                <span className="text-lg font-bold text-white">Dashboard</span>
               </div>
               <nav className="mt-4 px-2 space-y-1">
                 {navigation.map((item) => (
@@ -191,7 +191,7 @@ const TurfDashboardLayout: React.FC = () => {
         <div className="flex-1 flex flex-col min-h-0 border border-gray-700 bg-black bg-opacity-70 backdrop-blur-md rounded-3xl text-white">
           <div className="flex-1 flex flex-col pt-4 pb-3 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-3">
-              <span className="text-lg font-bold text-white">Turf Dashboard</span>
+              <span className="text-lg font-bold text-white">Dashboard</span>
             </div>
             <nav className="mt-4 flex-1 px-2 space-y-1">
               {navigation.map((item) => (

@@ -19,7 +19,7 @@ const TurfEmployeeDashboardLayout: React.FC = () => {
   };
 
   // Determine if we're on the dashboard home page
-  const isHomePage = location.pathname === '/turf-dashboard/employee';
+  const isHomePage = location.pathname === '/healthwellness-dashboard/employee';
 
   const renderIcon = (iconName: string) => {
     switch (iconName) {
@@ -97,7 +97,7 @@ const TurfEmployeeDashboardLayout: React.FC = () => {
           {/* Sidebar Header */}
           <div className="flex items-center justify-between px-3 py-4 border-b">
             {isSidebarOpen ? (
-              <h2 className="text-lg font-bold">Turf Dashboard</h2>
+              <h2 className="text-lg font-bold">Dashboard</h2>
             ) : (
               <h2 className="text-lg font-bold">TD</h2>
             )}
@@ -112,7 +112,7 @@ const TurfEmployeeDashboardLayout: React.FC = () => {
           {/* Sidebar Navigation */}
           <nav className="flex-1 px-2 py-3">
             <Link
-              to="/turf-dashboard/employee"
+              to="/healthwellness-dashboard/employee"
               className={`flex items-center px-3 py-2 mb-2 rounded-md ${
                 isHomePage
                   ? 'bg-blue-100 text-blue-700'
@@ -125,7 +125,7 @@ const TurfEmployeeDashboardLayout: React.FC = () => {
               {isSidebarOpen && <span className="text-sm">Dashboard</span>}
             </Link>
             <Link
-              to="/turf-dashboard/employee/bookings"
+              to="/healthwellness-dashboard/employee/bookings"
               className={`flex items-center px-3 py-2 mb-2 rounded-md ${
                 location.pathname.includes('/employee/bookings')
                   ? 'bg-blue-100 text-blue-700'
@@ -138,7 +138,7 @@ const TurfEmployeeDashboardLayout: React.FC = () => {
               {isSidebarOpen && <span className="text-sm">Bookings</span>}
             </Link>
             <Link
-              to="/turf-dashboard/employee/schedule"
+              to="/healthwellness-dashboard/employee/schedule"
               className={`flex items-center px-3 py-2 mb-2 rounded-md ${
                 location.pathname.includes('/employee/schedule')
                   ? 'bg-blue-100 text-blue-700'
@@ -151,7 +151,7 @@ const TurfEmployeeDashboardLayout: React.FC = () => {
               {isSidebarOpen && <span className="text-sm">Schedule</span>}
             </Link>
             {/* <Link
-              to="/turf-dashboard/employee/revenue"
+              to="/healthwellness-dashboard/employee/revenue"
               className={`flex items-center px-3 py-2 mb-2 rounded-md ${
                 location.pathname.includes('/employee/revenue')
                   ? 'bg-blue-100 text-blue-700'

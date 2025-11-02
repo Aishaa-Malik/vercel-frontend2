@@ -68,16 +68,16 @@ export const getSettingsConfig = (serviceType: ServiceType): SettingsConfig => {
           accentColor: 'green-600',
           backgroundColor: 'green-50'
         },
-        integrations: [
-          ...baseConfig.integrations,
-          {
-            type: 'whatsapp' as const,
-            name: 'WhatsApp Business',
-            description: 'Connect WhatsApp Business for customer notifications and booking confirmations.',
-            icon: <div className="w-5 h-5 mr-2 bg-green-500 rounded"></div>,
-            isConnected: false,
-          }
-        ]
+        // integrations: [
+        //   ...baseConfig.integrations,
+        //   {
+        //     type: 'whatsapp' as const,
+        //     name: 'WhatsApp Business',
+        //     description: 'Connect WhatsApp Business for customer notifications and booking confirmations.',
+        //     icon: <div className="w-5 h-5 mr-2 bg-green-500 rounded"></div>,
+        //     isConnected: false,
+        //   }
+       // ]
       };
 
     case 'spa':

@@ -45,47 +45,75 @@ const OnboardingCheck = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
-      if (!user?.id) return;
+      if (!user?.id || !user?.email) {
+        console.log("User ID or email not available, skipping onboarding check");
+        setIsLoading(false);
+        return;
+      }
       
       // Use environment utility to get the appropriate API URL
       const { getApiUrl } = await import('./utils/environmentUtils');
       const BACKEND_API_URL = getApiUrl();
       
       try {
-        console.log("Fetching onboarding status for user:", user.id);
+        console.log("========= ONBOARDING CHECK STARTED =========");
+        console.log("Fetching onboarding status for user:", user.id, "email:", user.email);
+        
         const response = await fetch(`${BACKEND_API_URL}/check-onboarding?email=${user.email}&userId=${user.id}`);
 
-        console.log("Onboarding check response:", response);
         console.log("Onboarding check response status:", response.status);
-        const { data, error } = await response.json();
-        console.log("data", data);
+        console.log("Onboarding check  response response response response:", response);
+        const responseData = await response.json();
+        console.log("Onboarding check response data:", responseData);
         
-        if (error) throw error;
-        setNeedsOnboarding(data?.needsOnboarding || false);
-        console.log("data", data);
-        console.log("needsOnboarding", data?.needsOnboarding);
+        if (responseData.error) {
+          throw new Error(responseData.error);
+        }
+        
+        const needsOnboardingValue = responseData.data?.needsOnboarding;
+        console.log("needsOnboarding value from backend:", needsOnboardingValue);
+        
+        // Force convert to boolean to ensure consistent behavior
+        setNeedsOnboarding(needsOnboardingValue === true);
+        
+        // Log the decision
+        if (needsOnboardingValue) {
+          console.log("✅ User needs onboarding - will redirect to /onboarding");
+        } else {
+          console.log("✅ User has completed onboarding - will show dashboard");
+        }
+        
       } catch (err) {
-        console.error('Error checking onboarding status:', err);
+        console.error('❌ Error checking onboarding status:', err);
         // Default to not needing onboarding if there's an error
         setNeedsOnboarding(false);
+        console.log("⚠️ Defaulting to no onboarding needed due to error");
       } finally {
         setIsLoading(false);
+        console.log("========= ONBOARDING CHECK COMPLETED =========");
       }
     };
     
     checkOnboardingStatus();
-    console.log("needsOnboarding", needsOnboarding);
-    // Add a more visible log to track when the check is performed
-    console.log("========= ONBOARDING CHECK PERFORMED =========");
-  }, [user?.id]);
+  }, [user?.id, user?.email]);
   
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Checking your account status...</p>
+        </div>
+      </div>
+    );
+  }
   
-  if (needsOnboarding) {
-    console.log("needsOnboarding", needsOnboarding);
+  if (needsOnboarding === true) {
+    console.log("🔄 Redirecting to onboarding page");
     return <Navigate to="/onboarding" replace />;
   }
   
+  console.log("🔄 Showing dashboard content");
   return <>{children}</>;
 };
 
@@ -169,7 +197,7 @@ function App() {
 
             {/* Turf Owner Dashboard Routes */}
             <Route
-              path="/turf-dashboard"
+              path="/healthwellness-dashboard"
               element={
                 <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER]}>
                   <OnboardingCheck>
@@ -188,7 +216,7 @@ function App() {
             
             {/* Turf Employee Dashboard Routes */}
             <Route
-              path="/turf-dashboard/employee"
+              path="/healthwellness-dashboard/employee"
               element={
                 <ProtectedRoute requiredRoles={[UserRole.BUSINESS_OWNER, UserRole.EMPLOYEE]}>
                   <OnboardingCheck>

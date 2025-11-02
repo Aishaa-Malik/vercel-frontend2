@@ -1997,6 +1997,29 @@ textarea.w-input, textarea.w-select {
 
 .w-tab-menu {
   position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #c8c8c8 transparent;
+}
+
+.w-tab-menu::-webkit-scrollbar {
+  height: 6px;
+}
+
+.w-tab-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.w-tab-menu::-webkit-scrollbar-thumb {
+  background-color: #c8c8c8;
+  border-radius: 3px;
+}
+
+.w-tab-menu::-webkit-scrollbar-thumb:hover {
+  background-color: #aaa;
 }
 
 .w-tab-link {
@@ -2009,6 +2032,8 @@ textarea.w-input, textarea.w-select {
   text-decoration: none;
   display: inline-block;
   position: relative;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .w-tab-link.w--current {
@@ -6153,6 +6178,29 @@ figure {
   align-items: center;
   margin-bottom: 54px;
   display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #c8c8c8 transparent;
+}
+
+.price-tab-menu::-webkit-scrollbar {
+  height: 6px;
+}
+
+.price-tab-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.price-tab-menu::-webkit-scrollbar-thumb {
+  background-color: #c8c8c8;
+  border-radius: 3px;
+}
+
+.price-tab-menu::-webkit-scrollbar-thumb:hover {
+  background-color: #aaa;
 }
 
 .free-triel-wrap {

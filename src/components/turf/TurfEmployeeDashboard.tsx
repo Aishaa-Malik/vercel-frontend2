@@ -41,17 +41,17 @@ const TurfEmployeeDashboard: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <Link to="/turf-dashboard/employee/bookings">
+            <Link to="/healthwellness-dashboard/employee/bookings">
               <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-300">
                 View Appointments
               </button>
             </Link>
-            {/* <Link to="/turf-dashboard/employee/revenue">
+            {/* <Link to="/healthwellness-dashboard/employee/revenue">
               <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition-colors duration-300">
                 View Revenue
               </button>
             </Link> */}
-            {/* <Link to="/turf-dashboard/employee/users">
+            {/* <Link to="/healthwellness-dashboard/employee/users">
               <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded transition-colors duration-300">
                 Manage Staff
               </button>

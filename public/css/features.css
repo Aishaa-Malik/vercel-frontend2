@@ -125,17 +125,7 @@
     line-height: 1.4;
   }
 
-  .lenis.lenis-smooth [data-lenis-prevent] {
-    overscroll-behavior: contain;
-  }
-  
-  .lenis.lenis-stopped {
-    overflow: clip;
-  }
-  
-  .lenis.lenis-smooth iframe {
-    pointer-events: none;
-  }
+  /* Lenis-related classes removed */
   
   @media (max-width: 900px) {
     .features-card {

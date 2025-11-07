@@ -27,7 +27,6 @@ if (window.gsap && window.ScrollTrigger) {
 
 document.addEventListener("DOMContentLoaded", () => {
   if (window.innerWidth >= 900) {
-    const lenis = new Lenis();
     const videoContainer = document.querySelector(".hero-img");
 
     // Add null check for videoContainer
@@ -36,12 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    lenis.on("scroll", ScrollTrigger.update);
-
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
-
+    // Lenis removed: rely on native scroll behavior
     gsap.ticker.lagSmoothing(0);
 
     const breakpoints = [

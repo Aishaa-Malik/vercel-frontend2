@@ -11,16 +11,9 @@ try {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // lenis smooth scroll
-  if (window.Lenis) {
-    const lenis = new window.Lenis();
-    if (window.ScrollTrigger) lenis.on("scroll", window.ScrollTrigger.update);
-    if (window.gsap) {
-      window.gsap.ticker.add((time) => {
-        lenis.raf(time * 1000);
-      });
-      window.gsap.ticker.lagSmoothing(0);
-    }
+  // Lenis removed: use native smooth scrolling
+  if (window.gsap && window.ScrollTrigger) {
+    window.gsap.ticker?.lagSmoothing?.(0);
   }
 
   // time and date
@@ -422,10 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
           break;
       }
 
-      window.lenis.scrollTo(scrollTarget, {
-        duration: 2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      });
+      window.scrollTo({ top: scrollTarget, behavior: "smooth" });
     });
   });
 });

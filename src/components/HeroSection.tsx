@@ -56,16 +56,6 @@ const HeroSection: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Setup Lenis for smooth scrolling if available
-    if (window.Lenis) {
-      const lenis = new window.Lenis();
-      lenis.on("scroll", ScrollTrigger.update);
-      gsap.ticker.add((time: number) => {
-        lenis.raf(time * 1000);
-      });
-      gsap.ticker.lagSmoothing(0);
-    }
-
     // Get references to DOM elements
     const animatedIcons = animatedIconsRef.current;
     const heroHeader = heroHeaderRef.current;

@@ -6,7 +6,6 @@ import './App.css';
 
 // Components
 import Header from './components/Header';
-import LandingPage3 from './components/LandingPage3';
 import LoginPage from './components/LoginPage';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardHome from './components/dashboard/DashboardHome';
@@ -22,7 +21,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import UnauthorizedPage from './components/UnauthorizedPage';
 import UpdatePassword from './components/UpdatePassword';
 import OnboardingForm from './components/OnboardingForm';
-
+import LandingPage3 from './components/LandingPage3';
+import AboutPage from './components/AboutPage';
+import ContactUs from './components/ContactUs';
 
 // Turf owner components
 import TurfDashboardLayout from './components/turf/TurfDashboardLayout';
@@ -125,6 +126,8 @@ function App() {
         <div className="App">
           <Routes>
             <Route path="/" element={<LandingPage3 />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactUs />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/oauth/callback" element={<OAuthCallback/>} />
             <Route path="/payment-callback" element={<PaymentCallback />} />

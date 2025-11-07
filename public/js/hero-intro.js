@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // At the top of each JS file that needs these libraries
   const { gsap, ScrollTrigger } = window;
-  const Lenis = window.Lenis;
   const THREE = window.THREE;
   const VANTA = window.VANTA;
  gsap.registerPlugin(ScrollTrigger);

@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // At the top of each JS file that needs these libraries
 const { gsap, ScrollTrigger } = window;
-const Lenis = window.Lenis;
 const THREE = window.THREE;
 const VANTA = window.VANTA;
 
@@ -14,11 +13,7 @@ const VANTA = window.VANTA;
 gsap.to(".element", { opacity: 1 });
 
   gsap.registerPlugin(ScrollTrigger);
-  
-  lenis.on("scroll", ScrollTrigger.update);
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
+  // Lenis removed: rely on native scroll and ScrollTrigger
   gsap.ticker.lagSmoothing(0);
 
   const animatedIcons = document.querySelector(".hero-animated-icons");

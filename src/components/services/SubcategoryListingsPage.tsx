@@ -26,9 +26,9 @@ const subcategoryListings: Record<string, Record<string, Listing[]>> = {
     'fun-workout': [
       { id: 'fw-1', name: 'Fit and Gold Gym', location: 'Raja Park', thumb: '/fng.png', details: 'Gym' },
       { id: 'fw-2', name: 'Group NATURE Fun workout', location: 'Bhagat Singh Park · Raja Park', thumb: '/parkyoga.jpg', details: 'Group workout' },
-      { id: 'fw-3', name: 'Group workout & MUSICAL YOGA', location: 'Central Park', thumb: '/images/services/service-2.jpg', details: 'Musical yoga' },
-      { id: 'fw-4', name: 'Eco Fitness dance', location: 'Central Park', thumb: '/images/services/service-3.jpg', details: 'Eco fitness dance' },
-      { id: 'fw-5', name: 'RELAXING MEDITATION IN NATURE', location: 'Central Park', thumb: '/images/services/service-4.jpg', details: 'Meditation' },
+      { id: 'fw-3', name: 'Group workout & MUSICAL YOGA', location: 'Central Park', thumb: '/yoga.png', details: 'Musical yoga' },
+      { id: 'fw-4', name: 'Eco Fitness dance', location: 'Central Park', thumb: '/dancecp.png', details: 'Eco fitness dance' },
+      { id: 'fw-5', name: 'RELAXING MEDITATION IN NATURE', location: 'Central Park', thumb: '/meditation.png', details: 'Meditation' },
       { id: 'fw-6', name: 'Sweatbox Gym', location: 'Raja Park', thumb: '/images/work-items/work-item-6.jpg', details: 'Gym' },
       { id: 'fw-7', name: 'Fit Arena Gym', location: 'Vidyadarnagar', thumb: '/images/work-items/work-item-5.jpg', details: 'Gym' },
     ],

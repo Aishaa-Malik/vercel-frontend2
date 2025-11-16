@@ -150,7 +150,7 @@ const LandingPage3: React.FC = () => {
         </section>
 
         <section className="relative min-h-screen flex items-center justify-center text-center text-white">
-          <img src="/yello.png" alt="Fun Workout" className="absolute inset-0 w-full h-full object-cover" />
+          <img src="/parkyoga.jpg" alt="Fun Workout" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative z-10 max-w-4xl px-6">
             <h2

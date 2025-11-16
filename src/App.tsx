@@ -24,6 +24,10 @@ import OnboardingForm from './components/OnboardingForm';
 import LandingPage3 from './components/LandingPage3';
 import AboutPage from './components/AboutPage';
 import ContactUs from './components/ContactUs';
+import ServicesDirectoryPage from './components/services/ServicesDirectoryPage';
+import CategoryListingsPage from './components/services/CategoryListingsPage';
+import SubcategoryListingsPage from './components/services/SubcategoryListingsPage';
+import ListingProfilePage from './components/services/ListingProfilePage';
 
 // Turf owner components
 import TurfDashboardLayout from './components/turf/TurfDashboardLayout';
@@ -136,6 +140,13 @@ function App() {
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
             
+            {/* Public Services Directory */}
+            <Route path="/services" element={<ServicesDirectoryPage />} />
+            <Route path="/services/:category" element={<CategoryListingsPage />} />
+            <Route path="/services/:category/:subcategory" element={<SubcategoryListingsPage />} />
+            <Route path="/services/:category/:id" element={<ListingProfilePage />} />
+            <Route path="/services/:category/:subcategory/:id" element={<ListingProfilePage />} />
+
             {/* Onboarding Route */}
             <Route 
               path="/onboarding" 

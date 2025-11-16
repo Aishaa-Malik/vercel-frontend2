@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const LandingPage3: React.FC = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
-  const WHATSAPP_BOOK_URL = 'https://api.whatsapp.com/send/?phone=919351504729&text=Hi&type=phone_number&app_absent=0';
+  const WHATSAPP_BOOK_URL = 'https://api.whatsapp.com/send/?phone=918619439126&text=Hi&type=phone_number&app_absent=0';
 
   const services = [
     {
@@ -102,6 +102,7 @@ const LandingPage3: React.FC = () => {
           <nav className="flex items-center gap-6">
             <Link to="/about" className="text-sm text-gray-200 hover:text-white">About Us</Link>
             <Link to="/contact" className="text-sm text-gray-200 hover:text-white">Contact Us</Link>
+            <Link to="/services" className="text-sm px-3 py-1 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition">SEE ALL SERVICES</Link>
           </nav>
         </div>
       </header>
@@ -115,6 +116,16 @@ const LandingPage3: React.FC = () => {
 
           {/* Content */}
           <div className="relative z-10 max-w-5xl px-6">
+            <div className="mb-6">
+              <Link
+                to="/services/gyms/fun-workout"
+                className="inline-block px-6 py-4 rounded-2xl bg-yellow-400/30 border border-yellow-300 text-black font-extrabold text-xl md:text-2xl shadow-xl backdrop-blur hover:bg-yellow-400/50 hover:shadow-2xl transition"
+                style={{ fontFamily: 'League Spartan, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif' }}
+              >
+                {/* <span className="block">Try TORI TO BOOK ANY SERVICE IN 10 SEC</span> */}
+                <span className="block text-base md:text-lg">CLICK HERE to Book FUN NATURE WORKOUT & Indoor Workout WITHOUT buying ANY MEMBERSHIP</span>
+              </Link>
+            </div>
             <img
               src="/logo1.png"
               alt="Tori logo"
@@ -127,13 +138,35 @@ const LandingPage3: React.FC = () => {
             </p>
             <div className="mt-8">
               <a
-                href="https://api.whatsapp.com/send/?phone=919351504729&text=Hi&type=phone_number&app_absent=0"
+                href="https://api.whatsapp.com/send/?phone=918619439126&text=Hi&type=phone_number&app_absent=0"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block px-6 py-3 rounded-full bg-white/10 border border-white/30 backdrop-blur hover:bg-white/20 transition"
               >
                 Try TORI TO BOOK ANY SERVICE IN 10 SEC
               </a>
+            </div>
+          </div>
+        </section>
+
+        <section className="relative min-h-screen flex items-center justify-center text-center text-white">
+          <img src="/yello.png" alt="Fun Workout" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative z-10 max-w-4xl px-6">
+            <h2
+              className="text-3xl md:text-5xl font-extrabold"
+              style={{ fontFamily: 'League Spartan, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif' }}
+            >
+              Click to Book Fun workout session, indoor and outdoor WITHOUT buying ANY gym MEMBERSHIP
+            </h2>
+            <div className="mt-8">
+              <Link
+                to="/services/gyms/fun-workout"
+                className="inline-block px-6 py-4 rounded-2xl bg-yellow-400/30 border border-yellow-300 text-black font-extrabold text-xl shadow-xl backdrop-blur hover:bg-yellow-400/50 hover:shadow-2xl transition"
+                style={{ fontFamily: 'League Spartan, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif' }}
+              >
+                Explore Fun Workouts
+              </Link>
             </div>
           </div>
         </section>
@@ -148,7 +181,7 @@ const LandingPage3: React.FC = () => {
 NO TIME WASTAGE IN Downloading ANY 3rd party Apps required by You or Your Customers, NO sign‑up, OTP that’ll IRRITATE them to DROP BOOKING YOUR session</p>
             <div className="mt-8">
               <a
-                href="https://api.whatsapp.com/send/?phone=919351504729&text=Hi&type=phone_number&app_absent=0"
+                href="https://api.whatsapp.com/send/?phone=918619439126&text=Hi&type=phone_number&app_absent=0"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block px-6 py-3 rounded-full bg-white/10 border border-white/30 hover:bg-white/20 transition"

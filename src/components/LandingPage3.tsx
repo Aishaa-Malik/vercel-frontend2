@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const LandingPage3: React.FC = () => {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
-  const WHATSAPP_BOOK_URL = 'https://api.whatsapp.com/send/?phone=918619439126&text=Hi&type=phone_number&app_absent=0';
+  const WHATSAPP_BOOK_URL = 'https://api.whatsapp.com/send/?phone=919351504729&text=Hi&type=phone_number&app_absent=0';
 
   const services = [
     {
@@ -138,7 +138,7 @@ const LandingPage3: React.FC = () => {
             </p>
             <div className="mt-8">
               <a
-                href="https://api.whatsapp.com/send/?phone=918619439126&text=Hi&type=phone_number&app_absent=0"
+                href="https://api.whatsapp.com/send/?phone=919351504729&text=Hi&type=phone_number&app_absent=0"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block px-6 py-3 rounded-full bg-white/10 border border-white/30 backdrop-blur hover:bg-white/20 transition"
@@ -181,7 +181,7 @@ const LandingPage3: React.FC = () => {
 NO TIME WASTAGE IN Downloading ANY 3rd party Apps required by You or Your Customers, NO sign‑up, OTP that’ll IRRITATE them to DROP BOOKING YOUR session</p>
             <div className="mt-8">
               <a
-                href="https://api.whatsapp.com/send/?phone=918619439126&text=Hi&type=phone_number&app_absent=0"
+                href="https://api.whatsapp.com/send/?phone=919351504729&text=Hi&type=phone_number&app_absent=0"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block px-6 py-3 rounded-full bg-white/10 border border-white/30 hover:bg-white/20 transition"

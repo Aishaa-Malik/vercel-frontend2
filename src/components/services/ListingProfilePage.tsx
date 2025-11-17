@@ -191,7 +191,7 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
       },
       'fw-6': {
         name: 'Sweatbox Gym',
-        images: ['/images/work-items/work-item-6.jpg'],
+        images: ['https://lh3.googleusercontent.com/p/AF1QipN4ORSvcvxZBpkSg9dTOlbslHFrhRgmKH1CVwgl=s1360-w1360-h1020-rw'],
         description: 'Local gym with functional training and machines.',
         facilities: ['Weights', 'Cross-training', 'Trainer'],
         hours: '6 AM – 10 PM',
@@ -200,7 +200,7 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
       },
       'fw-7': {
         name: 'Fit Arena Gym',
-        images: ['/images/work-items/work-item-5.jpg'],
+        images: ['https://img.fitimg.in/studio_profile_46256E619E41BE.png'],
         description: 'Gym with modern equipment and spacious floor.',
         facilities: ['Weights', 'Cardio', 'Lockers'],
         hours: '6 AM – 10 PM',

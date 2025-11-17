@@ -29,8 +29,8 @@ const subcategoryListings: Record<string, Record<string, Listing[]>> = {
       { id: 'fw-3', name: 'Group workout & MUSICAL YOGA', location: 'Central Park', thumb: '/yoga.png', details: 'Musical yoga' },
       { id: 'fw-4', name: 'Eco Fitness dance', location: 'Central Park', thumb: '/dancecp.png', details: 'Eco fitness dance' },
       { id: 'fw-5', name: 'RELAXING MEDITATION IN NATURE', location: 'Central Park', thumb: '/meditation.png', details: 'Meditation' },
-      { id: 'fw-6', name: 'Sweatbox Gym', location: 'Raja Park', thumb: '/images/work-items/work-item-6.jpg', details: 'Gym' },
-      { id: 'fw-7', name: 'Fit Arena Gym', location: 'Vidyadarnagar', thumb: '/images/work-items/work-item-5.jpg', details: 'Gym' },
+      { id: 'fw-6', name: 'Sweatbox Gym', location: 'Raja Park', thumb: 'https://lh3.googleusercontent.com/p/AF1QipN4ORSvcvxZBpkSg9dTOlbslHFrhRgmKH1CVwgl=s1360-w1360-h1020-rw', details: 'Gym' },
+      { id: 'fw-7', name: 'Fit Arena Gym', location: 'Vidyadarnagar', thumb: 'https://img.fitimg.in/studio_profile_46256E619E41BE.png', details: 'Gym' },
     ],
   },
 };

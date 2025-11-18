@@ -161,8 +161,8 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
         images: ['/parkyoga.jpg', 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.touristplaces.net.in%2Fjaipur-rj%2Fshaheed-bhagat-singh-park%2F&psig=AOvVaw13k2g-sFN2hBaJ_AL7BVjt&ust=1763377849745000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCPCJmMXE9pADFQAAAAAdAAAAABAE'],
         description: 'Outdoor group workout in nature at Bhagat Singh Park.',
         facilities: ['Outdoor', 'Group', 'Bodyweight', 'REFRESHMENTS'],
-        hours: '7 AM – 8 AM',
-        pricing: '₹149 per session',
+        hours: '7 AM – 9 AM',
+        pricing: '₹99 per session [2 hrs]',
         contact: { phone: '+91 8619439126', address: 'Bhagat Singh Park · Raja Park' },
       },
       'fw-3': {

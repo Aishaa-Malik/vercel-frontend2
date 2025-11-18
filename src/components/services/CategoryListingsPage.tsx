@@ -20,6 +20,14 @@ const gymsSubcategories: ServiceCategory[] = [
   { id: 'fun-workout', name: 'Fun Workout', slug: 'gyms/fun-workout', description: 'Group workouts and yoga in parks', image: '/parkyoga.jpg' },
 ];
 
+const doctorsSubcategories: ServiceCategory[] = [
+  { id: 'physiotherapy', name: 'Physiotherapy', slug: 'doctors/physiotherapy', description: 'Sessions and home visits', image: 'https://rehabindia.org/blog/wp-content/uploads/2024/06/chronic-pain.jpg' },
+  { id: 'mental-health-session', name: 'Mental Health Session', slug: 'doctors/mental-health-session', description: 'Therapy and counseling', image: 'https://www.iahv.org/wp-content/uploads/2012/04/Sri-Sri-Ravi-Shankar1.jpg' },
+  { id: 'general-physician', name: 'General Physician & Other', slug: 'doctors/general-physician', description: 'Clinics and OPD', image: '/doctor.jpg' },
+  { id: 'ayurveda', name: 'Ayurveda', slug: 'doctors/ayurveda', description: 'Traditional care and therapies', image: 'https://cdn.narendramodi.in/cmsuploads/0.73877400_1523541569_attachref.png' },
+  { id: 'emergency-ambulance-booking', name: 'Emergency Ambulance Booking', slug: 'doctors/emergency-ambulance-booking', description: '24x7 ambulance services', image: '/images/services/service-3.jpg' },
+];
+
 const readableNames: Record<string, string> = {
   'sports-venues': 'Sports Venues',
   'healthcare-centres': 'Healthcare Centres',
@@ -48,6 +56,12 @@ const CategoryListingsPage: React.FC = () => {
         ) : category === 'gyms' ? (
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {gymsSubcategories.map((s) => (
+              <ServiceCategoryCard key={s.id} category={s} />
+            ))}
+          </div>
+        ) : category === 'doctors' ? (
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {doctorsSubcategories.map((s) => (
               <ServiceCategoryCard key={s.id} category={s} />
             ))}
           </div>

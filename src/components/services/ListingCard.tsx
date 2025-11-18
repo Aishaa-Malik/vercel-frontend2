@@ -7,6 +7,9 @@ export type Listing = {
   location: string;
   thumb: string;
   details: string;
+  ratingScore?: number;
+  ratingCount?: number;
+  mapUrl?: string;
 };
 
 type Props = {
@@ -32,6 +35,11 @@ const ListingCard: React.FC<Props> = ({ listing, categorySlug, subcategorySlug }
       <div className="p-4">
         <h3 className="text-lg font-semibold">{listing.name}</h3>
         <p className="text-sm text-gray-600">{listing.location}</p>
+        {typeof listing.ratingScore === 'number' && typeof listing.ratingCount === 'number' && (
+          <p className="mt-1 text-sm text-gray-800">
+            {listing.ratingScore.toFixed(1)} ★ ({listing.ratingCount})
+          </p>
+        )}
         <p className="mt-2 text-sm text-gray-700">{listing.details}</p>
       </div>
     </Link>

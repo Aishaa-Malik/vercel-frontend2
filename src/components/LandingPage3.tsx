@@ -171,6 +171,27 @@ const LandingPage3: React.FC = () => {
           </div>
         </section>
 
+        <section className="relative min-h-screen flex items-center justify-center text-center text-white">
+          <img src="/doctor.jpg" alt="Find Doctors" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative z-10 max-w-4xl px-6">
+            <div
+              className="inline-block px-6 py-5 rounded-2xl bg-yellow-400/30 border border-yellow-300 text-black font-extrabold text-2xl md:text-4xl shadow-xl backdrop-blur hover:bg-yellow-400/50 transition"
+              style={{ fontFamily: 'League Spartan, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif' }}
+            >
+              <div className="space-y-2">
+                <div>FIND DOCTORS</div>
+                <div className="text-xl md:text-2xl">SKIP THE QUEUE</div>
+                <div className="text-xl md:text-2xl">WHATSAPP — MEET DOCTOR IN FEW CLICKS</div>
+                <div className="mt-4 flex items-center justify-center gap-3">
+                  <Link to="/services/doctors" className="px-4 py-2 rounded-full bg-black text-white text-base md:text-lg">See Doctors</Link>
+                  <a href={WHATSAPP_BOOK_URL} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-full bg-black text-white text-base md:text-lg">Send "Hi"</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SECOND SECTION (Image 2) */}
         <section className="relative min-h-screen flex items-center justify-center text-center text-white">
           <img src="/yello.png" alt="Know Yourself" className="absolute inset-0 w-full h-full object-cover" />

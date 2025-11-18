@@ -22,17 +22,6 @@ const subcategoryListings: Record<string, Record<string, Listing[]>> = {
       { id: 'pb-3', name: 'Go Picklers', location: '2nd Main Rd', thumb: '/p3.png', details: 'Pickleball court' },
     ],
   },
-  gyms: {
-    'fun-workout': [
-      { id: 'fw-1', name: 'Fit and Gold Gym', location: 'Raja Park', thumb: '/fng.png', details: 'Gym' },
-      { id: 'fw-2', name: 'Group NATURE Fun workout', location: 'Bhagat Singh Park · Raja Park', thumb: '/parkyoga.jpg', details: 'Group workout' },
-      { id: 'fw-3', name: 'Group workout & MUSICAL YOGA', location: 'Central Park', thumb: '/yoga.png', details: 'Musical yoga' },
-      { id: 'fw-4', name: 'Eco Fitness dance', location: 'Central Park', thumb: '/dancecp.png', details: 'Eco fitness dance' },
-      { id: 'fw-5', name: 'RELAXING MEDITATION IN NATURE', location: 'Central Park', thumb: '/meditation.png', details: 'Meditation' },
-      { id: 'fw-6', name: 'Sweatbox Gym', location: 'Raja Park', thumb: 'https://lh3.googleusercontent.com/p/AF1QipN4ORSvcvxZBpkSg9dTOlbslHFrhRgmKH1CVwgl=s1360-w1360-h1020-rw', details: 'Gym' },
-      { id: 'fw-7', name: 'Fit Arena Gym', location: 'Vidyadarnagar', thumb: 'https://img.fitimg.in/studio_profile_46256E619E41BE.png', details: 'Gym' },
-    ],
-  },
 };
 
 const SubcategoryListingsPage: React.FC = () => {

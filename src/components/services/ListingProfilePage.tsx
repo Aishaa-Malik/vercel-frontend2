@@ -10,6 +10,9 @@ type Profile = {
   hours: string;
   pricing: string;
   contact: { phone?: string; email?: string; address?: string };
+  ratingScore?: number;
+  ratingCount?: number;
+  mapUrl?: string;
 };
 
 const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = {
@@ -204,8 +207,120 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
         description: 'Gym with modern equipment and spacious floor.',
         facilities: ['Weights', 'Cardio', 'Lockers'],
         hours: '6 AM – 10 PM',
+        pricing: '₹80 per session',
+        contact: { phone: '+91 8619439126', address: 'Vidyadarnagar' },
+      },
+       'fw-8': {
+        name: 'Fitness Connection',
+        images: ['https://lh3.googleusercontent.com/p/AF1QipMCJ78ZGMoyZ-1lCdTqN3Hij82Y0vPL-j0NtlfR=s1360-w1360-h1020-rw'],
+        description: 'Gym with modern equipment and spacious floor.',
+        facilities: ['Weights', 'Cardio', 'Lockers'],
+        hours: '6 AM – 10 PM',
         pricing: '₹120 per session',
         contact: { phone: '+91 8619439126', address: 'Vidyadarnagar' },
+      },
+      'fw-9': {
+        name: 'One Rule Gym',
+        images: ['https://lh3.googleusercontent.com/gps-cs-s/AG0ilSwhMp7yBIEdzNXrD6TIROue5d4wwUJS57bAtLj1KEdo3jwi_T1A3C2Sgsd3cCktzEm_BYVmq1-iyINNyIghEY8x3NQmyRfIcP2tGeFi88yztsgeJpWsGSEX-SJw1OSS6mPQtTMnvpK-90r8=s1360-w1360-h1020-rw'],
+        description: 'Gym with modern equipment and spacious floor.',
+        facilities: ['Weights', 'Cardio', 'Lockers'],
+        hours: '6 AM – 10 PM',
+        pricing: '₹120 per session',
+        contact: { phone: '+91 8619439126', address: 'Raja Park' },
+      },
+    },
+  },
+  doctors: {
+    'general-physician': {
+      'dr-vijay-pathak': {
+        name: 'Dr. Vijay Pathak',
+        images: ['/doctor.jpg'],
+        description: 'Cardiac surgeon and general physician consultations.',
+        facilities: ['Consultation'],
+        hours: '5 PM – 7 PM (varies by day)',
+        pricing: 'Consultation on request',
+        contact: { phone: '+91 8619439126', address: 'Tilak Nagar' },
+        ratingScore: 4.3,
+        ratingCount: 195,
+        mapUrl: 'https://maps.app.goo.gl/7V5rqCSH9QRqyQY57',
+      },
+      'agarwal-clinic': {
+        name: 'Agarwal Clinic',
+        images: ['/doctor.jpg'],
+        description: 'Clinic offering OB/GYN and general physician services.',
+        facilities: ['Consultation'],
+        hours: '6 PM – 9 PM (varies)',
+        pricing: 'Consultation on request',
+        contact: { phone: '+91 8619439126', address: 'Tilak Nagar · Guru Nanak Pura' },
+        ratingScore: 5.0,
+        ratingCount: 116,
+        mapUrl: 'https://maps.app.goo.gl/Gam4Qqp9cP83srqd6',
+      },
+    },
+    physiotherapy: {
+      'physio-home-jawahar-nagar': {
+        name: 'Physiotherapy at home',
+        images: ['/homephysio.png'],
+        description: 'Home physiotherapy service at Jawahar Nagar.',
+        facilities: ['Home Visit', 'Pain Management'],
+        hours: '10 AM – 8 PM',
+        pricing: '₹200 per session',
+        contact: { phone: '+91 8619439126', address: 'Jawahar Nagar' },
+        mapUrl: 'https://maps.app.goo.gl/QGzfpXzkxgQ8MKE46',
+      },
+      'kritikas-physiotherapy-clinic': {
+        name: "Kritika's Physiotherapy Clinic",
+        images: ['/kritika.png'],
+        description: 'Physiotherapy & wellness center with modern treatments.',
+        facilities: ['Needle Therapy', 'Cupping', 'Stone Therapy'],
+        hours: '10 AM – 8:30 PM',
+        pricing: '₹200 per session',
+        contact: { phone: '+91 8619439126', address: 'Tilak Nagar' },
+        ratingScore: 5.0,
+        ratingCount: 66,
+        mapUrl: 'https://maps.app.goo.gl/wwZSpiW7U9tGiXaH7',
+      },
+    },
+    'mental-health-session': {
+      'art-of-living-tilak-nagar': {
+        name: 'Art of Living Happiness Center',
+        images: ['/images/services/service-4.jpg'],
+        description: 'Meditation and wellness center offering the Happiness Course and guided practices.',
+        facilities: ['Meditation', 'Guided Practices'],
+        hours: '6 AM – 8 PM',
+        pricing: 'Session fees on request',
+        contact: { phone: '+91 8619439126', address: 'Tilak Nagar' },
+        ratingScore: 5.0,
+        ratingCount: 55,
+        mapUrl: 'https://maps.app.goo.gl/RCcsrytoN69HXN6x6',
+      },
+    },
+    ayurveda: {
+      'aarohan-ayurveda-hospital': {
+        name: 'AAROHAN AYURVEDA Hospital',
+        images: ['/arohanayur.png'],
+        description: 'Ayurvedic hospital offering authentic therapies and care.',
+        facilities: ['Panchakarma', 'Therapies'],
+        hours: '9 AM – 7 PM',
+        pricing: 'Therapies on request',
+        contact: { phone: '+91 8619439126', address: 'Jaipur' },
+        ratingScore: 5.0,
+        ratingCount: 227,
+        mapUrl: 'https://maps.app.goo.gl/g2Q6XyoVhPRdhsgU6',
+      },
+    },
+    'emergency-ambulance-booking': {
+      'yadav-ambulance-service': {
+        name: 'Yadav Ambulance service',
+        images: ['/images/services/service-3.jpg'],
+        description: '24x7 ambulance service in Jaipur.',
+        facilities: ['24x7 Service'],
+        hours: 'Open 24 hours',
+        pricing: 'On request',
+        contact: { phone: '+91 8619439126', address: 'Jaipur' },
+        ratingScore: 5.0,
+        ratingCount: 4,
+        mapUrl: 'https://maps.app.goo.gl/mrYyVEMx6kfQoa1N7',
       },
     },
   },
@@ -235,6 +350,9 @@ const ListingProfilePage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 animate-fade-in">
       <div className="mx-auto max-w-6xl px-4 py-10">
         <h1 className="text-2xl md:text-3xl font-bold">{profile.name}</h1>
+        {typeof profile.ratingScore === 'number' && typeof profile.ratingCount === 'number' && (
+          <p className="mt-2 text-lg text-gray-800">{profile.ratingScore.toFixed(1)} ★ ({profile.ratingCount})</p>
+        )}
         <div className="mt-6">
           <ImageCarousel images={profile.images} />
         </div>
@@ -269,6 +387,11 @@ const ListingProfilePage: React.FC = () => {
                 {profile.contact.phone && <p>Phone: {profile.contact.phone}</p>}
                 {profile.contact.email && <p>Email: {profile.contact.email}</p>}
                 {profile.contact.address && <p>Address: {profile.contact.address}</p>}
+                {profile.mapUrl && (
+                  <p>
+                    <a href={profile.mapUrl} target="_blank" rel="noopener noreferrer" className="text-teal-600">View on Google Maps</a>
+                  </p>
+                )}
               </div>
               <div className="mt-4">
                 <a

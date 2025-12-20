@@ -8,12 +8,12 @@ const LandingPage3: React.FC = () => {
   const WHATSAPP_BOOK_URL = 'https://api.whatsapp.com/send/?phone=919351504729&text=Hi&type=phone_number&app_absent=0';
 
   const services = [
-    {
-      title: 'Doctors',
-      description:
-        'Book doctor consultations instantly over WhatsApp — no apps, no OTPs.',
-      cta: 'Check-in',
-    },
+    // {
+    //   title: 'Doctors',
+    //   description:
+    //     'Book doctor consultations instantly over WhatsApp — no apps, no OTPs.',
+    //   cta: 'Check-in',
+    // },
     {
       title: 'Healthcare Centres',
       description:
@@ -131,9 +131,10 @@ const LandingPage3: React.FC = () => {
               alt="Tori logo"
               className="mx-auto h-44 w-44 rounded mb-6"
             />
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">TORI — THE PAYTM OF BOOKING</h1>
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">TORI — THE AMAZON OF BOOKING ANY SERVICE</h1>
             <p className="mt-6 text-lg md:text-xl text-yellow-200">
-             like for PAYMENT PAYTM is the SIMPLEST & FASTEST METHOD for people, similarly for BOOKING anything or scheduling appointment- TORI is the MOST SIMPLEST & FASTEST METHOD OF BOOKING
+             AMAZON- BUY ANY PRODUCT, TORI- BOOK ANY SERVICE !
+             CLICK & BOOK ANY SERVICE - TORI is the MOST SIMPLEST & FASTEST METHOD OF BOOKING or Scheduling Appointment
 
             </p>
             <div className="mt-8">
@@ -171,7 +172,7 @@ const LandingPage3: React.FC = () => {
           </div>
         </section>
 
-        <section className="relative min-h-screen flex items-center justify-center text-center text-white">
+        {/* <section className="relative min-h-screen flex items-center justify-center text-center text-white">
           <img src="/doctor.jpg" alt="Find Doctors" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative z-10 max-w-4xl px-6">
@@ -190,7 +191,7 @@ const LandingPage3: React.FC = () => {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* SECOND SECTION (Image 2) */}
         <section className="relative min-h-screen flex items-center justify-center text-center text-white">
@@ -310,9 +311,13 @@ Bookings work ANY-TIME, not just your business hrs
               ))}
             </div>
 
-            {/* Back link */}
-            <div className="mt-8 text-center">
-              <a href="#" className="text-gray-300 hover:text-gray-200">back</a>
+            {/* Footer Links */}
+            <div className="mt-8 flex justify-center items-center gap-6 text-center pb-8">
+              <a href="#" className="text-gray-300 hover:text-gray-200">Back to Top</a>
+              <span className="text-gray-500">|</span>
+              <Link to="/privacy-policy" className="text-gray-300 hover:text-gray-200">Privacy Policy</Link>
+              <span className="text-gray-500">|</span>
+              <Link to="/refund-policy" className="text-gray-300 hover:text-gray-200">Refund Policy</Link>
             </div>
           </div>
         </section>

@@ -41,6 +41,7 @@ import TurfSettingsPage from './components/turf/TurfSettingsPage';
 
 import PrivacyPolicy from './components/PrivacyPolicy';
 import RefundPolicy from './components/RefundPolicy';
+import CancellationPolicy from './components/CancellationPolicy';
 
 
 // Check if user needs onboarding
@@ -140,6 +141,7 @@ function App() {
             <Route path="/update-password" element={<UpdatePassword />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/refund-policy" element={<RefundPolicy />} />
+            <Route path="/cancellation-policy" element={<CancellationPolicy />} />
 
             
             {/* Public Services Directory */}

@@ -318,6 +318,8 @@ Bookings work ANY-TIME, not just your business hrs
               <Link to="/privacy-policy" className="text-gray-300 hover:text-gray-200">Privacy Policy</Link>
               <span className="text-gray-500">|</span>
               <Link to="/refund-policy" className="text-gray-300 hover:text-gray-200">Refund Policy</Link>
+              <span className="text-gray-500">|</span>
+              <Link to="/cancellation-policy" className="text-gray-300 hover:text-gray-200">Cancellation Policy</Link>
             </div>
           </div>
         </section>

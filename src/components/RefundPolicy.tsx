@@ -85,13 +85,20 @@ const RefundPolicy = () => {
           <div className="pt-6 text-center border-t border-gray-100">
             <p className="text-gray-500 text-sm">
               Need technical help with a booking? <br />
-              <span className="text-blue-600 font-medium cursor-pointer">Connect with the TORI Team</span>
+              <a 
+                href="https://api.whatsapp.com/send/?phone=918619439126&text=Hi&type=phone_number&app_absent=0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 font-medium cursor-pointer hover:underline"
+              >
+                Connect with the TORI Team
+              </a>
             </p>
           </div>
         </div>
       </div>
       <p className="text-center mt-8 text-gray-400 text-xs tracking-widest uppercase">
-        Tori - The Paytm of Booking
+        Tori - The Amazon of Booking
       </p>
     </div>
   );

@@ -53,7 +53,7 @@ const PrivacyPolicy = () => {
       </div>
 
       <footer className="mt-12 pt-8 border-t text-center text-gray-500 italic">
-        <p>Built by TORI - The Paytm of Booking.</p>
+        <p>Built by TORI - The Amazon of Booking.</p>
       </footer>
     </div>
   );

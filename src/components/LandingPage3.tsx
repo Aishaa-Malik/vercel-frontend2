@@ -263,6 +263,30 @@ Bookings work ANY-TIME, not just your business hrs
             </div>
           </div>
         </section>
+
+        {/* Footer */}
+        <footer className="bg-black text-white py-12 border-t border-white/10">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex items-center gap-2">
+                <img src="/logo1.png" alt="Logo" className="h-8 w-8 rounded" />
+                <span className="text-sm uppercase tracking-wide text-gray-400">© 2025 Tori Ate</span>
+              </div>
+              
+              <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+                <Link to="/privacy-policy" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+                <a href="/terms.html" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  Terms & Conditions
+                </a>
+                <a href="/refund-policy.html" className="text-sm text-gray-400 hover:text-white transition-colors">
+                  Refund & Cancellation Policy
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </>
   );

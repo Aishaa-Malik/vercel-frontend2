@@ -16,6 +16,10 @@ const sportsSubcategories: ServiceCategory[] = [
   { id: 'pickleball', name: 'Pickleball', slug: 'sports-venues/pickleball', description: 'Courts and coaching', image: '/p3.png' },
 ];
 
+const gymSubcategories: ServiceCategory[] = [
+  { id: 'fun-workout', name: 'Fun Workout', slug: 'gyms/fun-workout', description: 'Gyms, Yoga, Zumba & more', image: '/fng.png' },
+];
+
 const readableNames: Record<string, string> = {
   'sports-venues': 'Sports Venues',
   'healthcare-centres': 'Healthcare Centres',
@@ -38,6 +42,12 @@ const CategoryListingsPage: React.FC = () => {
         {category === 'sports-venues' ? (
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {sportsSubcategories.map((s) => (
+              <ServiceCategoryCard key={s.id} category={s} />
+            ))}
+          </div>
+        ) : category === 'gyms' ? (
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {gymSubcategories.map((s) => (
               <ServiceCategoryCard key={s.id} category={s} />
             ))}
           </div>

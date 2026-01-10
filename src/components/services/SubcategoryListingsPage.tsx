@@ -22,6 +22,19 @@ const subcategoryListings: Record<string, Record<string, Listing[]>> = {
       { id: 'pb-3', name: 'Go Picklers', location: '2nd Main Rd', thumb: '/p3.png', details: 'Pickleball court' },
     ],
   },
+  gyms: {
+    'fun-workout': [
+      { id: 'fw-1', name: 'Fit and Gold Gym', location: 'Raja Park', thumb: '/fng.png', details: 'Neighborhood gym with weights and cardio equipment.' },
+      { id: 'fw-2', name: 'Group NATURE Fun workout', location: 'Bhagat Singh Park · Raja Park', thumb: '/parkyoga.jpg', details: 'Outdoor group workout in nature.' },
+      { id: 'fw-3', name: 'Group workout & MUSICAL YOGA', location: 'Central Park', thumb: '/images/services/service-2.jpg', details: 'Group workout and musical yoga.' },
+      { id: 'fw-4', name: 'Eco Fitness dance', location: 'Central Park', thumb: '/dancecp.png', details: 'Eco-friendly fitness dance session.' },
+      { id: 'fw-5', name: 'RELAXING MEDITATION IN NATURE', location: 'Central Park', thumb: '/meditation.png', details: 'Relaxing guided meditation in nature.' },
+      { id: 'fw-6', name: 'Sweatbox Gym', location: 'Raja Park', thumb: 'https://lh3.googleusercontent.com/p/AF1QipN4ORSvcvxZBpkSg9dTOlbslHFrhRgmKH1CVwgl=s1360-w1360-h1020-rw', details: 'Local gym with functional training.' },
+      { id: 'fw-7', name: 'Fit Arena Gym', location: 'Vidyadarnagar', thumb: 'https://img.fitimg.in/studio_profile_46256E619E41BE.png', details: 'Gym with modern equipment.' },
+      { id: 'fw-8', name: 'Fitness Connection', location: 'Vidyadarnagar', thumb: 'https://lh3.googleusercontent.com/p/AF1QipMCJ78ZGMoyZ-1lCdTqN3Hij82Y0vPL-j0NtlfR=s1360-w1360-h1020-rw', details: 'Gym with modern equipment.' },
+      { id: 'fw-9', name: 'One Rule Gym', location: 'Raja Park', thumb: 'https://lh3.googleusercontent.com/gps-cs-s/AG0ilSwhMp7yBIEdzNXrD6TIROue5d4wwUJS57bAtLj1KEdo3jwi_T1A3C2Sgsd3cCktzEm_BYVmq1-iyINNyIghEY8x3NQmyRfIcP2tGeFi88yztsgeJpWsGSEX-SJw1OSS6mPQtTMnvpK-90r8=s1360-w1360-h1020-rw', details: 'Gym with modern equipment.' },
+    ],
+  },
 };
 
 const SubcategoryListingsPage: React.FC = () => {

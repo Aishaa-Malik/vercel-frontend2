@@ -102,6 +102,7 @@ const LandingPage3: React.FC = () => {
           <nav className="flex items-center gap-6">
             <Link to="/about" className="text-sm text-gray-200 hover:text-white">About Us</Link>
             <Link to="/contact" className="text-sm text-gray-200 hover:text-white">Contact Us</Link>
+            <Link to="/checkout" className="text-sm text-gray-200 hover:text-white font-medium">Checkout</Link>
             <Link to="/services" className="text-sm px-3 py-1 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition">SEE ALL SERVICES</Link>
           </nav>
         </div>

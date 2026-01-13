@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth, UserRole } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { CartProvider } from './context/CartContext';
 import './App.css';
 
 // Components
@@ -128,8 +129,9 @@ function App() {
     <Router>
       <AuthProvider>
         <ThemeProvider>
-        <div className="App">
-          <Routes>
+          <CartProvider>
+            <div className="App">
+              <Routes>
             <Route path="/" element={<LandingPage3 />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactUs />} />
@@ -249,6 +251,7 @@ function App() {
             </Route>
           </Routes>
         </div>
+          </CartProvider>
         </ThemeProvider>
       </AuthProvider>
     </Router>

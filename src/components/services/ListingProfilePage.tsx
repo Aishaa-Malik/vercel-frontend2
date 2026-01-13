@@ -1,6 +1,7 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import ImageCarousel from './ImageCarousel';
+import { useCart } from '../../context/CartContext';
 
 type Profile = {
   name: string;
@@ -328,7 +329,33 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
 
 const ListingProfilePage: React.FC = () => {
   const { category, subcategory, id } = useParams<{ category: string; subcategory?: string; id: string }>();
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
   const profile = category && id ? (subcategory ? sampleProfiles[category]?.[subcategory!]?.[id] : undefined) : undefined;
+
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+
+  const handleAddToCart = () => {
+    if (!profile || !id) return;
+    if (!selectedDate || !selectedTime) {
+      alert('Please select a date and time slot.');
+      return;
+    }
+
+    addToCart({
+      id,
+      name: profile.name,
+      price: profile.pricing,
+      date: selectedDate,
+      time: selectedTime,
+      image: profile.images[0],
+      category,
+      subcategory
+    });
+
+    navigate('/checkout');
+  };
 
   if (!profile) {
     return (
@@ -393,15 +420,53 @@ const ListingProfilePage: React.FC = () => {
                   </p>
                 )}
               </div>
-              <div className="mt-4">
-                <a
-                  href={`https://api.whatsapp.com/send/?phone=919351504729&text=${encodeURIComponent(`Book ${profile.name}`)}&type=phone_number&app_absent=0`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block rounded-md bg-teal-600 px-4 py-2 text-white"
-                >
-                  Book Now
-                </a>
+              <div className="mt-6 border-t pt-4">
+                <h3 className="font-semibold mb-2">Book Appointment</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
+                    <input 
+                      type="date" 
+                      className="w-full border border-gray-300 rounded-md p-2"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Time Slot</label>
+                    <select 
+                      className="w-full border border-gray-300 rounded-md p-2"
+                      value={selectedTime}
+                      onChange={(e) => setSelectedTime(e.target.value)}
+                    >
+                      <option value="">Select a time</option>
+                      {['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM', '06:00 PM'].map(time => (
+                        <option key={time} value={time}>{time}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={handleAddToCart}
+                    className="w-full flex items-center justify-center rounded-md bg-teal-600 px-4 py-3 text-white font-medium hover:bg-teal-700 transition-colors"
+                  >
+                    Add to Cart
+                  </button>
+                  
+                  <div className="text-center text-sm text-gray-500 my-2">- OR -</div>
+
+                  <a
+                    href={`https://api.whatsapp.com/send/?phone=919351504729&text=${encodeURIComponent(`Book ${profile.name}`)}&type=phone_number&app_absent=0`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center rounded-md border border-teal-600 px-4 py-3 text-teal-600 font-medium hover:bg-teal-50 transition-colors"
+                  >
+                    Book on WhatsApp
+                  </a>
+                </div>
               </div>
             </section>
           </aside>

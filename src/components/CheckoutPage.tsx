@@ -1,144 +1,232 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { MessageCircle, Smartphone, Globe, ArrowRight, Check, Zap } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import { Trash2, ArrowLeft, CreditCard, Lock, CheckCircle, Calendar, Clock, User, Phone, ArrowRight } from 'lucide-react';
+import axios from 'axios';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const CheckoutPage: React.FC = () => {
+  const { cartItems, removeFromCart, totalAmount, clearCart } = useCart();
+  const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handlePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !phone) {
+      alert('Please fill in your details.');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // 1. Create Order
+      const { data } = await axios.post('http://localhost:5001/api/create-order', {
+        amount: totalAmount,
+        currency: 'INR'
+      });
+
+      if (!data.success) throw new Error('Order creation failed');
+
+      // 2. Initialize Razorpay
+      const options = {
+        key: 'rzp_live_S3MicoHBoS9C24', // Live Key ID
+        amount: data.order.amount,
+        currency: data.order.currency,
+        name: 'Tori',
+        description: 'Service Booking',
+        image: '/logo1.png',
+        order_id: data.order.id,
+        handler: function (response: any) {
+           // Handle success - In a real app, verify signature here
+           alert(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
+           clearCart();
+           // Redirect to success page or orders
+           navigate('/'); 
+        },
+        prefill: {
+          name: name,
+          contact: phone,
+        },
+        theme: {
+          color: '#0d9488', // Teal-600
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+      
+    } catch (error: any) {
+      console.error('Payment Error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      alert(`Payment initialization failed: ${errorMessage}. Please try again.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (cartItems.length === 0) {
+     // Empty State
+     return (
+       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center font-sans">
+         <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-6">
+           <CreditCard className="w-10 h-10 text-teal-600" />
+         </div>
+         <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+         <p className="text-gray-500 mb-8 max-w-md">Looks like you haven't added any services yet. Explore our services to find what you need.</p>
+         <Link to="/services" className="px-8 py-3 bg-teal-600 text-white rounded-xl font-medium hover:bg-teal-700 transition-colors inline-flex items-center gap-2">
+           <ArrowLeft className="w-4 h-4" />
+           Browse Services
+         </Link>
+       </div>
+     );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50/30 animate-fade-in font-sans">
-      {/* Header - Reusing the style from LandingPage but keeping it simple */}
-      <header className="fixed top-0 left-0 right-0 z-20 bg-black/80 backdrop-blur-md border-b border-white/10">
-        <div className="mx-auto max-w-6xl px-6 h-16 flex items-center justify-between text-white">
-          <Link to="/" className="flex items-center gap-3 group">
-            <img src="/logo1.png" alt="Logo" className="h-10 w-10 rounded-lg shadow-lg group-hover:scale-105 transition-transform" />
-            <span className="text-lg font-bold tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Tori</span>
-          </Link>
-          <nav className="flex items-center gap-6">
-            <Link to="/services" className="text-sm font-medium px-5 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 hover:scale-105 transition-all duration-300">
-              See All Services
-            </Link>
-          </nav>
+    <div className="min-h-screen bg-gray-50 font-sans">
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+           <Link to="/" className="flex items-center gap-3">
+             <img src="/logo1.png" alt="Tori" className="w-8 h-8 rounded-lg shadow-sm" />
+             <span className="font-bold text-xl tracking-tight text-gray-900">Tori</span>
+           </Link>
+           <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+             <Lock className="w-3 h-3" />
+             <span className="font-medium">Secure Checkout</span>
+           </div>
         </div>
       </header>
 
-      <div className="pt-24 pb-20 px-6">
-        <div className="mx-auto max-w-5xl">
-          
-          {/* Main Title Section */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center p-1.5 mb-4 rounded-full bg-teal-100/50 border border-teal-200 text-teal-800">
-              <span className="bg-teal-500 text-white text-xs font-bold px-3 py-1 rounded-full mr-2">NEW</span>
-              <span className="text-sm font-medium pr-2">Seamless WhatsApp Booking</span>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight leading-tight">
-              Booking made <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-600">frictionless.</span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              No apps to download. No confusing forms. Just chat and book.
-            </p>
-          </div>
-
-          {/* Core Purpose Section - Highlighted */}
-          <div className="relative mb-20">
-            <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-emerald-500 transform -skew-y-1 rounded-3xl opacity-10 blur-xl"></div>
-            <div className="relative bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-              <div className="grid md:grid-cols-5 gap-0">
-                <div className="md:col-span-2 bg-gradient-to-br from-gray-900 to-gray-800 p-10 text-white flex flex-col justify-center relative overflow-hidden">
-                  <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
-                  <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-teal-500/20 rounded-full blur-2xl"></div>
-                  <Zap className="w-12 h-12 text-yellow-400 mb-6" />
-                  <h2 className="text-2xl font-bold mb-4">The Core Purpose</h2>
-                  <p className="text-gray-300 leading-relaxed opacity-90">
-                    We eliminated the friction. No logins, no OTPs, no manual entry. Just the speed of chat.
-                  </p>
-                </div>
-                <div className="md:col-span-3 p-10 md:p-12 flex flex-col justify-center">
-                  <h3 className="text-2xl font-bold text-black mb-6">
-                    Why choose Tori?
-                  </h3>
-                  <ul className="space-y-4">
-                    {[
-                      'No inconvenient login processes',
-                      'No manual booking details entry',
-                      'No waiting for irritating OTPs',
-                      'Instant confirmation via WhatsApp'
-                    ].map((item, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-1">
-                          <Check className="w-5 h-5 text-teal-500" strokeWidth={3} />
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="grid lg:grid-cols-3 gap-12">
+           {/* Left: Cart Items */}
+           <div className="lg:col-span-2 space-y-6">
+             <div className="flex items-center justify-between mb-2">
+                <h2 className="text-2xl font-bold text-gray-900">Order Summary</h2>
+                <span className="text-sm text-gray-500">{cartItems.length} items</span>
+             </div>
+             
+             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+               {cartItems.map((item, index) => (
+                 <div key={index} className="p-6 border-b border-gray-100 last:border-0 flex gap-6 hover:bg-gray-50/50 transition-colors">
+                    <div className="w-24 h-24 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden shadow-inner">
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">No Img</div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-gray-900 text-lg leading-tight">{item.name}</h3>
+                        <button onClick={() => removeFromCart(index)} className="text-gray-400 hover:text-red-500 transition-colors p-1 hover:bg-red-50 rounded-full">
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <p className="text-teal-600 font-bold text-lg mb-4">{item.price}</p>
+                      
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
+                          <Calendar className="w-4 h-4 text-teal-500" />
+                          <span className="font-medium">{item.date}</span>
                         </div>
-                        <span className="text-gray-700 font-medium">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
+                        <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">
+                          <Clock className="w-4 h-4 text-teal-500" />
+                          <span className="font-medium">{item.time}</span>
+                        </div>
+                      </div>
+                    </div>
+                 </div>
+               ))}
+             </div>
+             
+             <Link to="/services" className="inline-flex items-center text-teal-600 font-medium hover:text-teal-700 hover:underline">
+               <ArrowLeft className="w-4 h-4 mr-2" />
+               Add more services
+             </Link>
+           </div>
 
-          {/* Two Ways Cards */}
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            {/* Method 1 */}
-            <div className="group relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-xl hover:border-teal-200 transition-all duration-300">
-              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Smartphone className="w-24 h-24 text-teal-600" />
-              </div>
-              <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <span className="text-2xl font-bold text-teal-600">1</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Direct WhatsApp</h3>
-              <p className="text-gray-600 mb-8 leading-relaxed">
-                Simply send "Hi" to our official number. Our AI assistant will guide you through all available services and help you book instantly.
-              </p>
-              <a 
-                href="https://wa.me/919351504729?text=Hi" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-teal-600 font-bold hover:text-teal-700 group-hover:translate-x-1 transition-transform"
-              >
-                Chat now <ArrowRight className="w-4 h-4 ml-2" />
-              </a>
-            </div>
+           {/* Right: Details & Payment */}
+           <div className="lg:col-span-1">
+             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 sticky top-24">
+               <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                 <User className="w-5 h-5 text-teal-600" />
+                 Patient Details
+               </h3>
+               
+               <form onSubmit={handlePayment} className="space-y-5">
+                 <div>
+                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Full Name</label>
+                   <div className="relative">
+                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                     <input 
+                       type="text" 
+                       required
+                       value={name}
+                       onChange={(e) => setName(e.target.value)}
+                       className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all outline-none font-medium text-gray-900"
+                       placeholder="Enter your name"
+                     />
+                   </div>
+                 </div>
+                 
+                 <div>
+                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Phone Number</label>
+                   <div className="relative">
+                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                     <input 
+                       type="tel" 
+                       required
+                       value={phone}
+                       onChange={(e) => setPhone(e.target.value)}
+                       className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all outline-none font-medium text-gray-900"
+                       placeholder="Enter phone number"
+                     />
+                   </div>
+                 </div>
 
-            {/* Method 2 */}
-            <div className="group relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-xl hover:border-teal-200 transition-all duration-300">
-              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Globe className="w-24 h-24 text-blue-600" />
-              </div>
-              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <span className="text-2xl font-bold text-blue-600">2</span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Website Booking</h3>
-              <p className="text-gray-600 mb-8 leading-relaxed">
-                Browse services here. Click "Book Now" on any profile to be redirected to WhatsApp with the service details pre-filled.
-              </p>
-              <Link 
-                to="/services" 
-                className="inline-flex items-center text-blue-600 font-bold hover:text-blue-700 group-hover:translate-x-1 transition-transform"
-              >
-                Browse Services <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </div>
-          </div>
+                 <div className="pt-6 border-t border-gray-100 mt-6 space-y-3">
+                   <div className="flex justify-between text-gray-600">
+                     <span>Subtotal</span>
+                     <span>₹{totalAmount}</span>
+                   </div>
+                   <div className="flex justify-between text-gray-600">
+                     <span>Taxes & Fees</span>
+                     <span>₹0</span>
+                   </div>
+                   <div className="flex justify-between text-2xl font-bold text-gray-900 pt-4 border-t border-gray-100 border-dashed">
+                     <span>Total</span>
+                     <span>₹{totalAmount}</span>
+                   </div>
+                 </div>
 
-          {/* CTA Section */}
-          <div className="text-center">
-            <a 
-              href="https://wa.me/919351504729?text=Hi" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white transition-all duration-300 bg-gray-900 rounded-full hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 overflow-hidden"
-            >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-teal-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></span>
-              <span className="relative flex items-center gap-3">
-                <MessageCircle className="w-6 h-6" />
-                Start Booking on WhatsApp
-              </span>
-            </a>
-            <p className="mt-4 text-sm text-gray-500">
-              Official Number: <span className="font-semibold text-gray-700">9351504729</span>
-            </p>
-          </div>
-
+                 <button 
+                   type="submit" 
+                   disabled={loading}
+                   className="w-full mt-6 bg-gray-900 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-gray-800 hover:shadow-xl transform hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
+                 >
+                   {loading ? (
+                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                   ) : (
+                     <>
+                       <span>Pay Now</span>
+                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                     </>
+                   )}
+                 </button>
+                 
+                 <div className="flex items-center justify-center gap-2 mt-4 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+                   <img src="https://cdn.razorpay.com/static/assets/merchant-badge/badge-dark.png" alt="Razorpay" className="h-8" />
+                 </div>
+               </form>
+             </div>
+           </div>
         </div>
       </div>
     </div>

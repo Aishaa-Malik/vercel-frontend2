@@ -20,7 +20,6 @@ const UnifiedRevenuePage: React.FC<UnifiedRevenuePageProps> = ({ serviceType }) 
   const { tenant, user } = useAuth();
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [metrics, setMetrics] = useState<RevenueMetrics>({
     revenue: 0,
     count: 0,
@@ -157,6 +156,7 @@ const UnifiedRevenuePage: React.FC<UnifiedRevenuePageProps> = ({ serviceType }) 
 
   useEffect(() => {
     fetchRevenueData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilter, customDateRange, user?.tenantId]);
 
   const fetchRevenueData = async () => {
@@ -222,7 +222,7 @@ const UnifiedRevenuePage: React.FC<UnifiedRevenuePageProps> = ({ serviceType }) 
       });
 
       // Set all transactions for the period
-      setAllTransactions((periodTransactions as unknown as Transaction[]) || []);
+      setTransactions((periodTransactions as unknown as Transaction[]) || []);
       setTransactions((periodTransactions as unknown as Transaction[]) || []);
 
       // Calculate metrics for the selected period
@@ -253,18 +253,6 @@ const UnifiedRevenuePage: React.FC<UnifiedRevenuePageProps> = ({ serviceType }) 
       return `₹${amount.toLocaleString('en-IN')}`;
     }
     return `${currency} ${amount.toLocaleString()}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleString('en-US', {
-        timeZone: 'Asia/Kolkata',
-        hour12: true
-      }) + ' IST';
-    } catch (error) {
-      return dateString;
-    }
   };
 
   const formatDateOnly = (dateString: string) => {

@@ -164,7 +164,7 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
       'fw-1': {
         name: 'Fit and Gold Gym',
         images: ['/fng.png'],
-        description: 'Neighborhood gym with weights and cardio equipment.',
+        description: 'Gym with weights, Zumba classes, Training sessions, Floor exerscise and cardio equipment.',
         facilities: ['Zumba', 'Floor exercise', 'Weights', 'Cardio', 'Trainer'],
         hours: '6 AM – 10 PM',
         pricing: '₹130 per session',
@@ -176,7 +176,7 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
       'fw-2': {
         name: 'Group NATURE Fun workout',
         images: ['/parkyoga.jpg'],
-        description: 'Outdoor group workout in nature at Bhagat Singh Park.',
+        description: 'Outdoor group workout session in nature at Bhagat Singh Park, Jaipur.',
         facilities: ['Outdoor', 'Group workout', 'Bodyweight', 'REFRESHMENTS'],
         hours: '7 AM – 9 AM',
         pricing: '₹99 per session [2 hrs]',
@@ -188,7 +188,7 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
       'fw-3': {
         name: 'Group workout & MUSICAL YOGA',
         images: ['/images/services/service-2.jpg', '/parkyoga.jpg'],
-        description: 'Group workout and musical yoga at Central Park.',
+        description: 'Group workout and musical yoga session at Central Park, Jaipur.',
         facilities: ['Yoga Mats', 'Music', 'Instructor'],
         hours: '6 AM – 9 AM',
         pricing: '₹99 per session',
@@ -200,7 +200,7 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
       'fw-4': {
         name: 'Eco Fitness dance',
         images: ['/dancecp.png'],
-        description: 'Eco-friendly fitness dance session in the park.',
+        description: 'Eco-friendly fitness dance session in the park, Jaipur.',
         facilities: ['Dance', 'Outdoor', 'Music'],
         hours: '5 PM – 7 PM',
         pricing: '₹99 per session',

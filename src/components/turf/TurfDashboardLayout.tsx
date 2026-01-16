@@ -12,7 +12,7 @@ interface NavItem {
 }
 
 const TurfDashboardLayout: React.FC = () => {
-  const { tenant, user, logout } = useAuth();
+  const { user, logout } = useAuth();
   const { darkMode } = useTheme();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

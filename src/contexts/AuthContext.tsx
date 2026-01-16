@@ -212,7 +212,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { signIn, getCurrentSession, getUserRole, getUserTenant } = await import('../services/supabaseService');
+      const { signIn, getUserRole, getUserTenant } = await import('../services/supabaseService');
       const { session } = await signIn(email, password);
       if (!session) throw new Error('Invalid email or password');
 

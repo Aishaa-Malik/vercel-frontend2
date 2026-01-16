@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth, UserRole } from '../../contexts/AuthContext';
 import { supabase } from '../../services/supabaseService';
-import { UserData, UserProfile, ApprovedUser, UserManagementProps } from '../../types/userManagement.types';
+import { UserData, UserManagementProps } from '../../types/userManagement.types';
 import { getServiceConfig } from '../../config/userManagementConfig';
 
 const UnifiedUserManagement: React.FC<UserManagementProps> = ({ serviceType, config }) => {
@@ -24,6 +24,7 @@ const UnifiedUserManagement: React.FC<UserManagementProps> = ({ serviceType, con
   // Fetch both active users and pending invitations
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.tenantId, serviceType]);
 
   const getApprovedUsersTable = () => {

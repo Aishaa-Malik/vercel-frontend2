@@ -380,7 +380,7 @@ const ListingProfilePage: React.FC = () => {
     if (!id) return;
     const fetchProfile = async () => {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('business_profiles')
           .select('google_maps_profile, rating, review_count')
           .eq('id', id)

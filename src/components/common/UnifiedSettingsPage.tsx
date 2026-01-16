@@ -138,6 +138,7 @@ const UnifiedSettingsPage: React.FC<SettingsPageProps> = ({ serviceType }) => {
     };
 
     fetchUsageData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, tenant?.id, serviceType]);
 
   // Check for OAuth callback parameters

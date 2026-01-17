@@ -41,7 +41,7 @@ const OAuthCallback: React.FC = () => {
         }
 
         // Handle Supabase auth session (for login flow)
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         if (session && !code) {
           console.log('Supabase auth session found, logging in user');
           localStorage.setItem('authToken', session.access_token);
@@ -215,7 +215,7 @@ const OAuthCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, []); // Empty dependency array - only run once on mount
+  }, [loginFromSession, navigate, searchParams]); // Run once on mount and when deps change
 
   // Show status UI
   return (

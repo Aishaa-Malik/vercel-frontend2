@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../services/supabaseService';
 import { SERVICE_CONFIGS, ServiceConfig } from '../../config/serviceConfig';
-import { BookingData, ServiceType, DoctorBooking, TurfBooking } from '../../types/booking.types';
+import { BookingData, ServiceType, DoctorBooking } from '../../types/booking.types';
 import NewAppointmentForm from '../NewAppointmentForm';
 
 // Modal component for reuse
@@ -289,7 +289,7 @@ interface UnifiedBookingPageProps {
 
 const UnifiedBookingPage: React.FC<UnifiedBookingPageProps> = ({ serviceType }) => {
   const config = SERVICE_CONFIGS[serviceType];
-  const { tenant, user } = useAuth();
+  const { user } = useAuth();
   
   const [filter, setFilter] = useState('all');
   const statusOptions = ['all', 'Scheduled', 'Completed', 'Cancelled', 'No-show'];
@@ -307,14 +307,14 @@ const UnifiedBookingPage: React.FC<UnifiedBookingPageProps> = ({ serviceType }) 
   const [showModal, setShowModal] = useState(false);
 
   // Helper to get field value dynamically
-  const getFieldValue = (booking: BookingData, fieldType: 'name' | 'email' | 'contact') => {
+  const getFieldValue = useCallback((booking: BookingData, fieldType: 'name' | 'email' | 'contact') => {
     const fieldMap = {
       name: config.fields.customerName,
       email: config.fields.customerEmail,
       contact: config.fields.customerContact
     };
     return (booking as any)[fieldMap[fieldType]] || '';
-  };
+  }, [config]);
 
   // Function to handle viewing booking details
   const handleViewBooking = (booking: BookingData) => {
@@ -328,7 +328,7 @@ const UnifiedBookingPage: React.FC<UnifiedBookingPageProps> = ({ serviceType }) 
   };
 
   // Fetch bookings
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     if (!user?.tenantId) {
       console.error('No tenant ID available for fetching bookings');
       setError('No tenant ID available');
@@ -358,7 +358,7 @@ const UnifiedBookingPage: React.FC<UnifiedBookingPageProps> = ({ serviceType }) 
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.tenantId, config]);
 
   // File upload function (only for services that support it)
   const handleFileUpload = async (bookingId: string, file: File) => {
@@ -510,11 +510,11 @@ const UnifiedBookingPage: React.FC<UnifiedBookingPageProps> = ({ serviceType }) 
       
       return matchesFilter && matchesSearch;
     });
-  }, [bookings, filter, searchQuery, config]);
+  }, [bookings, filter, searchQuery, config, getFieldValue]);
 
   useEffect(() => {
     fetchBookings();
-  }, [user?.tenantId, refreshTrigger]);
+  }, [user?.tenantId, refreshTrigger, fetchBookings]);
 
   // Real-time subscription
   useEffect(() => {
@@ -540,7 +540,7 @@ const UnifiedBookingPage: React.FC<UnifiedBookingPageProps> = ({ serviceType }) 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.tenantId, config]);
+  }, [user?.tenantId, config, fetchBookings]);
 
   if (isLoading) {
     return (

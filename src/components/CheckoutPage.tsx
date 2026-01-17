@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { Trash2, ArrowLeft, CreditCard, Lock, CheckCircle, Calendar, Clock, User, Phone, ArrowRight } from 'lucide-react';
+import { Trash2, ArrowLeft, CreditCard, Lock, Calendar, Clock, User, Phone, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
 declare global {

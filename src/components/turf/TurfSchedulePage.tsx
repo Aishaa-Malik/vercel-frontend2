@@ -2,19 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../services/supabaseService';
 
-interface TenantIntegration {
-  id: string;
-  tenant_id: string;
-  provider: string;
-  integration_data: {
-    calendar_id?: string;
-    access_token?: string;
-    refresh_token?: string;
-  };
-}
+// interface TenantIntegration {
+//   id: string;
+//   tenant_id: string;
+//   provider: string;
+//   integration_data: {
+//     calendar_id?: string;
+//     access_token?: string;
+//     refresh_token?: string;
+//   };
+// }
 
 const TurfSchedulePage: React.FC = () => {
-  const { tenant, user } = useAuth();
+  const { tenant } = useAuth();
   const [calendarId, setCalendarId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

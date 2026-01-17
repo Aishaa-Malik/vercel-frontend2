@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseService';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const UpdatePassword: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
 
   useEffect(() => {
     const establishSession = async () => {
@@ -17,13 +17,13 @@ const UpdatePassword: React.FC = () => {
         const searchParams = new URLSearchParams(window.location.search.substring(1));
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
-        let type = hashParams.get('type');
+        // let type = hashParams.get('type');
 
         // Parse query params (signup / magic link)
         const otpToken = searchParams.get('token');
         const otpType = searchParams.get('type');
         const email = searchParams.get('email');
-        if (otpType) type = otpType;
+        // if (otpType) type = otpType;
 
         if (accessToken) {
           // Recovery flow – tokens present, just set session

@@ -6,7 +6,7 @@ import { CartProvider } from './context/CartContext';
 import './App.css';
 
 // Components
-import Header from './components/Header';
+//import Header from './components/Header';
 import LoginPage from './components/LoginPage';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardHome from './components/dashboard/DashboardHome';

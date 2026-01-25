@@ -260,7 +260,7 @@ Bookings work ANY-TIME, not just your business hrs
 
             {/* Back link */}
             <div className="mt-8 text-center">
-              <Link to="/" className="text-gray-300 hover:text-gray-200">back</Link>
+              <a href="#" className="text-gray-300 hover:text-gray-200">back</a>
             </div>
           </div>
         </section>

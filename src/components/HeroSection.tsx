@@ -74,16 +74,16 @@ const HeroSection: React.FC = () => {
       return;
     }
 
-    // const isMobile = window.innerWidth <= 1000;
-    // const headerIconSize = isMobile ? 30 : 60;
-    // const currentIconSize = iconElements.length > 0 ? iconElements[0].getBoundingClientRect().width : 50;
-    // const exactScale = headerIconSize / currentIconSize;
+    const isMobile = window.innerWidth <= 1000;
+    const headerIconSize = isMobile ? 30 : 60;
+    const currentIconSize = iconElements.length > 0 ? iconElements[0].getBoundingClientRect().width : 50;
+    const exactScale = headerIconSize / currentIconSize;
 
     // Initialize the timeline for smoother animations
-    // const tl = gsap.timeline({
-    //   paused: true,
-    //   defaults: { duration: 1, ease: "power2.inOut" }
-    // });
+    const tl = gsap.timeline({
+      paused: true,
+      defaults: { duration: 1, ease: "power2.inOut" }
+    });
     
     // Set initial states with improved performance settings
     gsap.set(animatedIcons, {

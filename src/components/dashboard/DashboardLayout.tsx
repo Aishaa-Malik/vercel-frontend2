@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 const DashboardLayout: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, tenant, logout } = useAuth();
   const { darkMode } = useTheme();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

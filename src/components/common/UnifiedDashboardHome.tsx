@@ -21,7 +21,7 @@ interface DashboardProps {
 }
 
 const UnifiedDashboardHome: React.FC<DashboardProps> = ({ serviceType }) => {
-  const { user } = useAuth();
+  const { user, tenant } = useAuth();
 
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalAppointments, setTotalAppointments] = useState(0);

@@ -24,7 +24,7 @@ const subcategoryListings: Record<string, Record<string, Listing[]>> = {
   },
   gyms: {
     'fun-workout': [
-      { id: 'fw-1', name: 'Fit and Gold Gym', location: 'Raja Park Jaipur', thumb: '/fng.png', details: 'Gym with weights and cardio equipment.', rating: 4.6, reviewCount: 62 },
+      { id: 'fw-1', name: 'Fit and Gold Gym', location: 'Raja Park Jaipur', thumb: '/fng.png', details: 'Gym with weights and cardio equipment.', rating: 4.6, reviewCount: 61 },
       { id: 'fw-2', name: 'Group NATURE Fun workout', location: 'Bhagat Singh Park · Raja Park, Jaipur', thumb: '/parkyoga.jpg', details: 'Outdoor group workout in nature.', rating: 4.8, reviewCount: 24 },
       { id: 'fw-3', name: 'Group workout & MUSICAL YOGA', location: 'Central Park, Jaipur', thumb: '/images/services/service-2.jpg', details: 'For all ages', rating: 4.7, reviewCount: 45 },
       { id: 'fw-4', name: 'Eco Fitness dance', location: 'Central Park, Jaipur', thumb: '/dancecp.png', details: 'Dance workout', rating: 4.9, reviewCount: 18 },

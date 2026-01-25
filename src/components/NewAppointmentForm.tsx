@@ -22,7 +22,7 @@ interface NewAppointmentFormProps {
 
 const NewAppointmentForm: React.FC<NewAppointmentFormProps> = ({ onClose, onSuccess, onRefresh }) => {
   const { tenant, user } = useAuth();
-  // const tenantId = tenant?.id || user?.tenantId;
+  const tenantId = tenant?.id || user?.tenantId;
 
   const [formData, setFormData] = useState<FormValues>({
     name: '',

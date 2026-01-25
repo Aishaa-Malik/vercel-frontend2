@@ -167,10 +167,10 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
         description: 'Gym with weights, Zumba classes, Training sessions, Floor exerscise and cardio equipment.',
         facilities: ['Zumba', 'Floor exercise', 'Weights', 'Cardio', 'Trainer'],
         hours: '6 AM – 10 PM',
-        pricing: '₹130 per session',
+        pricing: '₹99 per session',
         contact: { phone: '+91 96605 55556', address: '7 Jha 22 Jawahar Nagar Road Raja Park Jawahar Nagar puliya no 1, near Juicy Corner, Jaipur, Rajasthan 302004' },
         ratingScore: 4.6,
-        ratingCount: 62,
+        ratingCount: 61,
         mapUrl: 'https://maps.app.goo.gl/UQ23zD8tttmBw7a59',
       },
       'fw-2': {
@@ -227,7 +227,7 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
         description: 'Exceptional Gym with functional training and machines.',
         facilities: ['Weights', 'Cross-training', 'Trainer'],
         hours: '6 AM – 10 PM',
-        pricing: '₹130 per session',
+        pricing: '₹99 per session',
         contact: { phone: '+91 8619439126', address: 'Raja Park, 145, 3, Fashion St, near ram mandir, Raja Park, Jaipur, Rajasthan 302004' },
         ratingScore: 4.8,
         ratingCount: 74,
@@ -263,7 +263,7 @@ const sampleProfiles: Record<string, Record<string, Record<string, Profile>>> = 
         description: 'Gym with modern equipment and spacious floor.',
         facilities: ['Weights', 'Cardio', 'Lockers'],
         hours: '6 AM – 10 PM',
-        pricing: '₹120 per session',
+        pricing: '₹99 per session',
         contact: { phone: '+91 8619439126', address: 'Raja Park, 495/5, Dhruv Marg, Raja Park, Jaipur, Rajasthan 302004' },
         ratingScore: 4.4,
         ratingCount: 41,
@@ -380,7 +380,7 @@ const ListingProfilePage: React.FC = () => {
     if (!id) return;
     const fetchProfile = async () => {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('business_profiles')
           .select('google_maps_profile, rating, review_count')
           .eq('id', id)

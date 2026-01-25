@@ -14,7 +14,7 @@ const ImageCarousel: React.FC<Props> = ({ images }) => {
       <div className="aspect-[16/9] bg-black">
         <img
           src={images[current]}
-          alt={`Slide ${current + 1}`}
+          alt={`Image ${current + 1}`}
           className="h-full w-full object-cover"
           loading="lazy"
         />

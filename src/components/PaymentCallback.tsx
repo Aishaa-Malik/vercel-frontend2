@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-// import { useAuth } from '../contexts/AuthContext';
-// import { supabase } from '../services/supabaseService';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../services/supabaseService';
 
 // Use Vercel backend URL
 const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/api';
@@ -10,7 +10,7 @@ const BACKEND_API_URL = 'https://vercel-backend2-qj8e.vercel.app/api';
 const PaymentCallback: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  // const { login } = useAuth();
+  const { login } = useAuth();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [message, setMessage] = useState('Processing your payment...');
 

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   getSubscriptionAnalytics, 
   getSubscriptionPlans, 
-  // updateSubscriptionStatus,
+  updateSubscriptionStatus,
   SubscriptionPlan 
 } from '../../services/subscriptionService';
 
@@ -12,7 +12,7 @@ interface SubscriptionManagementProps {
 }
 
 const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({ className = '' }) => {
-  const { tenant } = useAuth();
+  const { tenant, user } = useAuth();
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +20,14 @@ const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({ classNa
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
 
-  const fetchSubscriptionData = useCallback(async () => {
+  useEffect(() => {
+    if (tenant?.id) {
+      fetchSubscriptionData();
+      fetchAvailablePlans();
+    }
+  }, [tenant?.id]);
+
+  const fetchSubscriptionData = async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -34,14 +41,7 @@ const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({ classNa
     } finally {
       setIsLoading(false);
     }
-  }, [tenant?.id]);
-
-  useEffect(() => {
-    if (tenant?.id) {
-      fetchSubscriptionData();
-      fetchAvailablePlans();
-    }
-  }, [tenant?.id, fetchSubscriptionData]);
+  };
 
   const fetchAvailablePlans = async () => {
     try {
@@ -52,10 +52,10 @@ const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({ classNa
     }
   };
 
-  // const handleUpgradePlan = (plan: SubscriptionPlan) => {
-  //   setSelectedPlan(plan);
-  //   setShowUpgradeModal(true);
-  // };
+  const handleUpgradePlan = (plan: SubscriptionPlan) => {
+    setSelectedPlan(plan);
+    setShowUpgradeModal(true);
+  };
 
   const handleUpgradeConfirm = () => {
     if (selectedPlan) {

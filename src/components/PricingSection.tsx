@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-// import { verifyPaymentAndUpdateRole } from '../services/razorpayService';
+import { verifyPaymentAndUpdateRole } from '../services/razorpayService';
 
 declare global {
   interface Window {
@@ -128,14 +128,14 @@ const PricingSection: React.FC = () => {
     }
   };
   
-  // const loadRazorpayScript = () => {
-  //   return new Promise((resolve) => {
-  //     const script = document.createElement('script');
-  //     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-  //     script.onload = resolve;
-  //     document.body.appendChild(script);
-  //   });
-  // };
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = resolve;
+      document.body.appendChild(script);
+    });
+  };
 
   return (
     <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8" id="pricing">
